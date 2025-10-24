@@ -1,4 +1,7 @@
+import { createLoggerSync } from '@toolprint/mcp-logger';
 import { BaseClientModuleImpl } from './base-client.js';
+
+const logger = createLoggerSync({ level: 'info' });
 
 export class UtilityClient extends BaseClientModuleImpl {
   /**
@@ -11,10 +14,9 @@ export class UtilityClient extends BaseClientModuleImpl {
       return true;
     } catch (error) {
       // Log the actual error for debugging
-      console.error(
-        'Health check failed:',
-        error instanceof Error ? error.message : 'Unknown error'
-      );
+      logger.error('Health check failed', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       return false;
     }
   }
@@ -29,14 +31,14 @@ export class UtilityClient extends BaseClientModuleImpl {
       return response.data;
     } catch (error) {
       // Fallback: verificar conectividade com /me
-      console.warn('Endpoint /info não disponível na API oficial, testando conectividade...');
+      logger.warn('Endpoint /info not available, testing connectivity via /me');
       try {
         await this.http.get('/me');
         return {
           message: 'API is responding (fallback test)',
           endpoint: '/me',
           status: 'healthy',
-          note: 'Endpoint /info não existe na API oficial do BusinessMap',
+          note: 'Endpoint /info does not exist in official BusinessMap API',
           api_version: 'v2',
           documentation: 'https://rdsaude.kanbanize.com/openapi/#/',
         };
