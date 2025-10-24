@@ -240,7 +240,10 @@ Users can read custom field definitions and manage custom field **values** on ca
 - Single-resource operations complete within 2 seconds
 - Bulk operations handle up to 50 resources within 10 seconds
 - Bulk delete operations analyze all resources upfront for dependencies before confirmation, adding <500ms overhead
-- API calls respect rate limits with exponential backoff retry logic
+- API calls respect rate limits with exponential backoff retry logic (max 3 retries, intervals: 1s, 2s, 4s)
+- Rate limit errors (RL02 error code) trigger automatic retry with exponential backoff
+- System logs warning at 80% rate limit threshold (24/30 requests per minute)
+- BusinessMap API default rate limits: 30 requests/minute, 600 requests/hour
 - Caching strategies minimize redundant API calls for frequently accessed data
 
 ### Reliability

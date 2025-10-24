@@ -197,6 +197,8 @@
 - [ ] T072 [P] Code cleanup and consistent error handling
 - [ ] T073 Build project with npm run build and verify no errors
 - [ ] T074 [OPTIONAL] Test column delete endpoint: attempt DELETE /columns/{id} against demo API with empty column; if successful, document as supported and create GitHub issue for future implementation; if fails, update spec.md FR-012 to mark as "NOT SUPPORTED" (see research.md line 205)
+- [ ] T075 [P] Create integration test suite validating success criteria SC-001 through SC-010 against demo API (performance targets, CRUD coverage percentages, error message quality, data integrity)
+- [ ] T076 [P] Implement error handling for unsupported workflow/column write operations in src/clients/base-client.ts or relevant tool files, returning clear message "Operation not supported by BusinessMap API. Workflow and column creation/modification are UI-only operations. Use BusinessMap web interface for these changes." per Constitution Principle I (addresses FR-007 through FR-011)
 
 ---
 
@@ -413,8 +415,8 @@ Phase 5 → Phase 6 → Phase 7 (shortest - 14 tasks total)
 
 ## Statistics
 
-- **Total Tasks**: 74 (was 60; +13 for bulk operations, +1 optional column delete test)
-- **Parallelizable Tasks**: 56 (76%)
+- **Total Tasks**: 76 (was 60; +13 bulk operations, +1 optional column test, +2 validation/error handling)
+- **Parallelizable Tasks**: 58 (76%)
 - **Sequential Tasks**: 18 (24%)
 - **Optional Tasks**: 1 (T074 - column delete testing)
 - **Estimated Time**:
