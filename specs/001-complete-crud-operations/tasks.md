@@ -63,7 +63,7 @@
 
 ## Phase 4: Custom Field Definitions CRUD (6 operations)
 
-**Goal**: Full CRUD support for custom field definitions (field schemas, types, options, constraints)
+**Goal**: Full CRUD support for custom field definitions (including field types, options, and constraints)
 
 **Note**: Custom field **values** on cards are managed via card update operations (existing functionality - no new tasks required).
 
@@ -148,7 +148,14 @@
 
 - [ ] T051 Define DeleteCardSchema in src/schemas/card-schemas.ts
 - [ ] T052 Create delete_card MCP tool in src/tools/card-tools.ts
-- [ ] T053 Register 1 card tool in src/index.ts (add delete_card to ListToolsRequest tools array; add 1 case to CallToolRequest switch statement)
+- [ ] T052a Verify getCardOutcomes client method exists in src/clients/card-client.ts; if missing, implement GET /cards/{card_id}/outcomes before proceeding to T053 (validates FR-004 implementation path)
+- [ ] T053 [P] Create get_card_outcomes MCP tool in src/tools/card-tools.ts (uses getCardOutcomes client method from T052a)
+- [ ] T053a [P] Verify lane update support in existing move_card tool; if missing, add lane_id parameter handling to src/tools/card-tools.ts move_card tool (validates FR-006)
+- [ ] T053b [P] Create add_card_parent MCP tool in src/tools/card-tools.ts (validates FR-006a: add parent relationship)
+- [ ] T053c [P] Create remove_card_parent MCP tool in src/tools/card-tools.ts (validates FR-006a: remove parent relationship)
+- [ ] T053d [P] Create get_card_parents MCP tool in src/tools/card-tools.ts (validates FR-006a: list parent cards)
+- [ ] T053e [P] Create get_card_children MCP tool in src/tools/card-tools.ts (validates FR-006a: list child cards)
+- [ ] T054 Register 6 card tools in src/index.ts (add delete_card, get_card_outcomes, add_card_parent, remove_card_parent, get_card_parents, get_card_children to ListToolsRequest tools array; add 6 cases to CallToolRequest switch statement) - Updated from 2 tools to include 4 parent-child relationship operations per FR-006a
 
 ---
 
@@ -160,28 +167,28 @@
 
 ### Foundation
 
-- [ ] T054 Design bulk operation request schema (array of resource IDs) in src/schemas/bulk-schemas.ts
-- [ ] T055 Implement DependencyAnalyzer service in src/services/dependency-analyzer.ts (checks workspace→boards, card→children)
+- [ ] T055 Design bulk operation request schema in src/schemas/bulk-schemas.ts with structure: `{resource_ids: number[], analyze_dependencies?: boolean}`. Schema validates: resource_ids non-empty array, all IDs are positive integers, max 50 resources per bulk operation (per performance constraint SC-008).
+- [ ] T056 Implement DependencyAnalyzer service in src/services/dependency-analyzer.ts per cascade delete rules in data-model.md "Cascade Delete Dependencies" section (checks workspace→boards, card→children)
 
 ### Bulk Delete Operations
 
-- [ ] T056 [P] Implement bulkDeleteWorkspaces method in src/clients/workspace-client.ts
-- [ ] T057 [P] Implement bulkDeleteBoards method in src/clients/board-client.ts
-- [ ] T058 [P] Implement bulkDeleteCards method in src/clients/card-client.ts
-- [ ] T059 Create ConsolidatedConfirmation service in src/services/confirmation-builder.ts (groups dependencies for display)
+- [ ] T057 [P] Implement bulkDeleteWorkspaces method in src/clients/workspace-client.ts
+- [ ] T058 [P] Implement bulkDeleteBoards method in src/clients/board-client.ts
+- [ ] T059 [P] Implement bulkDeleteCards method in src/clients/card-client.ts
+- [ ] T060 Create ConsolidatedConfirmation service in src/services/confirmation-builder.ts that formats dependency trees per contracts/CONFIRMATION_EXAMPLES.md (groups resources by has_dependencies vs dependency-free; formats hierarchical display with impact summary)
 
 ### Bulk Update Operations
 
-- [ ] T060 [P] Implement bulkUpdateWorkspaces method in src/clients/workspace-client.ts
-- [ ] T061 [P] Implement bulkUpdateBoards method in src/clients/board-client.ts
-- [ ] T062 [P] Implement bulkUpdateCards method in src/clients/card-client.ts
+- [ ] T061 [P] Implement bulkUpdateWorkspaces method in src/clients/workspace-client.ts
+- [ ] T062 [P] Implement bulkUpdateBoards method in src/clients/board-client.ts
+- [ ] T063 [P] Implement bulkUpdateCards method in src/clients/card-client.ts
 
 ### MCP Tools & Integration
 
-- [ ] T063 [P] Create bulk_delete_workspaces MCP tool in src/tools/workspace-tools.ts
-- [ ] T064 [P] Create bulk_delete_boards MCP tool in src/tools/board-tools.ts
-- [ ] T065 [P] Create bulk_delete_cards MCP tool in src/tools/card-tools.ts
-- [ ] T066 Register 6 bulk operation tools in src/index.ts (add bulk_delete_workspaces, bulk_update_workspaces, bulk_delete_boards, bulk_update_boards, bulk_delete_cards, bulk_update_cards to ListToolsRequest tools array; add 6 cases to CallToolRequest switch statement)
+- [ ] T064 [P] Create bulk_delete_workspaces MCP tool in src/tools/workspace-tools.ts
+- [ ] T065 [P] Create bulk_delete_boards MCP tool in src/tools/board-tools.ts
+- [ ] T066 [P] Create bulk_delete_cards MCP tool in src/tools/card-tools.ts
+- [ ] T067 Register 6 bulk operation tools in src/index.ts (add bulk_delete_workspaces, bulk_update_workspaces, bulk_delete_boards, bulk_update_boards, bulk_delete_cards, bulk_update_cards to ListToolsRequest tools array; add 6 cases to CallToolRequest switch statement)
 
 ---
 
@@ -189,16 +196,35 @@
 
 **Purpose**: Documentation, validation, cleanup
 
-- [ ] T067 [P] Update README.md with new tool descriptions (including bulk operations)
-- [ ] T068 [P] Update CHANGELOG.md with version bump and feature additions
-- [ ] T069 Validate all OpenAPI contracts by running ./contracts/validate-all.sh from repo root; expect zero errors from swagger-cli; if errors occur, fix contract YAML syntax/structure until validation passes (requires swagger-cli: npm install -g @apidevtools/swagger-cli)
-- [ ] T070 Run quickstart.md validation against demo API
-- [ ] T071 Bump version in package.json (suggest 1.2.0 due to bulk operations)
-- [ ] T072 [P] Code cleanup and consistent error handling
-- [ ] T073 Build project with npm run build and verify no errors
-- [ ] T074 [OPTIONAL] Test column delete endpoint: attempt DELETE /columns/{id} against demo API with empty column; if successful, document as supported and create GitHub issue for future implementation; if fails, update spec.md FR-012 to mark as "NOT SUPPORTED" (see research.md line 205)
-- [ ] T075 [P] Create integration test suite validating success criteria SC-001 through SC-010 against demo API (performance targets, CRUD coverage percentages, error message quality, data integrity)
-- [ ] T076 [P] Implement error handling for unsupported workflow/column write operations in src/clients/base-client.ts or relevant tool files, returning clear message "Operation not supported by BusinessMap API. Workflow and column creation/modification are UI-only operations. Use BusinessMap web interface for these changes." per Constitution Principle I (addresses FR-007 through FR-011)
+**Requirements Coverage**: T070-T076 support non-functional requirements (FR-016 validation, SC-009 error handling, SC-010 data integrity). T072 satisfies versioning per semver convention.
+
+- [ ] T068 [P] Update README.md with new tool descriptions (including bulk operations)
+- [ ] T068a [P] Add error message examples to all 22 tool descriptions in README.md: each tool MUST include 1-2 error scenarios showing (1) specific failure cause, (2) transient vs permanent indicator, (3) actionable remediation steps per Constitution Quality Standards lines 62-65 and FR-016
+- [ ] T069 [P] Update CHANGELOG.md with version bump and feature additions
+- [ ] T070 Validate all OpenAPI contracts by running ./contracts/validate-all.sh from repo root; expect zero errors from swagger-cli; if errors occur, fix contract YAML syntax/structure until validation passes (requires swagger-cli: npm install -g @apidevtools/swagger-cli)
+- [ ] T071 Run quickstart.md validation against demo API
+- [ ] T072 Bump version in package.json (suggest 1.2.0 due to bulk operations)
+- [ ] T073 [P] Verify all 17 new operations return errors matching FR-016 structure: (1) specific failure cause present in message, (2) transient vs permanent indicator verified via HTTP status codes (5xx=transient, 4xx=permanent) OR explicit keywords ("retry", "temporary", "invalid", "forbidden"), (3) actionable remediation steps present (e.g., "Check permissions", "Retry after N seconds", "Verify resource exists"). Test by triggering errors: invalid IDs (404), missing permissions (403), rate limits (429), network failures (503)
+- [ ] T074 Build project with npm run build and verify no errors; verify all 17 new write operations (update_workspace, delete_workspace, update_board, delete_board, delete_card, update_card_comment, delete_card_comment, update_card_subtask, delete_card_subtask, create_custom_field, update_custom_field, delete_custom_field, bulk_delete_workspaces, bulk_update_workspaces, bulk_delete_boards, bulk_update_boards, bulk_delete_cards, bulk_update_cards) respect BUSINESSMAP_READ_ONLY_MODE=true environment variable by checking tool registration logic in src/index.ts
+- [ ] T075 Test column delete endpoint against demo API: Create empty column via UI → Attempt DELETE /columns/{columnId} → If receives 204 No Content or 200 OK, document as SUPPORTED in spec.md FR-012 (change "REQUIRES VERIFICATION" to "MUST support delete") and create GitHub issue #[N] "Implement delete_column tool"; If receives 404 Not Found or 405 Method Not Allowed, update spec.md FR-012 to "NOT SUPPORTED: Column deletion is UI-only" and add to Out of Scope section line 206
+- [ ] T076 [P] Create integration test suite validating success criteria against demo API:
+  - SC-001: Measure update operation latency (target: <5s per operation)
+  - SC-002: Test deletion of unused resources (target: 100% success rate, no dependencies)
+  - SC-003: Verify all 5 quick win operations exposed as MCP tools (workspace update/delete, board update/delete, card delete)
+  - SC-004: Calculate card management CRUD coverage (target: 85%)
+  - SC-005: Verify workflow/column read operations + column deletion
+  - SC-006: Verify custom field value operations + definition management
+  - SC-007: Calculate overall CRUD coverage across all resource types (target: 80%)
+  - SC-008: Measure single-resource (<2s) and bulk operation (<10s for ≤50 resources) performance
+  - SC-009: Verify error messages include cause + remediation steps (100% of failure cases)
+  - SC-010: Run data integrity checks (zero data loss/corruption during operations)
+  - FR-004: Create card with outcomes → retrieve via get_card_outcomes → verify outcome data
+  - FR-006: Create card in lane A → move to lane B via move_card/update_card → verify lane change
+  - FR-014: Create card → set custom field value → update value → clear value → verify changes
+- [ ] T077 [P] Implement error handling for unsupported workflow/column write operations in src/clients/base-client.ts or relevant tool files, returning clear message "Operation not supported by BusinessMap API. Workflow and column creation/modification are UI-only operations. Use BusinessMap web interface for these changes." per Constitution Principle I (addresses FR-007 through FR-011)
+- [ ] T078 [P] Test cascade delete edge cases against demo API: (1) Create workspace with 3 boards → delete workspace → verify confirmation lists all 3 boards → verify cascade; (2) Create card with 2 children → delete parent → verify confirmation lists children → verify cascade behavior (spec.md:120-121)
+- [ ] T079 [P] Test validation edge cases against demo API: (1) Attempt create workflow column with duplicate name → verify clear uniqueness error; (2) Create text custom field with data → attempt change type to number → verify compatibility validation error; (3) Move card to lane at WIP limit → verify rejection with actionable error message (spec.md:123-125)
+- [ ] T080 [P] Test bulk operation edge cases against demo API: Create 5 workspaces (2 containing boards, 3 empty) → bulk delete all 5 → verify single consolidated confirmation lists only 2 workspaces with dependencies and their boards → verify all 5 deleted in batch execution with dependency-free workspaces included automatically (spec.md:127, validates FR-020/FR-021)
 
 ---
 
@@ -283,16 +309,31 @@ Task: T046, T047, T048, T049, T050
 Task: T051, T052, T053
 ```
 
-**Phase 8** (Polish):
+**Phase 8** (Bulk Operations):
+```bash
+# Foundation (sequential)
+Task: T055 → T056
+
+# Bulk operations (parallel)
+Task: T057, T058, T059, T060, T061, T062, T063
+
+# MCP tools (parallel)
+Task: T064, T065, T066
+
+# Registration (sequential)
+Task: T067
+```
+
+**Phase 9** (Polish):
 ```bash
 # Documentation (parallel)
-Task: T054, T055
+Task: T068, T068a, T069
 
 # Validation (sequential)
-Task: T056 → T057
+Task: T070 → T071
 
-# Finalization
-Task: T058, T059, T060
+# Finalization (parallel)
+Task: T073, T074, T075, T076, T077, T078, T079, T080
 ```
 
 ---
@@ -392,11 +433,14 @@ Phase 5 → Phase 6 → Phase 7 (shortest - 14 tasks total)
 - [ ] Delete board (verify cascade confirmation)
 - [ ] Delete workspace (verify cascade confirmation)
 
-### After Phase 8 (Polish)
+### After Phase 9 (Polish)
 - [ ] All contracts validate successfully
 - [ ] Quickstart.md validation passes
-- [ ] README reflects all 17 new tools
-- [ ] Version bumped to 1.1.0
+- [ ] README reflects all 22 tools
+- [ ] Version bumped to 1.2.0
+- [ ] All 8 edge cases tested and passing
+- [ ] Cascade delete confirmations working correctly
+- [ ] Validation errors clear and actionable
 
 ---
 
@@ -407,7 +451,7 @@ Phase 5 → Phase 6 → Phase 7 (shortest - 14 tasks total)
 - **Research**: API capabilities confirmed in `research.md` (80% CRUD coverage achieved)
 - **Rate Limits**: 30/min, 600/hr with RL02 error code on exceed
 - **Demo API**: `https://demo.kanbanize.com/api/v2` for testing
-- **Total Operations**: 12 new + 5 quick wins + 6 bulk = 23 tools added
+- **Total Operations**: 15 new single-resource (includes 4 parent-child) + 6 bulk + 5 quick wins = 26 tools added
 - **Coverage Impact**: 50% → ~80% (+30 percentage points)
 - **Bulk Operations**: Phase 8 adds dependency analysis and consolidated confirmation for workspace/board/card bulk delete/update
 
@@ -415,13 +459,12 @@ Phase 5 → Phase 6 → Phase 7 (shortest - 14 tasks total)
 
 ## Statistics
 
-- **Total Tasks**: 76 (was 60; +13 bulk operations, +1 optional column test, +2 validation/error handling)
-- **Parallelizable Tasks**: 58 (76%)
-- **Sequential Tasks**: 18 (24%)
-- **Optional Tasks**: 1 (T074 - column delete testing)
+- **Total Tasks**: 87 (was 83; +4 for FR-006a parent-child relationship operations)
+- **Parallelizable Tasks**: 68 (78%)
+- **Sequential Tasks**: 19 (22%)
+- **Optional Tasks**: 0 (T075 verification is mandatory; column delete implementation is conditional based on API support per FR-012)
 - **Estimated Time**:
-  - Sequential: 4-5 days (was 3-4; +1 day for bulk operations)
-  - Parallel (3 devs): 2-3 days (was 1-2; +1 day for bulk operations)
+  - Sequential: 4-5 days
+  - Parallel (3 devs): 2-3 days
   - MVP (Comments): 4-6 hours
   - MVP with Bulk Operations: Add +1-2 days
-  - Optional column test: +1-2 hours (if executed)

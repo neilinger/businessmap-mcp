@@ -632,6 +632,40 @@ stateDiagram-v2
 
 ---
 
+## Cascade Delete Dependencies
+
+### Primary Cascade Chains
+
+1. **Workspace → Boards → Cards**
+   - Deleting workspace cascades to all contained boards
+   - Each board delete cascades to all contained cards
+   - Card delete cascades to comments, subtasks, outcomes (per chain 2)
+
+2. **Card → Comments + Subtasks + Outcomes + Child Relationships**
+   - Deleting card removes all comments
+   - Deleting card removes all subtasks
+   - Deleting card removes all outcomes
+   - Deleting parent card removes parent→child links (children remain)
+
+3. **Board → Lanes + Columns**
+   - Board deletion handled by BusinessMap API
+   - MCP server does not need to analyze board→lane/column dependencies
+
+### DependencyAnalyzer Implementation Scope (T056)
+
+**MUST Analyze**:
+- Workspace → Boards (check board count via listBoards)
+- Card → Children (check child cards via getCardChildren)
+
+**API-Handled** (no MCP analysis needed):
+- Board → Cards (API handles cascade)
+- Board → Lanes/Columns (API handles cascade)
+- Card → Comments/Subtasks/Outcomes (API handles cascade)
+
+**Rationale**: MCP server only needs to analyze dependencies that require custom confirmation logic (workspace containing boards, card with children). All other cascades are transparently handled by BusinessMap API.
+
+---
+
 ## Data Model Version
 
 **Version**: 1.0.0

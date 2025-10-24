@@ -18,6 +18,7 @@ Quick reference guide for BusinessMap CRUD operations OpenAPI contracts.
 ### Documentation
 - [README.md](./README.md) - Usage guide and implementation notes
 - [CONTRACTS_SUMMARY.md](./CONTRACTS_SUMMARY.md) - Detailed summary and specifications
+- [CONFIRMATION_EXAMPLES.md](./CONFIRMATION_EXAMPLES.md) - Delete confirmation message formats (FR-021)
 
 ### Tools
 - [validate-all.sh](./validate-all.sh) - Validate all contracts with swagger-cli

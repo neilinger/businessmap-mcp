@@ -7,7 +7,7 @@
 
 ## Summary
 
-Implement complete CRUD operations for BusinessMap MCP server by exposing 17 new tools across Comments, Subtasks, Custom Fields, Workspaces, Boards, and Cards. Research revealed better-than-expected API coverage (~80% vs 65-75% estimated), with full CRUD support for Comments, Subtasks, and Custom Field definitions. Includes minimal viable rate limit handling strategy (axios-retry + header monitoring).
+Implement complete CRUD operations for BusinessMap MCP server by exposing 22 new MCP tools (11 new single-resource operations + 6 new bulk operations + 5 quick-win exposures) across Comments, Subtasks, Custom Fields, Workspaces, Boards, and Cards. Research revealed better-than-expected API coverage (~82% vs 65-75% estimated), with full CRUD support for Comments, Subtasks, and Custom Field definitions. Includes minimal viable rate limit handling strategy (axios-retry + header monitoring).
 
 **Key Findings**:
 - 12 new operations discovered as fully supported (previously uncertain)
@@ -84,6 +84,7 @@ specs/001-complete-crud-operations/
 │   ├── README.md
 │   ├── CONTRACTS_SUMMARY.md
 │   ├── INDEX.md
+│   ├── CONFIRMATION_EXAMPLES.md
 │   └── validate-all.sh
 └── tasks.md                             # Implementation tasks (/speckit.tasks - NOT YET CREATED)
 ```

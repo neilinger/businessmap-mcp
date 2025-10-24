@@ -48,13 +48,13 @@ Users can modify and remove BusinessMap resources (workspaces, boards, cards) th
 
 **Acceptance Scenarios**:
 
-1. **Given** a workspace exists with name "Old Project", **When** user calls update_workspace with new name "New Project", **Then** the workspace name changes and is reflected in all subsequent queries (tests workspace-client.ts:33)
-2. **Given** an empty workspace exists, **When** user calls delete_workspace, **Then** the workspace is deleted immediately without confirmation and no longer appears in workspace listings (tests workspace-client.ts:48)
-3. **Given** a board exists with description "Old Description", **When** user calls update_board with new description "New Description", **Then** the board description changes and is reflected in board queries (tests board-client.ts:64)
-4. **Given** an unused board exists with no cards, **When** user calls delete_board, **Then** the board is deleted immediately without confirmation and no longer appears in board listings (tests board-client.ts:73)
-5. **Given** a completed card exists with no children, **When** user calls delete_card, **Then** the card is deleted immediately without confirmation and is removed from all queries (tests card-client.ts:167)
-6. **Given** a workspace contains 3 boards, **When** user calls delete_workspace, **Then** system displays confirmation listing 3 dependent boards, and upon confirmation cascades delete to workspace, all boards, and their cards
-7. **Given** 5 workspaces exist (2 containing boards, 3 empty), **When** user calls bulk_delete_workspaces with all 5 IDs, **Then** system analyzes dependencies upfront and displays single consolidated confirmation listing only the 2 workspaces with boards and their dependents, **And** upon confirmation deletes all 5 workspaces in single transaction (dependency-free workspaces included automatically without separate confirmation)
+1. **Given** a workspace exists with name "Old Project", **When** user calls update_workspace with new name "New Project", **Then** the workspace name changes and is reflected in all subsequent queries (tests workspace-client.ts:33) **→ Tasks: T041, T043, T076**
+2. **Given** an empty workspace exists, **When** user calls delete_workspace, **Then** the workspace is deleted immediately without confirmation and no longer appears in workspace listings (tests workspace-client.ts:48) **→ Tasks: T042, T044, T076**
+3. **Given** a board exists with description "Old Description", **When** user calls update_board with new description "New Description", **Then** the board description changes and is reflected in board queries (tests board-client.ts:64) **→ Tasks: T046, T048, T076**
+4. **Given** an unused board exists with no cards, **When** user calls delete_board, **Then** the board is deleted immediately without confirmation and no longer appears in board listings (tests board-client.ts:73) **→ Tasks: T047, T049, T076**
+5. **Given** a completed card exists with no children, **When** user calls delete_card, **Then** the card is deleted immediately without confirmation and is removed from all queries (tests card-client.ts:167) **→ Tasks: T051, T052, T076**
+6. **Given** a workspace contains 3 boards, **When** user calls delete_workspace, **Then** system displays confirmation listing 3 dependent boards, and upon confirmation cascades delete to workspace, all boards, and their cards **→ Tasks: T056, T060, T078**
+7. **Given** 5 workspaces exist (2 containing boards, 3 empty), **When** user calls bulk_delete_workspaces with all 5 IDs, **Then** system analyzes dependencies upfront and displays single consolidated confirmation per format in contracts/CONFIRMATION_EXAMPLES.md, listing only resources with dependencies, **And** upon confirmation deletes all 5 workspaces in single transaction **→ Tasks: T055-T064, T080**
 
 ---
 
@@ -70,10 +70,10 @@ Users can perform full CRUD operations on card comments and subtasks, view card 
 
 **Acceptance Scenarios**:
 
-1. **Given** a card exists, **When** user adds a comment with text and mentions, **Then** the comment appears in the card's comment thread with proper attribution
-2. **Given** a card exists, **When** user adds a subtask with description and owner, **Then** the subtask appears in the card's subtask list and can be tracked separately
-3. **Given** a card has outcomes, **When** user retrieves card outcomes, **Then** the system displays all outcome records with resolution status and details
-4. **Given** a card is in lane A, **When** user updates the lane to B, **Then** the card moves to lane B and reflects the new position
+1. **Given** a card exists, **When** user adds a comment with text and mentions, **Then** the comment appears in the card's comment thread with proper attribution **→ Tasks: Pre-existing functionality (create_card_comment tool); validated by T076**
+2. **Given** a card exists, **When** user adds a subtask with description and owner, **Then** the subtask appears in the card's subtask list and can be tracked separately **→ Tasks: Pre-existing functionality (create_card_subtask tool); validated by T076**
+3. **Given** a card has outcomes, **When** user retrieves card outcomes, **Then** the system displays all outcome records with resolution status and details **→ Tasks: T052a (verify client method), T053 (create tool), T076 (validation)**
+4. **Given** a card is in lane A, **When** user updates the lane to B, **Then** the card moves to lane B and reflects the new position **→ Tasks: T053a (lane verification), T076 (validation)**
 
 ---
 
@@ -89,10 +89,10 @@ Users can view workflows and columns, with potential support for creating and mo
 
 **Acceptance Scenarios** *(subject to API capability verification)*:
 
-1. **Given** a board exists, **When** user attempts to create a workflow with name "Development Process", **Then** the system either creates the workflow (if API supports it) or returns clear error indicating operation not supported
-2. **Given** a workflow exists, **When** user attempts to add a column "Code Review" with WIP limit 3, **Then** the system either creates the column (if API supports it) or returns clear error indicating operation not supported
-3. **Given** a column exists with no cards, **When** user deletes it, **Then** the column is removed from the workflow (confirmed supported by API)
-4. **Given** workflow/column write operations are supported, **When** user updates column WIP limit, **Then** the changes are reflected in the board configuration
+1. **Given** a board exists, **When** user attempts to create a workflow with name "Development Process", **Then** the system either creates the workflow (if API supports it) or returns clear error indicating operation not supported **→ Tasks: T077 (unsupported operation error handling), T076 (validation)**
+2. **Given** a workflow exists, **When** user attempts to add a column "Code Review" with WIP limit 3, **Then** the system either creates the column (if API supports it) or returns clear error indicating operation not supported **→ Tasks: T077 (unsupported operation error handling), T076 (validation)**
+3. **Given** a column exists with no cards, **When** user deletes it, **Then** the column is removed from the workflow (confirmed supported by API) **→ Tasks: T075 (API verification + conditional implementation), T076 (validation)**
+4. **Given** workflow/column write operations are supported, **When** user updates column WIP limit, **Then** the changes are reflected in the board configuration **→ Tasks: T077 (unsupported operation error handling), T076 (validation)**
 
 ---
 
@@ -100,31 +100,31 @@ Users can view workflows and columns, with potential support for creating and mo
 
 Users can read custom field definitions and manage custom field **values** on cards to capture domain-specific data within BusinessMap's configured data model.
 
-**Why this priority**: Custom field values on cards are fully supported via card update operations, enabling domain-specific data tracking. Custom field **definitions** (creating new field types, modifying field schemas) may be admin-only or UI-only operations. Currently 25% coverage, focusing on field value management will provide practical extensibility.
+**Why this priority**: Custom field values on cards are fully supported via card update operations, enabling domain-specific data tracking. Custom field **definitions** (creating new field types, modifying field schemas) are fully supported via /customFields endpoints per OpenAPI v2 verification. Achieves 100% coverage for custom field management (both definitions and values).
 
-**API Capabilities**: Custom field **values** on cards support full CRUD via card operations. Custom field **definitions** (types, schemas, options) require admin API access verification.
+**API Capabilities**: Custom field **values** on cards support full CRUD via card operations. Custom field **definitions** (types, schemas, options) support full CRUD at /customFields and /boards/{id}/customFields endpoints (no admin restrictions detected via OpenAPI v2 verification).
 
 **Independent Test**: Can be tested by reading field definitions, then setting/updating/clearing custom field values on cards. Validates data capture capabilities within existing field definitions.
 
 **Acceptance Scenarios**:
 
-1. **Given** custom fields are defined on a board, **When** user retrieves custom field definitions, **Then** the system returns all field schemas with types, options, and constraints
-2. **Given** a card exists with custom fields, **When** user sets a custom field value (e.g., "Customer Priority" = "High"), **Then** the field value is saved and appears in subsequent card queries
-3. **Given** a card has custom field values, **When** user updates a field value (e.g., change priority from "High" to "Medium"), **Then** the updated value is reflected on the card
-4. **Given** custom field definition operations are supported, **When** admin user attempts to create/modify field schemas, **Then** the system either performs the operation (if API supports it) or returns clear error indicating admin-only access required
+1. **Given** custom fields are defined on a board, **When** user retrieves custom field definitions, **Then** the system returns all field schemas with types, options, and constraints **→ Tasks: T033, T034, T035 (list/get custom field tools), T076 (validation)**
+2. **Given** a card exists with custom fields, **When** user sets a custom field value (e.g., "Customer Priority" = "High"), **Then** the field value is saved and appears in subsequent card queries **→ Tasks: Pre-existing functionality (update_card with custom fields); validated by T076**
+3. **Given** a card has custom field values, **When** user updates a field value (e.g., change priority from "High" to "Medium"), **Then** the updated value is reflected on the card **→ Tasks: Pre-existing functionality (update_card with custom fields); validated by T076**
+4. **Given** custom field definition operations are supported, **When** admin user attempts to create/modify field definitions, **Then** the system either performs the operation (if API supports it) or returns clear error indicating admin-only access required **→ Tasks: T036, T037, T038 (create/update/delete custom field definition tools), T076 (validation)**
 
 ---
 
 ### Edge Cases
 
-- **Deleting workspace with boards**: System displays confirmation prompt listing all dependent boards; upon confirmation, cascades delete to all contained boards and their cards. Empty workspaces delete immediately without confirmation.
-- **Deleting card with children/parents**: System displays confirmation prompt listing all dependent cards; upon confirmation, cascades delete to all child cards and removes parent relationships. Cards without dependencies delete immediately without confirmation.
-- **Updating board with active viewers**: System allows update; concurrent viewers see changes on next refresh following BusinessMap's eventual consistency model
+- **Deleting workspace with boards**: See FR-021 for cascade delete confirmation behavior (workspace→boards→cards).
+- **Deleting card with children/parents**: See FR-021 for cascade delete confirmation behavior (card→children, parent relationship removal).
+- **Updating board with active viewers**: System allows update; concurrent viewers see changes on next refresh following BusinessMap's eventual consistency model (consistency model handled by BusinessMap API; MCP server makes no additional guarantees beyond API behavior)
 - **Creating workflow with duplicate column names**: System validates uniqueness within workflow scope and returns clear error message if duplicate detected
 - **Updating custom field type with existing data**: System validates data compatibility; blocks incompatible changes (e.g., text to number with non-numeric values) with clear error message
 - **Moving card to lane at WIP limit**: System respects WIP limit enforcement configured in BusinessMap; blocks move if limit reached and returns actionable error message
 - **Deleting comment referenced elsewhere**: Comments are self-contained entities; deletion removes comment regardless of external references
-- **Bulk delete with mixed dependencies**: System analyzes all target resources upfront; displays single confirmation listing only resources with dependencies and their cascade impact; dependency-free resources execute automatically in same transaction without separate confirmation
+- **Bulk delete with mixed dependencies**: System analyzes all target resources upfront and displays single consolidated confirmation per format in contracts/CONFIRMATION_EXAMPLES.md; dependency-free resources included automatically in batch execution without separate confirmation
 
 ## Requirements *(mandatory)*
 
@@ -136,21 +136,22 @@ Users can read custom field definitions and manage custom field **values** on ca
 - **FR-004**: Users MUST be able to retrieve card outcomes including resolution status and details (API supports GET only; outcome creation/modification not available via API)
 - **FR-005**: System MUST support full CRUD operations on card subtasks with description, owner, deadline, and completion status (API supports GET, POST, PATCH, DELETE - verified via OpenAPI v2 spec)
 - **FR-006**: System MUST support updating card lane assignments to move cards between swimlanes (supported via existing card move operation)
+- **FR-006a**: System MUST support managing parent-child card relationships including adding parent cards, removing parent cards, listing parent cards, and listing child cards (API supports: POST /cards/{id}/parents, DELETE /cards/{id}/parents/{parent_id}, GET /cards/{id}/parents, GET /cards/{id}/children - achieving 4/4 relationship management operations per SC-004)
 - **FR-007**: ~~Users SHOULD be able to create workflows~~ → **NOT SUPPORTED**: Workflow creation is a UI-only operation per OpenAPI v2 verification. Read-only access available via GET endpoints for cycle time columns.
 - **FR-008**: ~~Users SHOULD be able to update workflow properties~~ → **NOT SUPPORTED**: Workflow updates are UI-only operations. No PATCH endpoint available in API.
 - **FR-009**: ~~Users SHOULD be able to delete workflows~~ → **NOT SUPPORTED**: Workflow deletion is a UI-only operation. No DELETE endpoint available in API.
 - **FR-010**: ~~Users SHOULD be able to create columns~~ → **NOT SUPPORTED**: Column creation is a UI-only operation. No POST endpoint available in API.
 - **FR-011**: ~~Users SHOULD be able to update column properties~~ → **NOT SUPPORTED**: Column updates are UI-only operations. No PATCH endpoint available in API.
-- **FR-012**: ~~Users MUST be able to delete columns~~ → **REQUIRES TESTING**: DELETE endpoint mentioned in documentation but not in OpenAPI spec. Research recommends testing against demo API to confirm availability (see research.md line 205).
+- **FR-012**: ~~Users SHOULD be able to delete columns~~ → **REQUIRES VERIFICATION**: DELETE endpoint mentioned in documentation but not in OpenAPI spec. Mandatory task T074 will confirm support before implementation decision. If confirmed, promote to MUST and implement in Phase 3; otherwise mark NOT SUPPORTED (see research.md line 205).
 - **FR-013**: System MUST support reading custom field definitions including field types, options, and constraints (API supports GET operations)
 - **FR-014**: Users MUST be able to set, update, and clear custom field **values** on cards via card update operations (full CRUD supported for field values)
-- **FR-015**: Users MUST be able to create, update, and delete custom field **definitions** (field types, schemas, options) at /customFields and /boards/{id}/customFields endpoints (API supports full CRUD with no admin restrictions detected - verified via OpenAPI v2 spec)
-- **FR-016**: System MUST validate all operations against BusinessMap API constraints and return meaningful error messages (satisfied by Zod schema validation at MCP tool boundary per tasks T004-T066; BusinessMap API provides constraint validation)
+- **FR-015**: Users MUST be able to create, update, and delete custom field **definitions** (including field types and options) at /customFields and /boards/{id}/customFields endpoints (API supports full CRUD with no admin restrictions detected - verified via OpenAPI v2 spec)
+- **FR-016**: System MUST validate all operations per Validation Boundary defined in Glossary and return error messages per Constitution Quality Standards (lines 62-65): (1) specific failure cause, (2) transient vs permanent indicator, (3) actionable remediation steps. MCP server translates API error responses into actionable user messages (satisfied by tasks T004-T066).
 - **FR-017**: System MUST preserve referential integrity through cascade delete operations (satisfied by BusinessMap API cascade delete behavior; MCP server delegates to API per FR-021 confirmation logic)
 - **FR-018**: System MUST handle concurrent modification scenarios with appropriate conflict detection (satisfied by BusinessMap API optimistic locking; MCP server propagates API conflict errors to user)
 - **FR-019**: All operations MUST maintain audit trail information including timestamp and user attribution (satisfied by BusinessMap API audit trail; all mutations automatically tracked by API with user context from authentication token)
-- **FR-020**: System MUST support bulk operations for efficiency when operating on multiple resources. Bulk delete operations MUST analyze resources upfront and display single confirmation listing only resources with dependencies and their dependents; dependency-free resources included automatically in the same transaction.
-- **FR-021**: Delete operations with dependencies MUST display confirmation prompt listing all dependent resources; upon confirmation, MUST cascade delete all dependents (workspace→boards→cards; card→children). Simple deletions (no dependencies) and all update operations execute immediately without confirmation. For bulk delete operations: analyze all resources upfront and display single consolidated confirmation listing only resources with dependencies and their dependents; dependency-free resources included automatically in the same transaction.
+- **FR-020**: System MUST support bulk operations for efficiency when operating on multiple resources (workspace, board, card only in v1.2.0; comments, subtasks, custom fields deferred). Bulk operations execute as a batch of sequential API calls with consolidated dependency analysis and confirmation. Operations complete independently; partial success scenarios return detailed per-resource status report (successful operations remain committed, failed operations report specific errors). Bulk delete operations MUST analyze resources upfront and display single confirmation listing only resources with dependencies and their dependents; dependency-free resources included automatically in the batch execution.
+- **FR-021**: Delete operations with dependencies MUST display confirmation prompt listing all dependent resources; upon confirmation, MUST cascade delete all dependents (workspace→boards→cards; card→children). Simple deletions (no dependencies) and all update operations execute immediately without confirmation. For bulk delete operations: analyze all resources upfront and display single consolidated confirmation per format examples in contracts/CONFIRMATION_EXAMPLES.md listing only resources with dependencies and their dependents; dependency-free resources included automatically in the batch execution.
 
 ### Key Entities
 
@@ -159,10 +160,16 @@ Users can read custom field definitions and manage custom field **values** on ca
 - **Card**: Primary work item with title, description, owner, assignees, custom fields, comments, outcomes, and relationships to other cards
 - **Comment**: Text annotation on a card with author, timestamp, content, and optional mentions
 - **Outcome**: Resolution record for a card including status, resolution type, and closure details
-- **Lane**: Horizontal swimlane within a workflow for organizing cards by category, priority, or team
+- **Lane**: Horizontal lane within a workflow for organizing cards by category, priority, or team
 - **Workflow**: Process definition containing ordered columns representing work stages
 - **Column**: Stage within a workflow with name, WIP limit, and position in the process flow
 - **Custom Field**: User-defined data field with type, label, allowed values, and assignment to specific boards or card types
+
+### Glossary
+
+- **Cascade Delete**: Automatic deletion of dependent resources when parent is deleted (workspace→boards→cards; card→children). Requires confirmation prompt listing all dependents per FR-021.
+- **Dependency Analysis**: Pre-delete validation that identifies all resources that will be affected by cascade delete. Used for bulk operations to generate consolidated confirmation (see FR-020).
+- **Validation Boundary**: MCP server validates input data structure (parameter types, required fields, format constraints) via Zod schemas at tool boundary before API calls. BusinessMap API validates business rules (WIP limits, workflow rules, permissions, referential integrity). MCP server responsibility: translate API error responses into actionable user messages per FR-016 Constitution Quality Standards.
 
 ## Success Criteria *(mandatory)*
 
@@ -170,11 +177,11 @@ Users can read custom field definitions and manage custom field **values** on ca
 
 - **SC-001**: Users can update workspace, board, and card properties within 5 seconds per operation
 - **SC-002**: Users can delete unused resources (workspaces, boards, cards) without errors 100% of the time when no dependencies exist
-- **SC-003**: 100% of existing client-layer operations (5 quick wins) are exposed as MCP tools within first implementation phase
-- **SC-004**: Card management achieves approximately 95% CRUD coverage for confirmed operations (comments: full CRUD, subtasks: full CRUD, outcomes: read-only, lane updates: full support)
+- **SC-003**: 100% of existing client-layer operations (5 quick wins) are exposed as MCP tools within first implementation phase, plus 21 new operations (15 single-resource including 4 parent-child + 6 bulk) for a total of 26 tools
+- **SC-004**: Card management achieves 85% CRUD coverage for confirmed operations, calculated as: (comments 4/4 + subtasks 4/4 + outcomes 1/4 + lane updates 4/4 + parent/child relationships 4/4 per FR-006a) / 20 total = 17/20 = 85%. Updated to reflect actual coverage.
 - **SC-005**: Workflow and column management exposes read operations and column deletion; create/update operations require API verification and may achieve 25-50% coverage depending on API access level
-- **SC-006**: Custom field management achieves 100% coverage for field **values** on cards; field **definition** management (create/update/delete schemas) requires admin API verification
-- **SC-007**: Overall CRUD coverage across all resource types reaches approximately 80% based on confirmed API capabilities (up from current 50%)
+- **SC-006**: Custom field management achieves 100% coverage for field **values** on cards and field **definition** management (create/update/delete definitions verified via OpenAPI v2)
+- **SC-007**: Overall CRUD coverage across all resource types reaches 83%, calculated as: (Workspaces 4/4 + Boards 4/4 + Cards 4/4 + Parent-Child Relationships 4/4 + Comments 4/4 + Subtasks 4/4 + Custom Fields 6/6 + Custom Field Values 4/4 + Lanes 2/4 + Outcomes 1/4 + Workflows 2/8 + Columns 1/8) / 48 total operations = 40/48 = 83% (up from 50%).
 - **SC-008**: All operations complete within 2 seconds for single-resource actions and within 10 seconds for bulk operations
 - **SC-009**: Error messages for failed operations clearly indicate the cause and suggest remediation actions in 100% of failure cases, including explicit messaging when API operations are not supported
 - **SC-010**: Zero data loss or corruption events during update and delete operations when validated by integration tests
@@ -244,7 +251,6 @@ Users can read custom field definitions and manage custom field **values** on ca
 - Rate limit errors (RL02 error code) trigger automatic retry with exponential backoff
 - System logs warning at 80% rate limit threshold (24/30 requests per minute)
 - BusinessMap API default rate limits: 30 requests/minute, 600 requests/hour
-- Caching strategies minimize redundant API calls for frequently accessed data
 
 ### Reliability
 
@@ -252,7 +258,7 @@ Users can read custom field definitions and manage custom field **values** on ca
 - Failed operations provide actionable error messages with specific failure causes
 - Transient failures trigger automatic retry with exponential backoff (max 3 attempts)
 - Critical operations log detailed diagnostic information for troubleshooting
-- Bulk operations execute as single transaction; partial success scenarios provide detailed success/failure report per resource
+- Bulk operations execute as sequential batch; partial success scenarios provide detailed success/failure report per resource (completed operations remain committed)
 
 ### Usability
 
