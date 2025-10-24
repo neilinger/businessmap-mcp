@@ -1,8 +1,11 @@
 import dotenv from 'dotenv';
+import { createLoggerSync } from '@toolprint/mcp-logger';
 import { BusinessMapConfig } from '../types/index.js';
 
 // Load environment variables
 dotenv.config();
+
+const logger = createLoggerSync({ level: 'info' });
 
 export interface EnvironmentConfig {
   businessMap: BusinessMapConfig;
@@ -17,7 +20,7 @@ export interface EnvironmentConfig {
   };
 }
 
-function getRequiredEnvVar(name: string): string {
+export function getRequiredEnvVar(name: string): string {
   const value = process.env[name];
   if (!value) {
     throw new Error(`Required environment variable ${name} is not set`);
@@ -25,13 +28,13 @@ function getRequiredEnvVar(name: string): string {
   return value;
 }
 
-function getBooleanEnvVar(name: string, defaultValue: boolean = false): boolean {
+export function getBooleanEnvVar(name: string, defaultValue: boolean = false): boolean {
   const value = process.env[name];
   if (value === undefined) return defaultValue;
   return value.toLowerCase() === 'true';
 }
 
-function getNumberEnvVar(name: string, defaultValue?: number): number | undefined {
+export function getNumberEnvVar(name: string, defaultValue?: number): number | undefined {
   const value = process.env[name];
   if (value === undefined) return defaultValue;
   const parsed = parseInt(value, 10);
@@ -72,7 +75,10 @@ export function validateConfig(): void {
     throw new Error('BUSINESSMAP_API_TOKEN cannot be empty');
   }
 
-  console.log(`✅ Configuration validated for ${config.server.name} v${config.server.version}`);
-  console.log(`📡 BusinessMap API: ${config.businessMap.apiUrl}`);
-  console.log(`🔒 Read-only mode: ${config.businessMap.readOnlyMode ? 'enabled' : 'disabled'}`);
+  logger.info('Configuration validated', {
+    serverName: config.server.name,
+    serverVersion: config.server.version,
+    apiUrl: config.businessMap.apiUrl,
+    readOnlyMode: config.businessMap.readOnlyMode
+  });
 }

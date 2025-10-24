@@ -1,7 +1,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { createLoggerSync } from '@toolprint/mcp-logger';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
 import { getWorkflowCycleTimeColumnsSchema } from '../../schemas/workflow-schemas.js';
 import { BaseToolHandler, createErrorResponse, createSuccessResponse } from './base-tool.js';
+
+const logger = createLoggerSync({ level: 'debug' });
 
 export class WorkflowToolHandler implements BaseToolHandler {
   registerTools(server: McpServer, client: BusinessMapClient, readOnlyMode: boolean): void {
@@ -42,17 +45,26 @@ export class WorkflowToolHandler implements BaseToolHandler {
       },
       async ({ board_id, workflow_id }) => {
         try {
-          console.log(
-            `[DEBUG] Fetching effective cycle time columns for board ${board_id}, workflow ${workflow_id}`
-          );
+          logger.debug('Fetching effective cycle time columns', {
+            boardId: board_id,
+            workflowId: workflow_id
+          });
           const columns = await client.getWorkflowEffectiveCycleTimeColumns(board_id, workflow_id);
-          console.log(`[DEBUG] Received ${columns.length} effective cycle time columns`);
+          logger.debug('Received effective cycle time columns', {
+            count: columns.length,
+            boardId: board_id,
+            workflowId: workflow_id
+          });
           return createSuccessResponse(
             columns,
             `Retrieved ${columns.length} effective cycle time columns for board ${board_id}, workflow ${workflow_id}`
           );
         } catch (error) {
-          console.error(`[DEBUG] Error fetching effective cycle time columns:`, error);
+          logger.error('Error fetching effective cycle time columns', {
+            boardId: board_id,
+            workflowId: workflow_id,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
           return createErrorResponse(error, 'fetching workflow effective cycle time columns');
         }
       }

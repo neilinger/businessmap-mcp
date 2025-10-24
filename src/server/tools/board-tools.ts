@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { createLoggerSync } from '@toolprint/mcp-logger';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
 import {
   createBoardSchema,
@@ -10,6 +11,8 @@ import {
   searchBoardSchema,
 } from '../../schemas/index.js';
 import { BaseToolHandler, createErrorResponse, createSuccessResponse } from './base-tool.js';
+
+const logger = createLoggerSync({ level: 'info' });
 
 export class BoardToolHandler implements BaseToolHandler {
   registerTools(server: McpServer, client: BusinessMapClient, readOnlyMode: boolean): void {
@@ -81,10 +84,10 @@ export class BoardToolHandler implements BaseToolHandler {
       ]);
       return createSuccessResponse({ ...board, structure }, 'Board found directly:');
     } catch (directError) {
-      console.warn(
-        `Direct board lookup failed for ID ${boardId}:`,
-        directError instanceof Error ? directError.message : 'Unknown error'
-      );
+      logger.warn('Direct board lookup failed', {
+        boardId,
+        error: directError instanceof Error ? directError.message : 'Unknown error'
+      });
       return await this.searchBoardByIdFallback(client, boardId, workspaceId);
     }
   }
@@ -156,10 +159,10 @@ export class BoardToolHandler implements BaseToolHandler {
       const structure = await client.getBoardStructure(board.board_id);
       return createSuccessResponse({ ...board, structure }, successMessage);
     } catch (structureError) {
-      console.warn(
-        `Structure lookup failed for board ID ${board.board_id}:`,
-        structureError instanceof Error ? structureError.message : 'Unknown error'
-      );
+      logger.warn('Structure lookup failed', {
+        boardId: board.board_id,
+        error: structureError instanceof Error ? structureError.message : 'Unknown error'
+      });
       return createSuccessResponse(
         board,
         `Board found but structure unavailable. Structure error: ${structureError instanceof Error ? structureError.message : 'Unknown error'}`
