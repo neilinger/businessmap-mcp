@@ -1,0 +1,246 @@
+openapi: 3.0.3
+info:
+  title: BusinessMap Cards API
+  description: API for managing cards in BusinessMap (DELETE operation)
+  version: 1.0.0
+  contact:
+    name: BusinessMap API Support
+    url: https://businessmap.io/api
+
+servers:
+  - url: https://businessmap.io/api/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /cards/{card_id}:
+    parameters:
+      - name: card_id
+        in: path
+        required: true
+        description: The unique identifier of the card
+        schema:
+          type: integer
+          format: int64
+          example: 12345
+
+    delete:
+      summary: Delete card
+      description: Permanently delete a card and all its associated data (comments, subtasks, attachments)
+      operationId: deleteCard
+      tags:
+        - Cards
+      parameters:
+        - name: force
+          in: query
+          description: Force delete even if card has dependencies (child cards, linked cards)
+          schema:
+            type: boolean
+            default: false
+            example: false
+        - name: archive_first
+          in: query
+          description: Archive card before deletion (safer approach)
+          schema:
+            type: boolean
+            default: false
+            example: true
+        - name: delete_subtasks
+          in: query
+          description: Also delete all subtasks (default is to preserve them)
+          schema:
+            type: boolean
+            default: false
+            example: true
+        - name: delete_comments
+          in: query
+          description: Also delete all comments (default is to preserve them)
+          schema:
+            type: boolean
+            default: false
+            example: true
+
+      responses:
+        '204':
+          description: Card successfully deleted (no content)
+
+        '400':
+          description: Bad request - card has dependencies and force=false
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                hasDependencies:
+                  summary: Card has dependencies
+                  value:
+                    error: "CARD_HAS_DEPENDENCIES"
+                    message: "Card has dependencies and cannot be deleted"
+                    details:
+                      card_id: 12345
+                      child_card_count: 3
+                      linked_card_count: 2
+                      subtask_count: 5
+                      comment_count: 8
+                      hint: "Use force=true to delete card with all dependencies, or archive_first=true to archive before deletion"
+                    timestamp: "2025-01-20T18:00:00Z"
+                    path: "/api/v1/cards/12345"
+                hasBlockedCards:
+                  summary: Card is blocking other cards
+                  value:
+                    error: "CARD_IS_BLOCKING"
+                    message: "Card is blocking other cards and cannot be deleted"
+                    details:
+                      card_id: 12345
+                      blocked_card_ids: [12346, 12347]
+                      hint: "Remove blocking relationships before deletion or use force=true"
+                    timestamp: "2025-01-20T18:00:00Z"
+                    path: "/api/v1/cards/12345"
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using API key
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code identifier
+          example: "CARD_HAS_DEPENDENCIES"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Card has dependencies and cannot be deleted"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+          example:
+            card_id: 12345
+            child_card_count: 3
+            linked_card_count: 2
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2025-01-20T18:00:00Z"
+        path:
+          type: string
+          description: The API path that generated the error
+          example: "/api/v1/cards/12345"
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missingToken:
+              summary: Missing authentication token
+              value:
+                error: "UNAUTHORIZED"
+                message: "Authentication token is required"
+                timestamp: "2025-01-20T18:00:00Z"
+                path: "/api/v1/cards/12345"
+
+    Forbidden:
+      description: Forbidden - user lacks permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            insufficientPermissions:
+              summary: Insufficient permissions
+              value:
+                error: "FORBIDDEN"
+                message: "You do not have permission to delete this card"
+                details:
+                  required_permission: "card.delete"
+                  user_role: "viewer"
+                  required_role: "editor"
+                timestamp: "2025-01-20T18:00:00Z"
+                path: "/api/v1/cards/12345"
+
+    NotFound:
+      description: Not found - the requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            cardNotFound:
+              summary: Card not found
+              value:
+                error: "NOT_FOUND"
+                message: "Card not found"
+                details:
+                  card_id: 12345
+                timestamp: "2025-01-20T18:00:00Z"
+                path: "/api/v1/cards/12345"
+
+    RateLimited:
+      description: Rate limit exceeded (RL02)
+      headers:
+        X-RateLimit-Limit:
+          description: The maximum number of requests allowed per time window
+          schema:
+            type: integer
+            example: 100
+        X-RateLimit-Remaining:
+          description: The number of requests remaining in the current window
+          schema:
+            type: integer
+            example: 0
+        X-RateLimit-Reset:
+          description: Unix timestamp when the rate limit resets
+          schema:
+            type: integer
+            example: 1642684800
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+            example: 60
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rateLimited:
+              summary: Rate limit exceeded
+              value:
+                error: "RL02"
+                message: "Rate limit exceeded. Please try again later."
+                details:
+                  limit: 100
+                  window: "1 minute"
+                  retry_after: 60
+                timestamp: "2025-01-20T18:00:00Z"
+                path: "/api/v1/cards/12345"
+
+tags:
+  - name: Cards
+    description: Operations for managing cards

@@ -1,0 +1,760 @@
+openapi: 3.0.3
+info:
+  title: BusinessMap Custom Fields API
+  description: API for managing custom field definitions and board custom fields in BusinessMap
+  version: 1.0.0
+  contact:
+    name: BusinessMap API Support
+    url: https://businessmap.io/api
+
+servers:
+  - url: https://businessmap.io/api/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /customFields:
+    get:
+      summary: List all custom field definitions
+      description: Retrieve a list of all custom field definitions available in the system
+      operationId: listCustomFields
+      tags:
+        - Custom Fields
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - name: page_size
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+        - name: field_type
+          in: query
+          description: Filter by field type
+          schema:
+            type: string
+            enum: [text, number, date, dropdown, checkbox, user, card]
+            example: "dropdown"
+
+      responses:
+        '200':
+          description: List of custom field definitions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomFieldListResponse'
+              examples:
+                success:
+                  summary: Successful response
+                  value:
+                    items:
+                      - field_id: 1001
+                        name: "Priority"
+                        field_type: "dropdown"
+                        description: "Task priority level"
+                        is_required: false
+                        options:
+                          - id: 1
+                            value: "High"
+                            color: "#FF0000"
+                          - id: 2
+                            value: "Medium"
+                            color: "#FFA500"
+                          - id: 3
+                            value: "Low"
+                            color: "#00FF00"
+                      - field_id: 1002
+                        name: "Story Points"
+                        field_type: "number"
+                        description: "Effort estimation in points"
+                        is_required: false
+                    total: 15
+                    page: 1
+                    page_size: 20
+                    pages: 1
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /boards/{board_id}/customFields:
+    parameters:
+      - name: board_id
+        in: path
+        required: true
+        description: The unique identifier of the board
+        schema:
+          type: integer
+          format: int64
+          example: 5001
+
+    get:
+      summary: List board custom fields
+      description: Retrieve all custom fields configured for a specific board
+      operationId: listBoardCustomFields
+      tags:
+        - Custom Fields
+      responses:
+        '200':
+          description: List of custom fields for the board
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomField'
+              examples:
+                success:
+                  summary: Board custom fields
+                  value:
+                    - field_id: 1001
+                      board_id: 5001
+                      name: "Priority"
+                      field_type: "dropdown"
+                      description: "Task priority level"
+                      is_required: true
+                      position: 1
+                      options:
+                        - id: 1
+                          value: "High"
+                          color: "#FF0000"
+                        - id: 2
+                          value: "Medium"
+                          color: "#FFA500"
+                    - field_id: 1003
+                      board_id: 5001
+                      name: "Due Date"
+                      field_type: "date"
+                      description: "Task due date"
+                      is_required: false
+                      position: 2
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+    post:
+      summary: Create board custom field
+      description: Create a new custom field for a specific board
+      operationId: createBoardCustomField
+      tags:
+        - Custom Fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomFieldRequest'
+            examples:
+              dropdownField:
+                summary: Create dropdown field
+                value:
+                  name: "Status"
+                  field_type: "dropdown"
+                  description: "Current status"
+                  is_required: true
+                  position: 1
+                  options:
+                    - value: "To Do"
+                      color: "#808080"
+                    - value: "In Progress"
+                      color: "#0000FF"
+                    - value: "Done"
+                      color: "#00FF00"
+              numberField:
+                summary: Create number field
+                value:
+                  name: "Story Points"
+                  field_type: "number"
+                  description: "Effort estimation"
+                  is_required: false
+                  position: 2
+                  validation:
+                    min: 0
+                    max: 100
+
+      responses:
+        '201':
+          description: Custom field successfully created
+          headers:
+            Location:
+              description: URI of the created custom field
+              schema:
+                type: string
+                example: "/api/v1/boards/5001/customFields/1004"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomField'
+              examples:
+                success:
+                  summary: Created custom field
+                  value:
+                    field_id: 1004
+                    board_id: 5001
+                    name: "Status"
+                    field_type: "dropdown"
+                    description: "Current status"
+                    is_required: true
+                    position: 1
+                    created_at: "2025-01-20T16:00:00Z"
+                    options:
+                      - id: 10
+                        value: "To Do"
+                        color: "#808080"
+                      - id: 11
+                        value: "In Progress"
+                        color: "#0000FF"
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /boards/{board_id}/customFields/{field_id}:
+    parameters:
+      - name: board_id
+        in: path
+        required: true
+        description: The unique identifier of the board
+        schema:
+          type: integer
+          format: int64
+          example: 5001
+      - name: field_id
+        in: path
+        required: true
+        description: The unique identifier of the custom field
+        schema:
+          type: integer
+          format: int64
+          example: 1001
+
+    get:
+      summary: Get custom field details
+      description: Retrieve detailed information about a specific custom field
+      operationId: getCustomField
+      tags:
+        - Custom Fields
+      responses:
+        '200':
+          description: Custom field details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomField'
+              examples:
+                dropdownField:
+                  summary: Dropdown custom field
+                  value:
+                    field_id: 1001
+                    board_id: 5001
+                    name: "Priority"
+                    field_type: "dropdown"
+                    description: "Task priority level"
+                    is_required: true
+                    position: 1
+                    created_at: "2025-01-10T10:00:00Z"
+                    updated_at: "2025-01-15T14:00:00Z"
+                    options:
+                      - id: 1
+                        value: "High"
+                        color: "#FF0000"
+                      - id: 2
+                        value: "Medium"
+                        color: "#FFA500"
+                      - id: 3
+                        value: "Low"
+                        color: "#00FF00"
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+    patch:
+      summary: Update custom field
+      description: Update properties of an existing custom field
+      operationId: updateCustomField
+      tags:
+        - Custom Fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomFieldRequest'
+            examples:
+              updateName:
+                summary: Update field name
+                value:
+                  name: "Task Priority"
+                  description: "Updated priority description"
+              addOption:
+                summary: Add dropdown option
+                value:
+                  options:
+                    - id: 1
+                      value: "Critical"
+                      color: "#FF0000"
+                    - id: 2
+                      value: "High"
+                      color: "#FFA500"
+                    - id: 3
+                      value: "Medium"
+                      color: "#FFFF00"
+                    - id: 4
+                      value: "Low"
+                      color: "#00FF00"
+
+      responses:
+        '200':
+          description: Custom field successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomField'
+              examples:
+                success:
+                  summary: Updated custom field
+                  value:
+                    field_id: 1001
+                    board_id: 5001
+                    name: "Task Priority"
+                    field_type: "dropdown"
+                    description: "Updated priority description"
+                    is_required: true
+                    position: 1
+                    updated_at: "2025-01-20T16:30:00Z"
+                    options:
+                      - id: 1
+                        value: "Critical"
+                        color: "#FF0000"
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+    delete:
+      summary: Delete custom field
+      description: Permanently delete a custom field from the board
+      operationId: deleteCustomField
+      tags:
+        - Custom Fields
+      responses:
+        '204':
+          description: Custom field successfully deleted (no content)
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using API key
+
+  schemas:
+    CreateCustomFieldRequest:
+      type: object
+      required:
+        - name
+        - field_type
+      properties:
+        name:
+          type: string
+          description: Name of the custom field
+          minLength: 1
+          maxLength: 100
+          example: "Priority"
+        field_type:
+          type: string
+          description: Type of the custom field
+          enum: [text, number, date, dropdown, checkbox, user, card]
+          example: "dropdown"
+        description:
+          type: string
+          description: Description of the custom field
+          maxLength: 500
+          example: "Task priority level"
+        is_required:
+          type: boolean
+          description: Whether this field is required
+          default: false
+          example: true
+        position:
+          type: integer
+          description: Display position of the field
+          minimum: 0
+          example: 1
+        options:
+          type: array
+          description: Options for dropdown or checkbox fields
+          items:
+            $ref: '#/components/schemas/FieldOption'
+        validation:
+          type: object
+          description: Validation rules for the field
+          properties:
+            min:
+              type: number
+              description: Minimum value (for number fields)
+              example: 0
+            max:
+              type: number
+              description: Maximum value (for number fields)
+              example: 100
+            pattern:
+              type: string
+              description: Regex pattern (for text fields)
+              example: "^[A-Z]{3}-\\d{4}$"
+
+    UpdateCustomFieldRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Updated name of the custom field
+          minLength: 1
+          maxLength: 100
+          example: "Task Priority"
+        description:
+          type: string
+          description: Updated description
+          maxLength: 500
+          example: "Updated priority description"
+        is_required:
+          type: boolean
+          description: Whether this field is required
+          example: false
+        position:
+          type: integer
+          description: Updated display position
+          minimum: 0
+          example: 2
+        options:
+          type: array
+          description: Updated options for dropdown or checkbox fields
+          items:
+            $ref: '#/components/schemas/FieldOption'
+        validation:
+          type: object
+          description: Updated validation rules
+          properties:
+            min:
+              type: number
+              example: 1
+            max:
+              type: number
+              example: 50
+
+    FieldOption:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Option ID (for updates)
+          example: 1
+        value:
+          type: string
+          description: Option value
+          example: "High"
+        color:
+          type: string
+          description: Color for the option (hex format)
+          pattern: "^#[0-9A-Fa-f]{6}$"
+          example: "#FF0000"
+        position:
+          type: integer
+          description: Display position
+          minimum: 0
+          example: 0
+
+    CustomField:
+      type: object
+      properties:
+        field_id:
+          type: integer
+          format: int64
+          description: Unique identifier for the custom field
+          example: 1001
+        board_id:
+          type: integer
+          format: int64
+          description: ID of the board this field belongs to
+          example: 5001
+        name:
+          type: string
+          description: Name of the custom field
+          example: "Priority"
+        field_type:
+          type: string
+          description: Type of the custom field
+          enum: [text, number, date, dropdown, checkbox, user, card]
+          example: "dropdown"
+        description:
+          type: string
+          description: Description of the custom field
+          example: "Task priority level"
+        is_required:
+          type: boolean
+          description: Whether this field is required
+          example: true
+        position:
+          type: integer
+          description: Display position of the field
+          example: 1
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the field was created
+          example: "2025-01-10T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the field was last updated
+          example: "2025-01-15T14:00:00Z"
+        options:
+          type: array
+          description: Options for dropdown or checkbox fields
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                format: int64
+                example: 1
+              value:
+                type: string
+                example: "High"
+              color:
+                type: string
+                example: "#FF0000"
+        validation:
+          type: object
+          description: Validation rules
+          properties:
+            min:
+              type: number
+              example: 0
+            max:
+              type: number
+              example: 100
+            pattern:
+              type: string
+              example: "^[A-Z]{3}-\\d{4}$"
+
+    CustomFieldListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomField'
+        total:
+          type: integer
+          description: Total number of custom fields
+          example: 15
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        page_size:
+          type: integer
+          description: Number of items per page
+          example: 20
+        pages:
+          type: integer
+          description: Total number of pages
+          example: 1
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code identifier
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "The request contains invalid data"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+          example:
+            field: "name"
+            reason: "Field name is required"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2025-01-20T16:00:00Z"
+        path:
+          type: string
+          description: The API path that generated the error
+          example: "/api/v1/boards/5001/customFields"
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidInput:
+              summary: Invalid input data
+              value:
+                error: "VALIDATION_ERROR"
+                message: "The request contains invalid data"
+                details:
+                  field: "field_type"
+                  reason: "Invalid field type"
+                timestamp: "2025-01-20T16:00:00Z"
+                path: "/api/v1/boards/5001/customFields"
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missingToken:
+              summary: Missing authentication token
+              value:
+                error: "UNAUTHORIZED"
+                message: "Authentication token is required"
+                timestamp: "2025-01-20T16:00:00Z"
+                path: "/api/v1/boards/5001/customFields"
+
+    Forbidden:
+      description: Forbidden - user lacks permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            insufficientPermissions:
+              summary: Insufficient permissions
+              value:
+                error: "FORBIDDEN"
+                message: "You do not have permission to modify custom fields"
+                details:
+                  required_permission: "customField.update"
+                timestamp: "2025-01-20T16:00:00Z"
+                path: "/api/v1/boards/5001/customFields/1001"
+
+    NotFound:
+      description: Not found - the requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            fieldNotFound:
+              summary: Custom field not found
+              value:
+                error: "NOT_FOUND"
+                message: "Custom field not found"
+                details:
+                  field_id: 1001
+                timestamp: "2025-01-20T16:00:00Z"
+                path: "/api/v1/boards/5001/customFields/1001"
+
+    RateLimited:
+      description: Rate limit exceeded (RL02)
+      headers:
+        X-RateLimit-Limit:
+          description: The maximum number of requests allowed per time window
+          schema:
+            type: integer
+            example: 100
+        X-RateLimit-Remaining:
+          description: The number of requests remaining in the current window
+          schema:
+            type: integer
+            example: 0
+        X-RateLimit-Reset:
+          description: Unix timestamp when the rate limit resets
+          schema:
+            type: integer
+            example: 1642684800
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+            example: 60
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rateLimited:
+              summary: Rate limit exceeded
+              value:
+                error: "RL02"
+                message: "Rate limit exceeded. Please try again later."
+                details:
+                  limit: 100
+                  window: "1 minute"
+                  retry_after: 60
+                timestamp: "2025-01-20T16:00:00Z"
+                path: "/api/v1/boards/5001/customFields"
+
+tags:
+  - name: Custom Fields
+    description: Operations for managing custom field definitions and board custom fields

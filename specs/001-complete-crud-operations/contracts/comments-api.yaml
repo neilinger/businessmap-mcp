@@ -1,0 +1,314 @@
+openapi: 3.0.3
+info:
+  title: BusinessMap Comments API
+  description: API for managing card comments in BusinessMap
+  version: 1.0.0
+  contact:
+    name: BusinessMap API Support
+    url: https://businessmap.io/api
+
+servers:
+  - url: https://businessmap.io/api/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /cards/{card_id}/comments/{comment_id}:
+    parameters:
+      - name: card_id
+        in: path
+        required: true
+        description: The unique identifier of the card
+        schema:
+          type: integer
+          format: int64
+          example: 12345
+      - name: comment_id
+        in: path
+        required: true
+        description: The unique identifier of the comment
+        schema:
+          type: integer
+          format: int64
+          example: 67890
+
+    patch:
+      summary: Update a comment
+      description: Update the text content of an existing comment on a card
+      operationId: updateCardComment
+      tags:
+        - Comments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommentRequest'
+            examples:
+              simpleUpdate:
+                summary: Simple comment update
+                value:
+                  text: "Updated comment text with new information"
+              mentionUpdate:
+                summary: Comment with mentions
+                value:
+                  text: "@john.doe please review this change"
+
+      responses:
+        '200':
+          description: Comment successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+              examples:
+                success:
+                  summary: Successful update
+                  value:
+                    comment_id: 67890
+                    card_id: 12345
+                    text: "Updated comment text with new information"
+                    author_user_id: 111
+                    author_name: "John Doe"
+                    created_at: "2025-01-15T10:30:00Z"
+                    updated_at: "2025-01-20T14:45:00Z"
+                    is_edited: true
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+    delete:
+      summary: Delete a comment
+      description: Permanently delete a comment from a card
+      operationId: deleteCardComment
+      tags:
+        - Comments
+      responses:
+        '204':
+          description: Comment successfully deleted (no content)
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using API key
+
+  schemas:
+    UpdateCommentRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: The updated comment text content
+          minLength: 1
+          maxLength: 5000
+          example: "Updated comment text with new information"
+
+    Comment:
+      type: object
+      properties:
+        comment_id:
+          type: integer
+          format: int64
+          description: Unique identifier for the comment
+          example: 67890
+        card_id:
+          type: integer
+          format: int64
+          description: ID of the card this comment belongs to
+          example: 12345
+        text:
+          type: string
+          description: Comment text content
+          example: "This is a comment on the card"
+        author_user_id:
+          type: integer
+          format: int64
+          description: ID of the user who created the comment
+          example: 111
+        author_name:
+          type: string
+          description: Name of the comment author
+          example: "John Doe"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the comment was created
+          example: "2025-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the comment was last updated
+          example: "2025-01-20T14:45:00Z"
+        is_edited:
+          type: boolean
+          description: Whether the comment has been edited
+          example: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code identifier
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "The request contains invalid data"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+          example:
+            field: "text"
+            reason: "Comment text cannot be empty"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2025-01-20T14:45:00Z"
+        path:
+          type: string
+          description: The API path that generated the error
+          example: "/api/v1/cards/12345/comments/67890"
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidInput:
+              summary: Invalid input data
+              value:
+                error: "VALIDATION_ERROR"
+                message: "The request contains invalid data"
+                details:
+                  field: "text"
+                  reason: "Comment text cannot be empty"
+                timestamp: "2025-01-20T14:45:00Z"
+                path: "/api/v1/cards/12345/comments/67890"
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missingToken:
+              summary: Missing authentication token
+              value:
+                error: "UNAUTHORIZED"
+                message: "Authentication token is required"
+                timestamp: "2025-01-20T14:45:00Z"
+                path: "/api/v1/cards/12345/comments/67890"
+
+    Forbidden:
+      description: Forbidden - user lacks permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            insufficientPermissions:
+              summary: Insufficient permissions
+              value:
+                error: "FORBIDDEN"
+                message: "You do not have permission to modify this comment"
+                details:
+                  required_permission: "comment.update"
+                timestamp: "2025-01-20T14:45:00Z"
+                path: "/api/v1/cards/12345/comments/67890"
+
+    NotFound:
+      description: Not found - the requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            commentNotFound:
+              summary: Comment not found
+              value:
+                error: "NOT_FOUND"
+                message: "Comment not found"
+                details:
+                  comment_id: 67890
+                timestamp: "2025-01-20T14:45:00Z"
+                path: "/api/v1/cards/12345/comments/67890"
+
+    RateLimited:
+      description: Rate limit exceeded (RL02)
+      headers:
+        X-RateLimit-Limit:
+          description: The maximum number of requests allowed per time window
+          schema:
+            type: integer
+            example: 100
+        X-RateLimit-Remaining:
+          description: The number of requests remaining in the current window
+          schema:
+            type: integer
+            example: 0
+        X-RateLimit-Reset:
+          description: Unix timestamp when the rate limit resets
+          schema:
+            type: integer
+            example: 1642684800
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+            example: 60
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rateLimited:
+              summary: Rate limit exceeded
+              value:
+                error: "RL02"
+                message: "Rate limit exceeded. Please try again later."
+                details:
+                  limit: 100
+                  window: "1 minute"
+                  retry_after: 60
+                timestamp: "2025-01-20T14:45:00Z"
+                path: "/api/v1/cards/12345/comments/67890"
+
+tags:
+  - name: Comments
+    description: Operations for managing card comments
