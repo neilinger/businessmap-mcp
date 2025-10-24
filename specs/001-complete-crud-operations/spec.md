@@ -54,6 +54,7 @@ Users can modify and remove BusinessMap resources (workspaces, boards, cards) th
 4. **Given** an unused board exists with no cards, **When** user calls delete_board, **Then** the board is deleted immediately without confirmation and no longer appears in board listings (tests board-client.ts:73)
 5. **Given** a completed card exists with no children, **When** user calls delete_card, **Then** the card is deleted immediately without confirmation and is removed from all queries (tests card-client.ts:167)
 6. **Given** a workspace contains 3 boards, **When** user calls delete_workspace, **Then** system displays confirmation listing 3 dependent boards, and upon confirmation cascades delete to workspace, all boards, and their cards
+7. **Given** 5 workspaces exist (2 containing boards, 3 empty), **When** user calls bulk_delete_workspaces with all 5 IDs, **Then** system analyzes dependencies upfront and displays single consolidated confirmation listing only the 2 workspaces with boards and their dependents, **And** upon confirmation deletes all 5 workspaces in single transaction (dependency-free workspaces included automatically without separate confirmation)
 
 ---
 
@@ -197,7 +198,6 @@ Users can read custom field definitions and manage custom field **values** on ca
 
 ### Out of Scope
 
-- Comment and subtask update/delete operations (not supported by BusinessMap API)
 - Outcome creation, update, or delete operations (not supported by BusinessMap API; read-only access only)
 - Real-time synchronization or event streaming from BusinessMap
 - Advanced workflow automation or business rules engine
