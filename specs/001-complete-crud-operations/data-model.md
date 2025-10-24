@@ -225,9 +225,11 @@ Workspace (1:N) Board
 | `owner_user_id` | number | No | Foreign key | Subtask owner |
 | `is_finished` | boolean | Yes | Default: false | Completion status |
 | `deadline` | date | No | ISO 8601 date | Due date |
-| `position` | number | Yes | ≥0 | Display order |
+| `position` | number | Yes | ≥0 | Display order (0-indexed) |
 | `created_at` | datetime | Yes | ISO 8601 | Creation timestamp |
 | `updated_at` | datetime | Yes | ISO 8601 | Last modification timestamp |
+
+**Position Field Behavior**: The position field is 0-indexed. When a subtask position is updated, the BusinessMap API automatically shifts other subtasks to maintain sequential ordering. The MCP server sends the requested position value; the API handles conflict resolution.
 
 **Relationships**:
 - Belongs to: `Card` (N:1)
@@ -401,6 +403,8 @@ Workspace (1:N) Board
 | `position` | number | Yes | ≥0 | Display order |
 | `is_visible` | boolean | Yes | Default: true | Visibility flag |
 
+**Position Indexing Convention**: All position fields in the data model (Card.position, Subtask.position, CustomFieldValue.position) use 0-based indexing. Position values start at 0 and increment sequentially. The BusinessMap API maintains uniqueness and handles reordering automatically.
+
 **Relationships**:
 - Belongs to: `Board` (N:1)
 - Applied to: `Card` via `CustomFieldValue` (1:N)
@@ -412,6 +416,7 @@ Workspace (1:N) Board
 - `field_type` must be valid enum value
 - `options` required for dropdown/multi-select types
 - Cannot delete field with existing values (or cascade delete values)
+- Numeric custom fields support min/max validation. Constraints are defined in CustomField metadata (min_value, max_value). The API validates numeric values against these constraints and returns 400 VALIDATION_ERROR for out-of-range values.
 
 **CRUD Operations**:
 - ✅ Create: **Phase 1** (implement new - verified available, no admin restrictions)
@@ -432,6 +437,8 @@ Workspace (1:N) Board
 | `field_id` | number | Yes | Composite key | Field definition |
 | `value` | any | No | Type-dependent | Field value (typed based on field definition) |
 | `updated_at` | datetime | Yes | ISO 8601 | Last modification timestamp |
+
+**Composite Key Constraint**: The composite key (card_id, field_id) is enforced as a UNIQUE constraint by the BusinessMap API. Attempts to create duplicate CustomFieldValue entries return 400 VALIDATION_ERROR with message indicating the duplicate key conflict.
 
 **Relationships**:
 - Belongs to: `Card`, `CustomField` (N:1 each)

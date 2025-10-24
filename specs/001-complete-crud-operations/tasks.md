@@ -100,7 +100,7 @@
 - [ ] T035 [P] Create get_custom_field tool in src/tools/custom-field-tools.ts
 - [ ] T036 [P] Create create_custom_field tool in src/tools/custom-field-tools.ts
 - [ ] T037 [P] Create update_custom_field tool in src/tools/custom-field-tools.ts
-- [ ] T038 [P] Create delete_custom_field tool in src/tools/custom-field-tools.ts
+- [ ] T038 [P] Create delete_custom_field tool in src/tools/custom-field-tools.ts with: (1) Pre-delete dependency analysis counting affected boards/cards, (2) Confirmation prompt per contracts/CONFIRMATION_EXAMPLES.md showing field name, board count, card count, and data loss warning, (3) Cascade delete execution only after explicit user confirmation, (4) Propagate API 403 errors with clear message "Insufficient permissions. Custom field definition management requires workspace admin role."
 - [ ] T039 Register 6 custom field tools in src/index.ts (add list_custom_fields, list_board_custom_fields, get_custom_field, create_custom_field, update_custom_field, delete_custom_field to ListToolsRequest tools array; add 6 cases to CallToolRequest switch statement)
 - [ ] T040 Instantiate CustomFieldClient in src/index.ts and wire to tools
 
@@ -207,20 +207,20 @@
 - [ ] T073 [P] Verify all 17 new operations return errors matching FR-016 structure: (1) specific failure cause present in message, (2) transient vs permanent indicator verified via HTTP status codes (5xx=transient, 4xx=permanent) OR explicit keywords ("retry", "temporary", "invalid", "forbidden"), (3) actionable remediation steps present (e.g., "Check permissions", "Retry after N seconds", "Verify resource exists"). Test by triggering errors: invalid IDs (404), missing permissions (403), rate limits (429), network failures (503)
 - [ ] T074 Build project with npm run build and verify no errors; verify all 17 new write operations (update_workspace, delete_workspace, update_board, delete_board, delete_card, update_card_comment, delete_card_comment, update_card_subtask, delete_card_subtask, create_custom_field, update_custom_field, delete_custom_field, bulk_delete_workspaces, bulk_update_workspaces, bulk_delete_boards, bulk_update_boards, bulk_delete_cards, bulk_update_cards) respect BUSINESSMAP_READ_ONLY_MODE=true environment variable by checking tool registration logic in src/index.ts
 - [ ] T075 Test column delete endpoint against demo API: Create empty column via UI → Attempt DELETE /columns/{columnId} → If receives 204 No Content or 200 OK, document as SUPPORTED in spec.md FR-012 (change "REQUIRES VERIFICATION" to "MUST support delete") and create GitHub issue #[N] "Implement delete_column tool"; If receives 404 Not Found or 405 Method Not Allowed, update spec.md FR-012 to "NOT SUPPORTED: Column deletion is UI-only" and add to Out of Scope section line 206
-- [ ] T076 [P] Create integration test suite validating success criteria against demo API:
-  - SC-001: Measure update operation latency (target: <5s per operation)
-  - SC-002: Test deletion of unused resources (target: 100% success rate, no dependencies)
-  - SC-003: Verify all 5 quick win operations exposed as MCP tools (workspace update/delete, board update/delete, card delete)
-  - SC-004: Calculate card management CRUD coverage (target: 85%)
-  - SC-005: Verify workflow/column read operations + column deletion
-  - SC-006: Verify custom field value operations + definition management
-  - SC-007: Calculate overall CRUD coverage across all resource types (target: 80%)
-  - SC-008: Measure single-resource (<2s) and bulk operation (<10s for ≤50 resources) performance
-  - SC-009: Verify error messages include cause + remediation steps (100% of failure cases)
-  - SC-010: Run data integrity checks (zero data loss/corruption during operations)
-  - FR-004: Create card with outcomes → retrieve via get_card_outcomes → verify outcome data
-  - FR-006: Create card in lane A → move to lane B via move_card/update_card → verify lane change
-  - FR-014: Create card → set custom field value → update value → clear value → verify changes
+- [ ] T076 [P] Create integration test suite validating success criteria against demo API with explicit assertions:
+  - SC-001: ASSERT P95(update_workspace_latency) < 5000ms AND P95(update_board_latency) < 5000ms AND P95(update_card_latency) < 5000ms
+  - SC-002: ASSERT deletion_success_rate == 100% WHERE dependency_count == 0 (test 10 unused workspaces/boards/cards)
+  - SC-003: ASSERT exposed_tool_count == 26 (5 quick wins + 21 new operations) via ListToolsRequest
+  - SC-004: ASSERT card_crud_coverage == 87.5% (21 operations / 24 total per spec.md:181)
+  - SC-005: ASSERT workflow_read_operations >= 2 AND column_delete_supported == (T075 verification result)
+  - SC-006: ASSERT custom_field_definition_crud == 100% AND custom_field_value_crud == 100%
+  - SC-007: ASSERT overall_crud_coverage >= 83% (40 operations / 48 total per spec.md:184)
+  - SC-008: ASSERT P95(single_operation_latency) < 2000ms AND P95(bulk_operation_latency_50_resources) < 10000ms
+  - SC-009: ASSERT error_message_quality == 100% WHERE each error contains (cause, transient_indicator, remediation_steps)
+  - SC-010: ASSERT data_integrity_violations == 0 (verify referential integrity after all CRUD operations)
+  - FR-004: Create card with outcomes → GET /cards/{id}/outcomes → ASSERT outcome_count > 0 AND outcome_data.resolution_status exists
+  - FR-006: Create card in lane A → move_card(lane_id=B) → ASSERT card.current_lane_id == B
+  - FR-014: Create card → set custom_field(priority="High") → update custom_field(priority="Medium") → clear custom_field(priority=null) → ASSERT each mutation reflected in GET /cards/{id}
 - [ ] T077 [P] Implement error handling for unsupported workflow/column write operations in src/clients/base-client.ts or relevant tool files, returning clear message "Operation not supported by BusinessMap API. Workflow and column creation/modification are UI-only operations. Use BusinessMap web interface for these changes." per Constitution Principle I (addresses FR-007 through FR-011)
 - [ ] T078 [P] Test cascade delete edge cases against demo API: (1) Create workspace with 3 boards → delete workspace → verify confirmation lists all 3 boards → verify cascade; (2) Create card with 2 children → delete parent → verify confirmation lists children → verify cascade behavior (spec.md:120-121)
 - [ ] T079 [P] Test validation edge cases against demo API: (1) Attempt create workflow column with duplicate name → verify clear uniqueness error; (2) Create text custom field with data → attempt change type to number → verify compatibility validation error; (3) Move card to lane at WIP limit → verify rejection with actionable error message (spec.md:123-125)

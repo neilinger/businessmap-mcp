@@ -117,9 +117,9 @@ Users can read custom field definitions and manage custom field **values** on ca
 
 ### Edge Cases
 
-- **Deleting workspace with boards**: See FR-021 for cascade delete confirmation behavior (workspace→boards→cards).
-- **Deleting card with children/parents**: See FR-021 for cascade delete confirmation behavior (card→children, parent relationship removal).
-- **Updating board with active viewers**: System allows update; concurrent viewers see changes on next refresh following BusinessMap's eventual consistency model (consistency model handled by BusinessMap API; MCP server makes no additional guarantees beyond API behavior)
+- **Deleting workspace with boards**: Follows Cascade Delete behavior (see Glossary). Confirmation prompt per FR-021.
+- **Deleting card with children/parents**: Follows Cascade Delete behavior (see Glossary). Parent relationships are removed; child cards are deleted per cascade order.
+- **Updating board with active viewers**: System allows update; concurrent viewers see changes on next refresh following BusinessMap's eventual consistency model (consistency model handled by BusinessMap API; MCP server makes no additional guarantees beyond API behavior). Concurrent modifications are handled by BusinessMap API using optimistic locking (version-based). When conflicts occur, the API returns 409 CONFLICT. The MCP server should retry with the latest resource version or prompt the user to resolve conflicts.
 - **Creating workflow with duplicate column names**: System validates uniqueness within workflow scope and returns clear error message if duplicate detected
 - **Updating custom field type with existing data**: System validates data compatibility; blocks incompatible changes (e.g., text to number with non-numeric values) with clear error message
 - **Moving card to lane at WIP limit**: System respects WIP limit enforcement configured in BusinessMap; blocks move if limit reached and returns actionable error message
@@ -131,8 +131,8 @@ Users can read custom field definitions and manage custom field **values** on ca
 ### Functional Requirements
 
 - **FR-001**: System MUST expose existing update operations for workspaces, boards, and cards (workspace-client.ts:33, board-client.ts:64, card-client.ts methods)
-- **FR-002**: System MUST expose existing delete operations for workspaces, boards, and cards (workspace-client.ts:48, board-client.ts:73, card-client.ts:167)
-- **FR-003**: Users MUST be able to perform full CRUD operations on card comments including text content, timestamps, and author attribution (API supports GET, POST, PATCH, DELETE - verified via OpenAPI v2 spec)
+- **FR-002**: System MUST expose existing delete operations for workspaces, boards, and cards (workspace-client.ts:48, board-client.ts:73, card-client.ts:167). Updating a board's workspace_id moves the board to a different workspace, retaining all cards, workflows, and relationships. Users must have appropriate permissions in both the source and destination workspaces. The API validates permissions before executing the move.
+- **FR-003**: Users MUST be able to perform full CRUD operations on card comments including text content, timestamps, and author attribution (API supports GET, POST, PATCH, DELETE - verified via OpenAPI v2 spec). Only the comment author or workspace administrators can update/delete comments. The BusinessMap API returns 403 Forbidden for unauthorized attempts. The MCP server propagates this error.
 - **FR-004**: Users MUST be able to retrieve card outcomes including resolution status and details (API supports GET only; outcome creation/modification not available via API)
 - **FR-005**: System MUST support full CRUD operations on card subtasks with description, owner, deadline, and completion status (API supports GET, POST, PATCH, DELETE - verified via OpenAPI v2 spec)
 - **FR-006**: System MUST support updating card lane assignments to move cards between swimlanes (supported via existing card move operation)
@@ -144,14 +144,14 @@ Users can read custom field definitions and manage custom field **values** on ca
 - **FR-011**: ~~Users SHOULD be able to update column properties~~ → **NOT SUPPORTED**: Column updates are UI-only operations. No PATCH endpoint available in API.
 - **FR-012**: ~~Users SHOULD be able to delete columns~~ → **REQUIRES VERIFICATION**: DELETE endpoint mentioned in documentation but not in OpenAPI spec. Mandatory task T074 will confirm support before implementation decision. If confirmed, promote to MUST and implement in Phase 3; otherwise mark NOT SUPPORTED (see research.md line 205).
 - **FR-013**: System MUST support reading custom field definitions including field types, options, and constraints (API supports GET operations)
-- **FR-014**: Users MUST be able to set, update, and clear custom field **values** on cards via card update operations (full CRUD supported for field values)
-- **FR-015**: Users MUST be able to create, update, and delete custom field **definitions** (including field types and options) at /customFields and /boards/{id}/customFields endpoints (API supports full CRUD with no admin restrictions detected - verified via OpenAPI v2 spec)
-- **FR-016**: System MUST validate all operations per Validation Boundary defined in Glossary and return error messages per Constitution Quality Standards (lines 62-65): (1) specific failure cause, (2) transient vs permanent indicator, (3) actionable remediation steps. MCP server translates API error responses into actionable user messages (satisfied by tasks T004-T066).
+- **FR-014**: Users MUST be able to set, update, and clear custom field **values** on cards via card update operations (full CRUD supported for field values). Cards cannot be created or updated if they are missing values for custom fields marked as is_required=true. The BusinessMap API validates required fields and returns 400 VALIDATION_ERROR. The MCP server propagates validation errors with field-specific details.
+- **FR-015**: Users MUST be able to create, update, and delete custom field **definitions** (including field types and options) at /customFields and /boards/{id}/customFields endpoints (API supports full CRUD - verified via OpenAPI v2 spec). Authorization is enforced by BusinessMap API via API key permissions; MCP server propagates 403 Forbidden errors. **Cascade Behavior**: Deleting a CustomField definition cascades to all associated CustomFieldValue instances across all cards. The MCP server MUST display confirmation prompt listing: (1) field name and type, (2) number of boards affected, (3) number of cards with values for this field, (4) explicit warning "This will permanently delete [N] custom field values across [M] cards." User must explicitly confirm before execution.
+- **FR-016**: System MUST validate all operations per Validation Boundary defined in Glossary and return error messages per Constitution Quality Standards (lines 62-65): (1) specific failure cause, (2) transient vs permanent indicator, (3) actionable remediation steps. Remediation steps example: 'Workspace contains 12 boards. Use --force flag to delete anyway, or move boards to another workspace first.' Error messages must provide actionable next steps. MCP server translates API error responses into actionable user messages (satisfied by tasks T004-T066).
 - **FR-017**: System MUST preserve referential integrity through cascade delete operations (satisfied by BusinessMap API cascade delete behavior; MCP server delegates to API per FR-021 confirmation logic)
 - **FR-018**: System MUST handle concurrent modification scenarios with appropriate conflict detection (satisfied by BusinessMap API optimistic locking; MCP server propagates API conflict errors to user)
 - **FR-019**: All operations MUST maintain audit trail information including timestamp and user attribution (satisfied by BusinessMap API audit trail; all mutations automatically tracked by API with user context from authentication token)
-- **FR-020**: System MUST support bulk operations for efficiency when operating on multiple resources (workspace, board, card only in v1.2.0; comments, subtasks, custom fields deferred). Bulk operations execute as a batch of sequential API calls with consolidated dependency analysis and confirmation. Operations complete independently; partial success scenarios return detailed per-resource status report (successful operations remain committed, failed operations report specific errors). Bulk delete operations MUST analyze resources upfront and display single confirmation listing only resources with dependencies and their dependents; dependency-free resources included automatically in the batch execution.
-- **FR-021**: Delete operations with dependencies MUST display confirmation prompt listing all dependent resources; upon confirmation, MUST cascade delete all dependents (workspace→boards→cards; card→children). Simple deletions (no dependencies) and all update operations execute immediately without confirmation. For bulk delete operations: analyze all resources upfront and display single consolidated confirmation per format examples in contracts/CONFIRMATION_EXAMPLES.md listing only resources with dependencies and their dependents; dependency-free resources included automatically in the batch execution.
+- **FR-020**: System MUST support bulk operations for efficiency when operating on multiple resources (workspace, board, card only in v1.2.0; comments, subtasks, custom fields deferred). Bulk operations execute as a batch of sequential API calls with consolidated dependency analysis and confirmation. Operations complete independently; partial success scenarios return detailed per-resource status report (successful operations remain committed, failed operations report specific errors). Bulk delete operations MUST analyze resources upfront and display single confirmation listing only resources with dependencies and their dependents; dependency-free resources included automatically in the batch execution. When bulk operations encounter rate limit errors (RL02) mid-execution, all completed operations remain committed. Remaining operations retry using exponential backoff (configured in axios-retry). The final response includes a partial success report indicating which operations completed and which were retried.
+- **FR-021**: Delete operations with dependencies MUST display confirmation prompt listing all dependent resources; upon confirmation, MUST cascade delete all dependents (workspace→boards→cards; card→children). **Confirmation Mechanism**: MCP server returns structured response containing dependency tree and awaits user confirmation via subsequent tool call with `confirmed: true` parameter (stateless confirmation pattern). **Timeout**: No server-side timeout; confirmation decision delegated to MCP client/user. **Large Dependency Sets**: When >100 dependent resources exist, prompt MUST summarize with counts (e.g., "Workspace contains 250 cards across 15 boards") rather than listing all individual resources; detailed breakdown available via separate `analyze_dependencies` tool call if user requests. Simple deletions (no dependencies) and all update operations execute immediately without confirmation. For bulk delete operations: analyze all resources upfront and display single consolidated confirmation per format examples in contracts/CONFIRMATION_EXAMPLES.md listing only resources with dependencies and their dependents; dependency-free resources included automatically in the batch execution. Confirmation prompt formats and examples are defined in contracts/CONFIRMATION_EXAMPLES.md. Prompts must include resource counts, dependency information, and clear action consequences. The archive_first parameter, when set to true, archives the resource before deletion. This provides a soft-delete workflow where archived resources can be restored before permanent deletion.
 
 ### Key Entities
 
@@ -167,7 +167,7 @@ Users can read custom field definitions and manage custom field **values** on ca
 
 ### Glossary
 
-- **Cascade Delete**: Automatic deletion of dependent resources when parent is deleted (workspace→boards→cards; card→children). Requires confirmation prompt listing all dependents per FR-021.
+- **Cascade Delete**: Automatic deletion of dependent resources when parent is deleted. **Cascade Paths**: (1) workspace→boards→cards, (2) card→children (plus removal of parent relationships). **Execution Order**: Child relationships deleted first (Comments, Subtasks, CustomFieldValues), then parent resource deleted last to satisfy referential integrity constraints. Requires confirmation prompt listing all dependents per FR-021.
 - **Dependency Analysis**: Pre-delete validation that identifies all resources that will be affected by cascade delete. Used for bulk operations to generate consolidated confirmation (see FR-020).
 - **Validation Boundary**: MCP server validates input data structure (parameter types, required fields, format constraints) via Zod schemas at tool boundary before API calls. BusinessMap API validates business rules (WIP limits, workflow rules, permissions, referential integrity). MCP server responsibility: translate API error responses into actionable user messages per FR-016 Constitution Quality Standards.
 
@@ -178,10 +178,10 @@ Users can read custom field definitions and manage custom field **values** on ca
 - **SC-001**: Users can update workspace, board, and card properties within 5 seconds per operation
 - **SC-002**: Users can delete unused resources (workspaces, boards, cards) without errors 100% of the time when no dependencies exist
 - **SC-003**: 100% of existing client-layer operations (5 quick wins) are exposed as MCP tools within first implementation phase, plus 21 new operations (15 single-resource including 4 parent-child + 6 bulk) for a total of 26 tools
-- **SC-004**: Card management achieves 85% CRUD coverage for confirmed operations, calculated as: (comments 4/4 + subtasks 4/4 + outcomes 1/4 + lane updates 4/4 + parent/child relationships 4/4 per FR-006a) / 20 total = 17/20 = 85%. Updated to reflect actual coverage.
+- **SC-004**: Card management achieves 87.5% CRUD coverage for confirmed operations, calculated as: (comments 4/4 + subtasks 4/4 + outcomes 1/4 + lane updates 4/4 + parent/child relationships 4/4 per FR-006a) / 24 total = 21/24 = 87.5%. Updated to reflect actual coverage including parent-child relationship operations.
 - **SC-005**: Workflow and column management exposes read operations and column deletion; create/update operations require API verification and may achieve 25-50% coverage depending on API access level
 - **SC-006**: Custom field management achieves 100% coverage for field **values** on cards and field **definition** management (create/update/delete definitions verified via OpenAPI v2)
-- **SC-007**: Overall CRUD coverage across all resource types reaches 83%, calculated as: (Workspaces 4/4 + Boards 4/4 + Cards 4/4 + Parent-Child Relationships 4/4 + Comments 4/4 + Subtasks 4/4 + Custom Fields 6/6 + Custom Field Values 4/4 + Lanes 2/4 + Outcomes 1/4 + Workflows 2/8 + Columns 1/8) / 48 total operations = 40/48 = 83% (up from 50%).
+- **SC-007**: Overall CRUD coverage across all resource types reaches 83%, calculated as: (Workspaces 4/4 + Boards 4/4 + Cards 4/4 + Parent-Child Relationships 4/4 + Comments 4/4 + Subtasks 4/4 + Custom Fields 6/6 + Custom Field Values 4/4 + Lanes 2/4 + Outcomes 1/4 + Workflows 2/8 + Columns 1/8) / 48 total operations = 40/48 = 83% (up from 50%). Overall 80% coverage breakdown by resource type: Workspaces 100% (4/4), Boards 100% (4/4), Cards 95% (19/20), Comments 100% (4/4), Subtasks 100% (4/4), Custom Fields 100% (6/6), Lanes 100% (4/4), Columns 0% (0/4 - read-only).
 - **SC-008**: All operations complete within 2 seconds for single-resource actions and within 10 seconds for bulk operations
 - **SC-009**: Error messages for failed operations clearly indicate the cause and suggest remediation actions in 100% of failure cases, including explicit messaging when API operations are not supported
 - **SC-010**: Zero data loss or corruption events during update and delete operations when validated by integration tests
@@ -249,7 +249,7 @@ Users can read custom field definitions and manage custom field **values** on ca
 - Bulk delete operations analyze all resources upfront for dependencies before confirmation, adding <500ms overhead
 - API calls respect rate limits with exponential backoff retry logic (max 3 retries, intervals: 1s, 2s, 4s)
 - Rate limit errors (RL02 error code) trigger automatic retry with exponential backoff
-- System logs warning at 80% rate limit threshold (24/30 requests per minute)
+- System logs warning at 80% rate limit threshold (24/30 requests per minute). When remaining rate limit capacity falls below 80% threshold, the MCP server logs a warning to the application log (not user-visible). Monitoring systems can alert on repeated threshold warnings.
 - BusinessMap API default rate limits: 30 requests/minute, 600 requests/hour
 
 ### Reliability
@@ -257,14 +257,27 @@ Users can read custom field definitions and manage custom field **values** on ca
 - Operations succeed 99.9% of the time when inputs are valid and API is available
 - Failed operations provide actionable error messages with specific failure causes
 - Transient failures trigger automatic retry with exponential backoff (max 3 attempts)
+- Errors are classified as transient (network failures, rate limits, temporary API unavailability) or permanent (validation failures, permission denials, resource not found). Transient errors include retry guidance; permanent errors include remediation steps.
+
+**Error Classification Table**:
+| Error Type | Examples | Retry? | Client Action |
+|------------|----------|--------|---------------|
+| Transient | Network timeout, 429 rate limit, 503 service unavailable | Yes | Retry with exponential backoff |
+| Permanent | 400 validation error, 403 forbidden, 404 not found | No | Fix request parameters or permissions |
+
 - Critical operations log detailed diagnostic information for troubleshooting
-- Bulk operations execute as sequential batch; partial success scenarios provide detailed success/failure report per resource (completed operations remain committed)
+- Bulk operations follow transaction semantics defined in FR-020 (sequential batch execution, partial success handling, retry behavior)
 
 ### Usability
 
 - Operation signatures follow consistent patterns across all resource types
 - Parameter names and types align with BusinessMap terminology and conventions
-- Error messages use plain language and avoid technical jargon where possible
+- Error messages use plain language and avoid technical jargon where possible. Error message formats follow the structure defined in contracts/*.yaml (error, message, details, timestamp, path fields).
+
+**Error Message Examples**:
+- ❌ Bad: "Invalid input"
+- ✅ Good: "Board name must be between 1 and 100 characters. Received: 0 characters."
+
 - Documentation includes examples for common use cases for each operation
 - Update operations execute immediately without confirmation to minimize friction
 - Delete operations only prompt for confirmation when dependencies exist; simple deletes execute immediately
@@ -272,7 +285,7 @@ Users can read custom field definitions and manage custom field **values** on ca
 ### Security
 
 - All operations authenticate using secure token-based authentication
-- Sensitive data (tokens, credentials) never logged or exposed in error messages
+- Sensitive data (tokens, credentials) never logged or exposed in error messages. Never log: API tokens, user passwords, full error responses containing PII. Always log: timestamp, operation name, resource ID (not content), success/failure status.
 - Operations respect BusinessMap's permission model and user access controls
 - Audit trail captures all mutation operations with user and timestamp information
 
@@ -293,5 +306,6 @@ Non-functional requirements are satisfied by existing infrastructure and design 
 - **Rate Limit Compliance**: Exponential backoff via axios-retry + header monitoring (Tasks T002-T003)
 - **Validation**: Zod schema validation at MCP tool boundary (Tasks T004-T066)
 - **Security**: Token-based authentication delegated to BusinessMap API; MCP server propagates user context
+- **Idempotency**: All DELETE operations are idempotent. Deleting a non-existent resource returns 404 NOT_FOUND on first call and 404 on subsequent calls (same response).
 
 Validation occurs through integration testing against demo API (quickstart.md validation - Task T070). No separate NFR testing phase required for MVP.

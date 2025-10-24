@@ -136,6 +136,17 @@ Standardized error response structure:
 }
 ```
 
+**Field-Specific Validation Error Schema**:
+```json
+{
+  "details": {
+    "field": "comment.text",
+    "reason": "Length must be between 1 and 5000 characters",
+    "received_value": "..."
+  }
+}
+```
+
 Error codes:
 - `VALIDATION_ERROR` - Invalid input (400)
 - `UNAUTHORIZED` - Missing/invalid token (401)
@@ -145,6 +156,9 @@ Error codes:
 - `BOARD_NOT_EMPTY` - Cannot delete non-empty board (400)
 - `WORKSPACE_NOT_EMPTY` - Cannot delete non-empty workspace (400)
 - `CARD_HAS_DEPENDENCIES` - Cannot delete card with dependencies (400)
+- `FOREIGN_KEY_VIOLATION` - Referenced resource does not exist (e.g., invalid column_id, board_id, or workspace_id in request) (400)
+
+**Error Code Naming Convention**: Rate limit codes use format RL## (e.g., RL02). Domain error codes use UPPER_SNAKE_CASE (e.g., VALIDATION_ERROR, FOREIGN_KEY_VIOLATION). API-delegated errors preserve BusinessMap error codes.
 
 ### 3. Rate Limiting
 All endpoints include RL02 rate limit handling:
@@ -156,6 +170,10 @@ All endpoints include RL02 rate limit handling:
 Custom fields list endpoint:
 - Query parameters: `page` (default: 1), `page_size` (default: 20, max: 100)
 - Response includes: `items[]`, `total`, `page`, `page_size`, `pages`
+
+**Optional Parameters Default Behavior**: When optional parameters are omitted, the API uses documented defaults (e.g., force=false, page=1, page_size=20). Omitting optional fields in PATCH requests leaves those fields unchanged.
+
+**Page Out-of-Range Behavior**: When page exceeds total_pages, the API returns an empty results array with pagination metadata showing the out-of-range condition. HTTP status remains 200 OK.
 
 ### 5. Validation Rules
 
@@ -174,6 +192,8 @@ Custom fields list endpoint:
 - `is_finished`: 0 or 1
 - `is_required`: boolean
 - `is_archived`: 0 or 1
+
+**PATCH Required Fields Behavior**: PATCH operations cannot remove required fields. Required fields omitted in PATCH requests retain their current values. Setting a required field to null returns 400 VALIDATION_ERROR.
 
 ### 6. Safety Features
 
@@ -216,6 +236,8 @@ Each operation includes 2-4 complete examples:
 - Success responses with realistic data
 - Error responses for common failures
 - Validation errors with field-level details
+
+**Positive Test Scenarios**: Positive test scenarios are documented in each operation's YAML contract file under the 'examples' section. Each operation includes at least one successful request/response pair.
 
 ## Validation
 
