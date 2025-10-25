@@ -404,6 +404,29 @@ export interface CreateSubtaskParams {
   }>;
 }
 
+// Update Comment params
+export interface UpdateCommentParams {
+  text?: string;
+  attachments_to_add?: Array<{
+    file_name: string;
+    link: string;
+  }>;
+}
+
+// Update Subtask params
+export interface UpdateSubtaskParams {
+  description?: string;
+  owner_user_id?: number;
+  is_finished?: number;
+  deadline?: string;
+  position?: number;
+  attachments_to_add?: Array<{
+    file_name: string;
+    link: string;
+    position: number;
+  }>;
+}
+
 // Parent Cards Response types
 export interface ParentCardItem {
   card_id: number;

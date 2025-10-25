@@ -157,14 +157,17 @@ The BusinessMap MCP server provides the following tools:
 - `list_workspaces` - Get all workspaces
 - `get_workspace` - Get workspace details
 - `create_workspace` - Create new workspace
+- `update_workspace` - Modify workspace name or description
+- `archive_workspace` - Archive workspace (soft delete). Note: The API does not support permanent deletion (DELETE returns 405). Only archiving is available.
 
 ### Board Management
 
 - `list_boards` - List boards in workspace(s)
 - `search_board` - Search for boards by ID or name
-
 - `get_current_board_structure` - Get the complete current structure of a board including workflows, columns, lanes, and configurations
 - `create_board` - Create new board (if not in read-only mode)
+- `update_board` - Modify board name, description, or settings
+- `delete_board` - Remove board (requires archive-first workflow: boards must be archived before deletion, automatically handled via archive_first parameter)
 - `get_columns` - Get all columns for a board
 - `get_lanes` - Get all lanes for a board
 - `get_lane` - Get details of a specific lane/swimlane
@@ -181,11 +184,14 @@ The BusinessMap MCP server provides the following tools:
 - `move_card` - Move card to different column/swimlane
 - `update_card` - Update card properties
 - `set_card_size` - Set the size/points of a specific card
+- `delete_card` - Remove card (with cascade confirmation if has children/comments/subtasks)
 
 #### Card Comments
 
 - `get_card_comments` - Get all comments for a specific card
 - `get_card_comment` - Get details of a specific comment from a card
+- `update_card_comment` - Update existing card comment text and formatting
+- `delete_card_comment` - Remove comment from card
 
 #### Card Custom Fields & Types
 
@@ -206,6 +212,8 @@ The BusinessMap MCP server provides the following tools:
 - `get_card_subtasks` - Get all subtasks for a specific card
 - `get_card_subtask` - Get details of a specific subtask from a card
 - `create_card_subtask` - Create a new subtask for a card
+- `update_card_subtask` - Update subtask description, owner, or status
+- `delete_card_subtask` - Remove subtask from card
 
 #### Card Parent Relationships
 
@@ -218,12 +226,26 @@ The BusinessMap MCP server provides the following tools:
 
 ### Custom Field Management
 
+- `list_custom_fields` - Get all custom field definitions across system
+- `list_board_custom_fields` - Get custom field definitions for specific board
 - `get_custom_field` - Get details of a specific custom field by ID
+- `create_custom_field` - Define new custom field with type and options
+- `update_custom_field` - Modify custom field label, type, or constraints
+- `delete_custom_field` - Remove custom field definition (cascades to all card values)
 
 ### Workflow & Cycle Time Analysis
 
 - `get_workflow_cycle_time_columns` - Get workflow's cycle time columns
 - `get_workflow_effective_cycle_time_columns` - Get workflow's effective cycle time columns
+
+### Bulk Operations
+
+- `bulk_archive_workspaces` - Archive multiple workspaces with consolidated confirmation (soft delete only)
+- `bulk_update_workspaces` - Update multiple workspaces in single transaction
+- `bulk_delete_boards` - Delete multiple boards with consolidated confirmation (automatically archives boards before deletion)
+- `bulk_update_boards` - Update multiple boards in single transaction
+- `bulk_delete_cards` - Delete multiple cards with consolidated confirmation
+- `bulk_update_cards` - Update multiple cards in single transaction
 
 ### User Management
 
@@ -238,13 +260,14 @@ The BusinessMap MCP server provides the following tools:
 
 ## Tool Summary
 
-The BusinessMap MCP server provides **43 tools** across 7 categories:
+The BusinessMap MCP server provides **65 tools** across 9 categories:
 
-- **Workspace Management**: 3 tools
-- **Board Management**: 9 tools
-- **Card Management**: 23 tools (organized in 6 subcategories)
-- **Custom Field Management**: 1 tool
+- **Workspace Management**: 5 tools
+- **Board Management**: 11 tools
+- **Card Management**: 25 tools (organized in 6 subcategories)
+- **Custom Field Management**: 7 tools
 - **Workflow & Cycle Time Analysis**: 2 tools
+- **Bulk Operations**: 6 tools
 - **User Management**: 3 tools
 - **System**: 2 tools
 
@@ -276,6 +299,134 @@ The BusinessMap MCP server provides **43 tools** across 7 categories:
 - **Robust error handling** with detailed error messages
 - **Automatic connection verification** with retry logic
 - **Docker support** for containerized deployments
+- **Bulk operations** with dependency analysis and consolidated confirmations
+- **Cascade delete protection** with impact previews
+
+### DELETE Behavior by Resource Type
+
+The API enforces different deletion workflows depending on resource type:
+
+- **Workspaces**: Cannot be permanently deleted via API (DELETE returns 405). Only archiving is supported using `archive_workspace` or `bulk_archive_workspaces`.
+- **Boards**: Require archive-first workflow. Boards must be archived (PATCH with `is_archived=1`) before DELETE succeeds. Attempting to DELETE an active board returns 400 "BS05 - The board has not been archived". The `delete_board` and `bulk_delete_boards` tools handle this automatically via the `archive_first` parameter (defaults to true).
+- **Cards**: Support direct deletion with cascade confirmation for dependent resources (children, comments, subtasks).
+
+## Error Handling
+
+All tools follow consistent error handling patterns with specific failure causes, transient/permanent indicators, and actionable remediation steps.
+
+### Common Error Scenarios
+
+#### Insufficient Permissions (Permanent)
+
+**Affects**: `archive_workspace`, `delete_board`, `delete_custom_field`, all bulk archive/delete operations
+
+- **Cause**: User lacks required admin role for the operation
+- **Message**: "Insufficient permissions. [Operation] requires [role] role."
+- **Remediation**: Contact workspace/board administrator to request elevated permissions or have admin perform the operation
+
+**Example**:
+```
+Error: Insufficient permissions. Workspace archiving requires workspace admin role.
+Remediation: Contact workspace administrator to request elevated permissions.
+```
+
+#### Resource Not Found (Permanent)
+
+**Affects**: All update and delete operations
+
+- **Cause**: Resource ID does not exist or was already deleted
+- **Message**: "[Resource] not found. Verify resource exists."
+- **Remediation**: Use corresponding list/get tool to verify resource ID before retry
+
+**Example**:
+```
+Error: Board not found. Verify resource exists.
+Remediation: Use list_boards to retrieve current board IDs.
+```
+
+#### Rate Limit Exceeded (Transient)
+
+**Affects**: All operations (30 requests/minute, 600 requests/hour limit)
+
+- **Cause**: API rate limit exceeded
+- **Message**: "Rate limit exceeded. Retry after [N] seconds."
+- **Remediation**: Wait indicated time and retry. Consider batching operations using bulk tools.
+
+**Example**:
+```
+Error: Rate limit exceeded. Retry after 60 seconds.
+Remediation: Wait 60 seconds and retry. For multiple operations, use bulk_update_cards instead of individual updates.
+```
+
+#### Validation Error (Permanent)
+
+**Affects**: All create and update operations
+
+- **Cause**: Invalid parameter values or constraint violations
+- **Message**: "Validation failed: [specific constraint]"
+- **Remediation**: Review parameter requirements and adjust input
+
+**Example**:
+```
+Error: Validation failed: Custom field name must be unique within board.
+Remediation: Use list_board_custom_fields to check existing names, then choose a unique name.
+```
+
+#### Cascade Archive/Delete Confirmation Required (User Action Required)
+
+**Affects**: `archive_workspace`, `delete_board`, `delete_card`, all bulk archive/delete operations
+
+- **Cause**: Resource has dependent resources that will be archived/deleted
+- **Message**: Displays dependency tree and impact summary
+- **Remediation**: Review dependencies and confirm operation or cancel
+
+**Example**:
+```
+⚠️  Delete Confirmation Required
+
+Workspace "Marketing Team" (ID: 123)
+  └─ 3 boards will be deleted:
+     • "Q1 Campaign" (ID: 456) → 12 cards
+     • "Content Calendar" (ID: 457) → 8 cards
+
+Total impact: 1 workspace, 3 boards, 20 cards
+
+Proceed with deletion? (yes/no):
+```
+
+#### Network/Server Error (Transient)
+
+**Affects**: All operations
+
+- **Cause**: Temporary network issue or server unavailability
+- **Message**: "Connection failed: [details]"
+- **Remediation**: Check network connection and retry. If persists, check BusinessMap status.
+
+**Example**:
+```
+Error: Connection failed: ECONNREFUSED
+Remediation: Verify BUSINESSMAP_API_URL is correct and BusinessMap service is accessible. Retry after verifying connection.
+```
+
+### Error Handling by Tool Category
+
+#### Workspace Operations
+- `update_workspace`, `archive_workspace`: Permissions, NotFound, RateLimit
+- `bulk_archive_workspaces`, `bulk_update_workspaces`: All above + CascadeConfirmation for workspaces with boards
+
+#### Board Operations
+- `update_board`, `delete_board`: Permissions, NotFound, RateLimit
+- `bulk_delete_boards`, `bulk_update_boards`: All above + CascadeConfirmation for boards with cards
+
+#### Card Operations
+- `delete_card`: NotFound, RateLimit, CascadeConfirmation (if has children/comments/subtasks)
+- `update_card_comment`, `delete_card_comment`: NotFound, RateLimit, Permissions
+- `update_card_subtask`, `delete_card_subtask`: NotFound, RateLimit
+- `bulk_delete_cards`, `bulk_update_cards`: All above + CascadeConfirmation
+
+#### Custom Field Operations
+- `create_custom_field`, `update_custom_field`: Validation (name uniqueness, type constraints), RateLimit
+- `delete_custom_field`: Permissions, NotFound, CascadeConfirmation (shows affected boards/cards)
 
 ## Development
 

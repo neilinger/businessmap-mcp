@@ -97,3 +97,22 @@ export const createLaneSchema = z.object({
 export const getCurrentBoardStructureSchema = z.object({
   board_id: z.number().describe('The ID of the board'),
 });
+
+// Schema para atualização de boards
+export const updateBoardSchema = z.object({
+  board_id: z.number().describe('The ID of the board to update'),
+  name: z.string().optional().describe('New name for the board'),
+  description: z.string().optional().describe('New description for the board'),
+});
+
+// Schema para deleção de boards
+export const deleteBoardSchema = z.object({
+  board_id: z.number().describe('The ID of the board to delete'),
+  archive_first: z
+    .boolean()
+    .optional()
+    .default(true)
+    .describe(
+      'Archive the board before deletion to avoid API errors. Default: true. Set to false only if board is already archived.'
+    ),
+});

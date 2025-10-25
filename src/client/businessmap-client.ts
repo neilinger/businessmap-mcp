@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
+import axiosRetry from 'axios-retry';
 import { ApiError, BusinessMapConfig } from '../types/index.js';
 import { BoardFilters } from './modules/board-client.js';
 import {
@@ -38,9 +39,41 @@ export class BusinessMapClient {
       timeout: 30000,
     });
 
-    // Add response interceptor for error handling
+    // Configure axios-retry for rate limit handling
+    axiosRetry(this.http, {
+      retries: 3,
+      retryDelay: axiosRetry.exponentialDelay,
+      retryCondition: (error) => {
+        // Retry on rate limit (429) or network errors
+        return (
+          axiosRetry.isNetworkOrIdempotentRequestError(error) ||
+          error.response?.status === 429
+        );
+      },
+      onRetry: (retryCount, error) => {
+        const retryAfter = error.response?.headers?.['retry-after'];
+        console.warn(
+          `Rate limit hit (retry ${retryCount}/3)${retryAfter ? `, retry after ${retryAfter}s` : ''}`
+        );
+      },
+    });
+
+    // Add response interceptor for error handling and rate limit monitoring
     this.http.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        // Monitor rate limit headers
+        const remaining = response.headers?.['x-ratelimitperhour-remaining'];
+        const limit = response.headers?.['x-ratelimitperhour-limit'];
+        if (remaining && limit) {
+          const usage = 1 - parseInt(remaining) / parseInt(limit);
+          if (usage >= 0.8) {
+            console.warn(
+              `Rate limit warning: ${Math.round(usage * 100)}% of hourly quota used (${remaining}/${limit} remaining)`
+            );
+          }
+        }
+        return response;
+      },
       (error: AxiosError) => {
         throw this.transformError(error);
       }
@@ -153,11 +186,25 @@ export class BusinessMapClient {
     return this.workspaceClient.updateWorkspace(workspaceId, params);
   }
 
-  async deleteWorkspace(workspaceId: number) {
-    return this.workspaceClient.deleteWorkspace(workspaceId);
+  async archiveWorkspace(workspaceId: number) {
+    return this.workspaceClient.archiveWorkspace(workspaceId);
+  }
+
+  async bulkArchiveWorkspaces(workspaceIds: number[]) {
+    return this.workspaceClient.bulkArchiveWorkspaces(workspaceIds);
+  }
+
+  async bulkUpdateWorkspaces(
+    workspaceIds: number[],
+    updates: Parameters<WorkspaceClient['bulkUpdateWorkspaces']>[1]
+  ) {
+    return this.workspaceClient.bulkUpdateWorkspaces(workspaceIds, updates);
   }
 
   // Board Management - Delegated to BoardClient
+  async listBoards(filters?: BoardFilters) {
+    return this.boardClient.getBoards(filters);
+  }
   async getBoards(filters?: BoardFilters) {
     return this.boardClient.getBoards(filters);
   }
@@ -174,8 +221,8 @@ export class BusinessMapClient {
     return this.boardClient.updateBoard(boardId, params);
   }
 
-  async deleteBoard(boardId: number) {
-    return this.boardClient.deleteBoard(boardId);
+  async deleteBoard(boardId: number, options?: { archive_first?: boolean }) {
+    return this.boardClient.deleteBoard(boardId, options);
   }
 
   async getBoardStructure(boardId: number) {
@@ -202,7 +249,21 @@ export class BusinessMapClient {
     return this.boardClient.getCurrentBoardStructure(boardId);
   }
 
+  async bulkDeleteBoards(boardIds: number[]) {
+    return this.boardClient.bulkDeleteBoards(boardIds);
+  }
+
+  async bulkUpdateBoards(
+    boardIds: number[],
+    updates: Parameters<BoardClient['bulkUpdateBoards']>[1]
+  ) {
+    return this.boardClient.bulkUpdateBoards(boardIds, updates);
+  }
+
   // Card Management - Delegated to CardClient
+  async listCards(filters: CardFilters & { board_id: number }) {
+    return this.cardClient.getCards(filters.board_id, filters);
+  }
   async getCards(boardId: number, filters?: CardFilters) {
     return this.cardClient.getCards(boardId, filters);
   }
@@ -223,8 +284,8 @@ export class BusinessMapClient {
     return this.cardClient.moveCard(cardId, columnId, laneId, position);
   }
 
-  async deleteCard(cardId: number) {
-    return this.cardClient.deleteCard(cardId);
+  async deleteCard(cardId: number, options?: { archive_first?: boolean }) {
+    return this.cardClient.deleteCard(cardId, options);
   }
 
   async getCardComments(cardId: number) {
@@ -233,6 +294,14 @@ export class BusinessMapClient {
 
   async getCardComment(cardId: number, commentId: number) {
     return this.cardClient.getCardComment(cardId, commentId);
+  }
+
+  async updateCardComment(cardId: number, commentId: number, params: Parameters<CardClient['updateCardComment']>[2]) {
+    return this.cardClient.updateCardComment(cardId, commentId, params);
+  }
+
+  async deleteCardComment(cardId: number, commentId: number) {
+    return this.cardClient.deleteCardComment(cardId, commentId);
   }
 
   async getCardCustomFields(cardId: number) {
@@ -267,6 +336,14 @@ export class BusinessMapClient {
     return this.cardClient.createCardSubtask(cardId, params);
   }
 
+  async updateCardSubtask(cardId: number, subtaskId: number, params: Parameters<CardClient['updateCardSubtask']>[2]) {
+    return this.cardClient.updateCardSubtask(cardId, subtaskId, params);
+  }
+
+  async deleteCardSubtask(cardId: number, subtaskId: number) {
+    return this.cardClient.deleteCardSubtask(cardId, subtaskId);
+  }
+
   async getCardParents(cardId: number) {
     return this.cardClient.getCardParents(cardId);
   }
@@ -291,6 +368,17 @@ export class BusinessMapClient {
     return this.cardClient.getCardChildren(cardId);
   }
 
+  async bulkDeleteCards(cardIds: number[]) {
+    return this.cardClient.bulkDeleteCards(cardIds);
+  }
+
+  async bulkUpdateCards(
+    cardIds: number[],
+    updates: Parameters<CardClient['bulkUpdateCards']>[1]
+  ) {
+    return this.cardClient.bulkUpdateCards(cardIds, updates);
+  }
+
   // User Management - Delegated to UserClient
   async getUsers() {
     return this.userClient.getUsers();
@@ -305,6 +393,46 @@ export class BusinessMapClient {
   }
 
   // Custom Fields - Delegated to CustomFieldClient
+  // Custom Fields - Delegated to CustomFieldClient
+  async listCustomFields(params?: { page?: number; page_size?: number; field_type?: string }) {
+    return this.customFieldClient.listCustomFields(params);
+  }
+
+  async listBoardCustomFields(boardId: number) {
+    return this.customFieldClient.listBoardCustomFields(boardId);
+  }
+
+  async createCustomField(params: {
+    board_id: number;
+    name: string;
+    field_type: string;
+    description?: string;
+    is_required?: boolean;
+    position?: number;
+    options?: Array<{ value: string; color: string }>;
+    validation?: { min?: number; max?: number };
+  }) {
+    return this.customFieldClient.createCustomField(params);
+  }
+
+  async updateCustomField(
+    customFieldId: number,
+    params: {
+      name?: string;
+      description?: string;
+      is_required?: boolean;
+      position?: number;
+      options?: Array<{ id?: number; value: string; color: string }>;
+      validation?: { min?: number; max?: number };
+    }
+  ) {
+    return this.customFieldClient.updateCustomField(customFieldId, params);
+  }
+
+  async deleteCustomField(customFieldId: number) {
+    return this.customFieldClient.deleteCustomField(customFieldId);
+  }
+
   async getCustomField(customFieldId: number) {
     return this.customFieldClient.getCustomField(customFieldId);
   }

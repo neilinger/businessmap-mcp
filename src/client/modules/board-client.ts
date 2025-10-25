@@ -69,9 +69,19 @@ export class BoardClient extends BaseClientModuleImpl {
 
   /**
    * Delete a board
+   * @param boardId - The ID of the board to delete
+   * @param options - Optional configuration
+   * @param options.archive_first - Archive board before deletion to avoid BS05 error. Default: true
    */
-  async deleteBoard(boardId: number): Promise<void> {
+  async deleteBoard(boardId: number, options?: { archive_first?: boolean }): Promise<void> {
     this.checkReadOnlyMode('delete board');
+
+    if (options?.archive_first !== false) {
+      // Default: true - Archive first
+      await this.http.patch(`/boards/${boardId}`, { is_archived: 1 });
+    }
+
+    // Then delete
     await this.http.delete(`/boards/${boardId}`);
   }
 
@@ -124,5 +134,56 @@ export class BoardClient extends BaseClientModuleImpl {
       `/boards/${boardId}/currentStructure`
     );
     return response.data.data;
+  }
+
+  /**
+   * Bulk delete boards (T058)
+   * Deletes multiple boards sequentially
+   */
+  async bulkDeleteBoards(boardIds: number[]): Promise<Array<{ id: number; success: boolean; error?: string }>> {
+    this.checkReadOnlyMode('bulk delete boards');
+
+    const results = [];
+    for (const id of boardIds) {
+      try {
+        await this.deleteBoard(id);
+        results.push({ id, success: true });
+      } catch (error) {
+        results.push({
+          id,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Bulk update boards (T062)
+   * Updates multiple boards sequentially with the same changes
+   */
+  async bulkUpdateBoards(
+    boardIds: number[],
+    updates: Partial<CreateBoardParams>
+  ): Promise<Array<{ id: number; success: boolean; board?: Board; error?: string }>> {
+    this.checkReadOnlyMode('bulk update boards');
+
+    const results = [];
+    for (const id of boardIds) {
+      try {
+        const board = await this.updateBoard(id, updates);
+        results.push({ id, success: true, board });
+      } catch (error) {
+        results.push({
+          id,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    return results;
   }
 }

@@ -43,10 +43,68 @@ export class WorkspaceClient extends BaseClientModuleImpl {
   }
 
   /**
-   * Delete a workspace
+   * Archive a workspace (soft delete)
+   * @param workspaceId - The ID of the workspace to archive
+   * @remarks API does not support permanent deletion (DELETE returns 405). Only archiving is available.
    */
-  async deleteWorkspace(workspaceId: number): Promise<void> {
-    this.checkReadOnlyMode('delete workspace');
-    await this.http.delete(`/workspaces/${workspaceId}`);
+  async archiveWorkspace(workspaceId: number): Promise<Workspace> {
+    this.checkReadOnlyMode('archive workspace');
+
+    const response = await this.http.patch<ApiResponse<Workspace>>(
+      `/workspaces/${workspaceId}`,
+      { is_archived: 1 }
+    );
+    return response.data.data;
+  }
+
+  /**
+   * Bulk archive workspaces (T057)
+   * Archives multiple workspaces sequentially
+   */
+  async bulkArchiveWorkspaces(workspaceIds: number[]): Promise<Array<{ id: number; success: boolean; workspace?: Workspace; error?: string }>> {
+    this.checkReadOnlyMode('bulk archive workspaces');
+
+    const results = [];
+    for (const id of workspaceIds) {
+      try {
+        const workspace = await this.archiveWorkspace(id);
+        results.push({ id, success: true, workspace });
+      } catch (error) {
+        results.push({
+          id,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Bulk update workspaces (T061)
+   * Updates multiple workspaces sequentially with the same changes
+   */
+  async bulkUpdateWorkspaces(
+    workspaceIds: number[],
+    updates: Partial<CreateWorkspaceParams>
+  ): Promise<Array<{ id: number; success: boolean; workspace?: Workspace; error?: string }>> {
+    this.checkReadOnlyMode('bulk update workspaces');
+
+    const results = [];
+    for (const id of workspaceIds) {
+      try {
+        const workspace = await this.updateWorkspace(id, updates);
+        results.push({ id, success: true, workspace });
+      } catch (error) {
+        results.push({
+          id,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    return results;
   }
 }
