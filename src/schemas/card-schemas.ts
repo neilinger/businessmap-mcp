@@ -578,3 +578,15 @@ export const getCardParentGraphSchema = z.object({
 export const getCardChildrenSchema = z.object({
   card_id: z.number().describe('The ID of the parent card'),
 });
+
+// Schema para deleção de cards
+export const deleteCardSchema = z.object({
+  card_id: z.number().describe('The ID of the card to delete'),
+  archive_first: z
+    .boolean()
+    .optional()
+    .default(true)
+    .describe(
+      'Archive the card before deletion to avoid API errors. Default: true. Set to false only if card is already archived.'
+    ),
+});

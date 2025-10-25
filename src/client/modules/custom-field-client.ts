@@ -3,6 +3,30 @@ import { BaseClientModuleImpl } from './base-client.js';
 
 export class CustomFieldClient extends BaseClientModuleImpl {
   /**
+   * List all custom field definitions
+   */
+  async listCustomFields(params?: {
+    page?: number;
+    page_size?: number;
+    field_type?: string;
+  }): Promise<ApiResponse<CustomField[]>> {
+    const response = await this.http.get<ApiResponse<CustomField[]>>('/custom_fields', {
+      params,
+    });
+    return response.data;
+  }
+
+  /**
+   * List custom fields for a specific board
+   */
+  async listBoardCustomFields(boardId: number): Promise<CustomField[]> {
+    const response = await this.http.get<ApiResponse<CustomField[]>>(
+      `/boards/${boardId}/custom_fields`
+    );
+    return response.data.data;
+  }
+
+  /**
    * Get a specific custom field by ID
    */
   async getCustomField(customFieldId: number): Promise<CustomField> {
@@ -10,5 +34,59 @@ export class CustomFieldClient extends BaseClientModuleImpl {
       `/custom_fields/${customFieldId}`
     );
     return response.data.data;
+  }
+
+  /**
+   * Create a new custom field
+   */
+  async createCustomField(params: {
+    board_id: number;
+    name: string;
+    field_type: string;
+    description?: string;
+    is_required?: boolean;
+    position?: number;
+    options?: Array<{ value: string; color: string }>;
+    validation?: {
+      min?: number;
+      max?: number;
+    };
+  }): Promise<CustomField> {
+    const response = await this.http.post<ApiResponse<CustomField>>(
+      `/boards/${params.board_id}/custom_fields`,
+      params
+    );
+    return response.data.data;
+  }
+
+  /**
+   * Update an existing custom field
+   */
+  async updateCustomField(
+    customFieldId: number,
+    params: {
+      name?: string;
+      description?: string;
+      is_required?: boolean;
+      position?: number;
+      options?: Array<{ id?: number; value: string; color: string }>;
+      validation?: {
+        min?: number;
+        max?: number;
+      };
+    }
+  ): Promise<CustomField> {
+    const response = await this.http.patch<ApiResponse<CustomField>>(
+      `/custom_fields/${customFieldId}`,
+      params
+    );
+    return response.data.data;
+  }
+
+  /**
+   * Delete a custom field
+   */
+  async deleteCustomField(customFieldId: number): Promise<void> {
+    await this.http.delete(`/custom_fields/${customFieldId}`);
   }
 }

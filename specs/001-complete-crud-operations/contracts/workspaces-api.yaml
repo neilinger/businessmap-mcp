@@ -1,0 +1,346 @@
+openapi: 3.0.3
+info:
+  title: BusinessMap Workspaces API
+  description: API for managing workspaces in BusinessMap (PATCH and DELETE operations)
+  version: 1.0.0
+  contact:
+    name: BusinessMap API Support
+    url: https://businessmap.io/api
+
+servers:
+  - url: https://businessmap.io/api/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /workspaces/{workspace_id}:
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        description: The unique identifier of the workspace
+        schema:
+          type: integer
+          format: int64
+          example: 3001
+
+    patch:
+      summary: Update workspace
+      description: Update properties of an existing workspace
+      operationId: updateWorkspace
+      tags:
+        - Workspaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkspaceRequest'
+            examples:
+              updateName:
+                summary: Update workspace name
+                value:
+                  name: "Engineering Team - Updated"
+              updateDescription:
+                summary: Update description
+                value:
+                  description: "Updated workspace for engineering team projects"
+              fullUpdate:
+                summary: Update name and description
+                value:
+                  name: "Product Development"
+                  description: "Workspace for all product development activities"
+
+      responses:
+        '200':
+          description: Workspace successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+              examples:
+                success:
+                  summary: Updated workspace
+                  value:
+                    workspace_id: 3001
+                    name: "Product Development"
+                    description: "Workspace for all product development activities"
+                    created_at: "2025-01-01T10:00:00Z"
+                    updated_at: "2025-01-20T17:00:00Z"
+                    owner_user_id: 100
+                    owner_name: "Admin User"
+                    board_count: 5
+                    member_count: 12
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+    delete:
+      summary: Delete workspace
+      description: Permanently delete a workspace and all its boards
+      operationId: deleteWorkspace
+      tags:
+        - Workspaces
+      parameters:
+        - name: force
+          in: query
+          description: Force delete even if workspace contains boards
+          schema:
+            type: boolean
+            default: false
+            example: false
+
+      responses:
+        '204':
+          description: Workspace successfully deleted (no content)
+
+        '400':
+          description: Bad request - workspace contains boards and force=false
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                containsBoards:
+                  summary: Workspace contains boards
+                  value:
+                    error: "WORKSPACE_NOT_EMPTY"
+                    message: "Workspace contains boards and cannot be deleted"
+                    details:
+                      workspace_id: 3001
+                      board_count: 5
+                      hint: "Use force=true to delete workspace and all its boards"
+                    timestamp: "2025-01-20T17:00:00Z"
+                    path: "/api/v1/workspaces/3001"
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using API key
+
+  schemas:
+    UpdateWorkspaceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Updated workspace name
+          minLength: 1
+          maxLength: 100
+          example: "Engineering Team"
+        description:
+          type: string
+          description: Updated workspace description
+          maxLength: 500
+          example: "Workspace for engineering team projects"
+
+    Workspace:
+      type: object
+      properties:
+        workspace_id:
+          type: integer
+          format: int64
+          description: Unique identifier for the workspace
+          example: 3001
+        name:
+          type: string
+          description: Workspace name
+          example: "Engineering Team"
+        description:
+          type: string
+          description: Workspace description
+          example: "Workspace for engineering team projects"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the workspace was created
+          example: "2025-01-01T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the workspace was last updated
+          example: "2025-01-20T17:00:00Z"
+        owner_user_id:
+          type: integer
+          format: int64
+          description: ID of the workspace owner
+          example: 100
+        owner_name:
+          type: string
+          description: Name of the workspace owner
+          example: "Admin User"
+        board_count:
+          type: integer
+          description: Number of boards in the workspace
+          example: 5
+        member_count:
+          type: integer
+          description: Number of members with access to the workspace
+          example: 12
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code identifier
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "The request contains invalid data"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+          example:
+            field: "name"
+            reason: "Workspace name cannot be empty"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2025-01-20T17:00:00Z"
+        path:
+          type: string
+          description: The API path that generated the error
+          example: "/api/v1/workspaces/3001"
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidInput:
+              summary: Invalid input data
+              value:
+                error: "VALIDATION_ERROR"
+                message: "The request contains invalid data"
+                details:
+                  field: "name"
+                  reason: "Workspace name cannot be empty"
+                timestamp: "2025-01-20T17:00:00Z"
+                path: "/api/v1/workspaces/3001"
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missingToken:
+              summary: Missing authentication token
+              value:
+                error: "UNAUTHORIZED"
+                message: "Authentication token is required"
+                timestamp: "2025-01-20T17:00:00Z"
+                path: "/api/v1/workspaces/3001"
+
+    Forbidden:
+      description: Forbidden - user lacks permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            insufficientPermissions:
+              summary: Insufficient permissions
+              value:
+                error: "FORBIDDEN"
+                message: "You do not have permission to modify this workspace"
+                details:
+                  required_permission: "workspace.update"
+                  user_role: "member"
+                  required_role: "admin"
+                timestamp: "2025-01-20T17:00:00Z"
+                path: "/api/v1/workspaces/3001"
+
+    NotFound:
+      description: Not found - the requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            workspaceNotFound:
+              summary: Workspace not found
+              value:
+                error: "NOT_FOUND"
+                message: "Workspace not found"
+                details:
+                  workspace_id: 3001
+                timestamp: "2025-01-20T17:00:00Z"
+                path: "/api/v1/workspaces/3001"
+
+    RateLimited:
+      description: Rate limit exceeded (RL02)
+      headers:
+        X-RateLimit-Limit:
+          description: The maximum number of requests allowed per time window
+          schema:
+            type: integer
+            example: 100
+        X-RateLimit-Remaining:
+          description: The number of requests remaining in the current window
+          schema:
+            type: integer
+            example: 0
+        X-RateLimit-Reset:
+          description: Unix timestamp when the rate limit resets
+          schema:
+            type: integer
+            example: 1642684800
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+            example: 60
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rateLimited:
+              summary: Rate limit exceeded
+              value:
+                error: "RL02"
+                message: "Rate limit exceeded. Please try again later."
+                details:
+                  limit: 100
+                  window: "1 minute"
+                  retry_after: 60
+                timestamp: "2025-01-20T17:00:00Z"
+                path: "/api/v1/workspaces/3001"
+
+tags:
+  - name: Workspaces
+    description: Operations for managing workspaces

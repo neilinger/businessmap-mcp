@@ -1,0 +1,391 @@
+openapi: 3.0.3
+info:
+  title: BusinessMap Boards API
+  description: API for managing boards in BusinessMap (PATCH and DELETE operations)
+  version: 1.0.0
+  contact:
+    name: BusinessMap API Support
+    url: https://businessmap.io/api
+
+servers:
+  - url: https://businessmap.io/api/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /boards/{board_id}:
+    parameters:
+      - name: board_id
+        in: path
+        required: true
+        description: The unique identifier of the board
+        schema:
+          type: integer
+          format: int64
+          example: 5001
+
+    patch:
+      summary: Update board
+      description: Update properties of an existing board
+      operationId: updateBoard
+      tags:
+        - Boards
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBoardRequest'
+            examples:
+              updateName:
+                summary: Update board name
+                value:
+                  name: "Sprint Planning - Q1 2025"
+              updateDescription:
+                summary: Update description
+                value:
+                  description: "Board for tracking Q1 2025 sprint tasks"
+              archiveBoard:
+                summary: Archive board
+                value:
+                  is_archived: 1
+              fullUpdate:
+                summary: Update multiple properties
+                value:
+                  name: "Product Backlog"
+                  description: "Main product development backlog"
+                  is_archived: 0
+
+      responses:
+        '200':
+          description: Board successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Board'
+              examples:
+                success:
+                  summary: Updated board
+                  value:
+                    board_id: 5001
+                    workspace_id: 3001
+                    name: "Sprint Planning - Q1 2025"
+                    description: "Board for tracking Q1 2025 sprint tasks"
+                    is_archived: 0
+                    created_at: "2025-01-01T12:00:00Z"
+                    updated_at: "2025-01-20T17:30:00Z"
+                    revision: 15
+                    card_count: 42
+                    column_count: 5
+                    lane_count: 3
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+    delete:
+      summary: Delete board
+      description: Permanently delete a board and all its cards
+      operationId: deleteBoard
+      tags:
+        - Boards
+      parameters:
+        - name: force
+          in: query
+          description: Force delete even if board contains cards
+          schema:
+            type: boolean
+            default: false
+            example: false
+        - name: archive_first
+          in: query
+          description: Archive board before deletion (safer approach)
+          schema:
+            type: boolean
+            default: false
+            example: true
+
+      responses:
+        '204':
+          description: Board successfully deleted (no content)
+
+        '400':
+          description: Bad request - board contains cards and force=false
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                containsCards:
+                  summary: Board contains cards
+                  value:
+                    error: "BOARD_NOT_EMPTY"
+                    message: "Board contains cards and cannot be deleted"
+                    details:
+                      board_id: 5001
+                      card_count: 42
+                      hint: "Use force=true to delete board and all its cards, or archive_first=true to archive before deletion"
+                    timestamp: "2025-01-20T17:30:00Z"
+                    path: "/api/v1/boards/5001"
+
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using API key
+
+  schemas:
+    UpdateBoardRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Updated board name
+          minLength: 1
+          maxLength: 200
+          example: "Sprint Planning - Q1 2025"
+        description:
+          type: string
+          description: Updated board description
+          maxLength: 1000
+          example: "Board for tracking Q1 2025 sprint tasks"
+        is_archived:
+          type: integer
+          description: Archive status (0 = active, 1 = archived)
+          enum: [0, 1]
+          example: 0
+        workspace_id:
+          type: integer
+          format: int64
+          description: Move board to a different workspace
+          example: 3002
+
+    Board:
+      type: object
+      properties:
+        board_id:
+          type: integer
+          format: int64
+          description: Unique identifier for the board
+          example: 5001
+        workspace_id:
+          type: integer
+          format: int64
+          description: ID of the workspace this board belongs to
+          example: 3001
+        name:
+          type: string
+          description: Board name
+          example: "Sprint Planning - Q1 2025"
+        description:
+          type: string
+          description: Board description
+          example: "Board for tracking Q1 2025 sprint tasks"
+        is_archived:
+          type: integer
+          description: Archive status (0 = active, 1 = archived)
+          enum: [0, 1]
+          example: 0
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the board was created
+          example: "2025-01-01T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the board was last updated
+          example: "2025-01-20T17:30:00Z"
+        revision:
+          type: integer
+          description: Board revision number for optimistic locking
+          example: 15
+        card_count:
+          type: integer
+          description: Number of cards on the board
+          example: 42
+        column_count:
+          type: integer
+          description: Number of columns on the board
+          example: 5
+        lane_count:
+          type: integer
+          description: Number of lanes/swimlanes on the board
+          example: 3
+        workflows:
+          type: array
+          description: Workflow configurations (if requested with expand=workflows)
+          items:
+            type: object
+            properties:
+              workflow_id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: "Default Workflow"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code identifier
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "The request contains invalid data"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+          example:
+            field: "name"
+            reason: "Board name cannot be empty"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2025-01-20T17:30:00Z"
+        path:
+          type: string
+          description: The API path that generated the error
+          example: "/api/v1/boards/5001"
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidInput:
+              summary: Invalid input data
+              value:
+                error: "VALIDATION_ERROR"
+                message: "The request contains invalid data"
+                details:
+                  field: "name"
+                  reason: "Board name cannot be empty"
+                timestamp: "2025-01-20T17:30:00Z"
+                path: "/api/v1/boards/5001"
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missingToken:
+              summary: Missing authentication token
+              value:
+                error: "UNAUTHORIZED"
+                message: "Authentication token is required"
+                timestamp: "2025-01-20T17:30:00Z"
+                path: "/api/v1/boards/5001"
+
+    Forbidden:
+      description: Forbidden - user lacks permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            insufficientPermissions:
+              summary: Insufficient permissions
+              value:
+                error: "FORBIDDEN"
+                message: "You do not have permission to modify this board"
+                details:
+                  required_permission: "board.update"
+                  user_role: "viewer"
+                  required_role: "editor"
+                timestamp: "2025-01-20T17:30:00Z"
+                path: "/api/v1/boards/5001"
+
+    NotFound:
+      description: Not found - the requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            boardNotFound:
+              summary: Board not found
+              value:
+                error: "NOT_FOUND"
+                message: "Board not found"
+                details:
+                  board_id: 5001
+                timestamp: "2025-01-20T17:30:00Z"
+                path: "/api/v1/boards/5001"
+
+    RateLimited:
+      description: Rate limit exceeded (RL02)
+      headers:
+        X-RateLimit-Limit:
+          description: The maximum number of requests allowed per time window
+          schema:
+            type: integer
+            example: 100
+        X-RateLimit-Remaining:
+          description: The number of requests remaining in the current window
+          schema:
+            type: integer
+            example: 0
+        X-RateLimit-Reset:
+          description: Unix timestamp when the rate limit resets
+          schema:
+            type: integer
+            example: 1642684800
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+            example: 60
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rateLimited:
+              summary: Rate limit exceeded
+              value:
+                error: "RL02"
+                message: "Rate limit exceeded. Please try again later."
+                details:
+                  limit: 100
+                  window: "1 minute"
+                  retry_after: 60
+                timestamp: "2025-01-20T17:30:00Z"
+                path: "/api/v1/boards/5001"
+
+tags:
+  - name: Boards
+    description: Operations for managing boards

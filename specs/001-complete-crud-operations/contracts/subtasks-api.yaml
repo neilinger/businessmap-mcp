@@ -1,0 +1,415 @@
+openapi: 3.0.3
+info:
+  title: BusinessMap Subtasks API
+  description: API for managing card subtasks in BusinessMap
+  version: 1.0.0
+  contact:
+    name: BusinessMap API Support
+    url: https://businessmap.io/api
+
+servers:
+  - url: https://businessmap.io/api/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /cards/{card_id}/subtasks/{subtask_id}:
+    parameters:
+      - name: card_id
+        in: path
+        required: true
+        description: The unique identifier of the card
+        schema:
+          type: integer
+          format: int64
+          example: 12345
+      - name: subtask_id
+        in: path
+        required: true
+        description: The unique identifier of the subtask
+        schema:
+          type: integer
+          format: int64
+          example: 78901
+
+    patch:
+      summary: Update a subtask
+      description: Update properties of an existing subtask on a card
+      operationId: updateCardSubtask
+      tags:
+        - Subtasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSubtaskRequest'
+            examples:
+              completeSubtask:
+                summary: Mark subtask as finished
+                value:
+                  description: "Review pull request #123"
+                  is_finished: 1
+              updateDeadline:
+                summary: Update subtask deadline
+                value:
+                  description: "Complete code review"
+                  deadline: "2025-02-01T17:00:00Z"
+                  owner_user_id: 222
+              fullUpdate:
+                summary: Full subtask update
+                value:
+                  description: "Updated subtask description"
+                  owner_user_id: 333
+                  is_finished: 0
+                  deadline: "2025-01-25T12:00:00Z"
+                  position: 2
+
+      responses:
+        '200':
+          description: Subtask successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subtask'
+              examples:
+                success:
+                  summary: Successful update
+                  value:
+                    subtask_id: 78901
+                    card_id: 12345
+                    description: "Review pull request #123"
+                    owner_user_id: 222
+                    owner_name: "Jane Smith"
+                    is_finished: 1
+                    deadline: "2025-01-30T17:00:00Z"
+                    position: 1
+                    created_at: "2025-01-15T09:00:00Z"
+                    updated_at: "2025-01-20T15:30:00Z"
+                    attachments: []
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+    delete:
+      summary: Delete a subtask
+      description: Permanently delete a subtask from a card
+      operationId: deleteCardSubtask
+      tags:
+        - Subtasks
+      responses:
+        '204':
+          description: Subtask successfully deleted (no content)
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using API key
+
+  schemas:
+    UpdateSubtaskRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Updated subtask description
+          minLength: 1
+          maxLength: 1000
+          example: "Review pull request #123"
+        owner_user_id:
+          type: integer
+          format: int64
+          description: ID of the user assigned to this subtask
+          example: 222
+        is_finished:
+          type: integer
+          description: Whether the subtask is completed (0 = not finished, 1 = finished)
+          enum: [0, 1]
+          example: 1
+        deadline:
+          type: string
+          format: date-time
+          description: Deadline for completing the subtask
+          example: "2025-01-30T17:00:00Z"
+        position:
+          type: integer
+          description: Display position of the subtask in the list
+          minimum: 0
+          example: 1
+        attachments_to_add:
+          type: array
+          description: Attachments to add to the subtask
+          items:
+            $ref: '#/components/schemas/AttachmentToAdd'
+
+    AttachmentToAdd:
+      type: object
+      required:
+        - file_name
+        - link
+        - position
+      properties:
+        file_name:
+          type: string
+          description: Name of the file
+          example: "document.pdf"
+        link:
+          type: string
+          format: uri
+          description: URL to the file
+          example: "https://example.com/files/document.pdf"
+        position:
+          type: integer
+          description: Display position of the attachment
+          minimum: 0
+          example: 0
+
+    Subtask:
+      type: object
+      properties:
+        subtask_id:
+          type: integer
+          format: int64
+          description: Unique identifier for the subtask
+          example: 78901
+        card_id:
+          type: integer
+          format: int64
+          description: ID of the card this subtask belongs to
+          example: 12345
+        description:
+          type: string
+          description: Subtask description
+          example: "Review pull request #123"
+        owner_user_id:
+          type: integer
+          format: int64
+          description: ID of the user assigned to this subtask
+          example: 222
+        owner_name:
+          type: string
+          description: Name of the assigned user
+          example: "Jane Smith"
+        is_finished:
+          type: integer
+          description: Whether the subtask is completed (0 or 1)
+          enum: [0, 1]
+          example: 1
+        deadline:
+          type: string
+          format: date-time
+          description: Deadline for completing the subtask
+          example: "2025-01-30T17:00:00Z"
+        position:
+          type: integer
+          description: Display position of the subtask
+          example: 1
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the subtask was created
+          example: "2025-01-15T09:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the subtask was last updated
+          example: "2025-01-20T15:30:00Z"
+        attachments:
+          type: array
+          description: Files attached to the subtask
+          items:
+            $ref: '#/components/schemas/Attachment'
+
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier for the attachment
+          example: 99001
+        file_name:
+          type: string
+          description: Name of the file
+          example: "document.pdf"
+        link:
+          type: string
+          format: uri
+          description: URL to the file
+          example: "https://example.com/files/document.pdf"
+        position:
+          type: integer
+          description: Display position
+          example: 0
+        uploaded_at:
+          type: string
+          format: date-time
+          description: When the file was uploaded
+          example: "2025-01-15T10:00:00Z"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code identifier
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "The request contains invalid data"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+          example:
+            field: "description"
+            reason: "Subtask description cannot be empty"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2025-01-20T15:30:00Z"
+        path:
+          type: string
+          description: The API path that generated the error
+          example: "/api/v1/cards/12345/subtasks/78901"
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidInput:
+              summary: Invalid input data
+              value:
+                error: "VALIDATION_ERROR"
+                message: "The request contains invalid data"
+                details:
+                  field: "is_finished"
+                  reason: "Must be 0 or 1"
+                timestamp: "2025-01-20T15:30:00Z"
+                path: "/api/v1/cards/12345/subtasks/78901"
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missingToken:
+              summary: Missing authentication token
+              value:
+                error: "UNAUTHORIZED"
+                message: "Authentication token is required"
+                timestamp: "2025-01-20T15:30:00Z"
+                path: "/api/v1/cards/12345/subtasks/78901"
+
+    Forbidden:
+      description: Forbidden - user lacks permission to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            insufficientPermissions:
+              summary: Insufficient permissions
+              value:
+                error: "FORBIDDEN"
+                message: "You do not have permission to modify this subtask"
+                details:
+                  required_permission: "subtask.update"
+                timestamp: "2025-01-20T15:30:00Z"
+                path: "/api/v1/cards/12345/subtasks/78901"
+
+    NotFound:
+      description: Not found - the requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            subtaskNotFound:
+              summary: Subtask not found
+              value:
+                error: "NOT_FOUND"
+                message: "Subtask not found"
+                details:
+                  subtask_id: 78901
+                timestamp: "2025-01-20T15:30:00Z"
+                path: "/api/v1/cards/12345/subtasks/78901"
+
+    RateLimited:
+      description: Rate limit exceeded (RL02)
+      headers:
+        X-RateLimit-Limit:
+          description: The maximum number of requests allowed per time window
+          schema:
+            type: integer
+            example: 100
+        X-RateLimit-Remaining:
+          description: The number of requests remaining in the current window
+          schema:
+            type: integer
+            example: 0
+        X-RateLimit-Reset:
+          description: Unix timestamp when the rate limit resets
+          schema:
+            type: integer
+            example: 1642684800
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+            example: 60
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rateLimited:
+              summary: Rate limit exceeded
+              value:
+                error: "RL02"
+                message: "Rate limit exceeded. Please try again later."
+                details:
+                  limit: 100
+                  window: "1 minute"
+                  retry_after: 60
+                timestamp: "2025-01-20T15:30:00Z"
+                path: "/api/v1/cards/12345/subtasks/78901"
+
+tags:
+  - name: Subtasks
+    description: Operations for managing card subtasks

@@ -4,12 +4,20 @@ import { BusinessMapClient } from '../../client/businessmap-client.js';
 import {
   createBoardSchema,
   createLaneSchema,
+  deleteBoardSchema,
   getBoardSchema,
   getCurrentBoardStructureSchema,
   getLaneSchema,
   listBoardsSchema,
   searchBoardSchema,
+  updateBoardSchema,
 } from '../../schemas/index.js';
+import {
+  bulkDeleteBoardsSchema,
+  bulkUpdateBoardsSchema,
+} from '../../schemas/bulk-schemas.js';
+import { DependencyAnalyzer } from '../../services/dependency-analyzer.js';
+import { ConfirmationBuilder } from '../../services/confirmation-builder.js';
 import { BaseToolHandler, createErrorResponse, createSuccessResponse } from './base-tool.js';
 
 const logger = createLoggerSync({ level: 'info' });
@@ -26,6 +34,10 @@ export class BoardToolHandler implements BaseToolHandler {
     if (!readOnlyMode) {
       this.registerCreateBoard(server, client);
       this.registerCreateLane(server, client);
+      this.registerUpdateBoard(server, client);
+      this.registerDeleteBoard(server, client);
+      this.registerBulkDeleteBoards(server, client);
+      this.registerBulkUpdateBoards(server, client);
     }
   }
 
@@ -283,6 +295,46 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
+
+  private registerUpdateBoard(server: McpServer, client: BusinessMapClient): void {
+    server.registerTool(
+      'update_board',
+      {
+        title: 'Update Board',
+        description: 'Update an existing board',
+        inputSchema: updateBoardSchema.shape,
+      },
+      async ({ board_id, name, description }) => {
+        try {
+          const board = await client.updateBoard(board_id, { name, description });
+          return createSuccessResponse(board, 'Board updated successfully:');
+        } catch (error) {
+          return createErrorResponse(error, 'updating board');
+        }
+      }
+    );
+  }
+
+  private registerDeleteBoard(server: McpServer, client: BusinessMapClient): void {
+    server.registerTool(
+      'delete_board',
+      {
+        title: 'Delete Board',
+        description:
+          'Delete a board. By default, archives the board before deletion to prevent API errors. The API requires resources to be archived before they can be deleted (BS05 error). Set archive_first=false only if the board is already archived.',
+        inputSchema: deleteBoardSchema.shape,
+      },
+      async ({ board_id, archive_first }) => {
+        try {
+          await client.deleteBoard(board_id, { archive_first });
+          return createSuccessResponse({ board_id }, 'Board deleted successfully. ID:');
+        } catch (error) {
+          return createErrorResponse(error, 'deleting board');
+        }
+      }
+    );
+  }
+
   private registerGetCurrentBoardStructure(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_current_board_structure',
@@ -298,6 +350,135 @@ export class BoardToolHandler implements BaseToolHandler {
           return createSuccessResponse(structure, 'Board structure retrieved successfully:');
         } catch (error) {
           return createErrorResponse(error, 'getting current board structure');
+        }
+      }
+    );
+  }
+
+  private registerBulkDeleteBoards(server: McpServer, client: BusinessMapClient): void {
+    server.registerTool(
+      'bulk_delete_boards',
+      {
+        title: 'Bulk Delete Boards',
+        description: 'Delete multiple boards with dependency analysis and consolidated confirmation. Maximum 50 boards per request.',
+        inputSchema: bulkDeleteBoardsSchema.shape,
+      },
+      async ({ resource_ids, analyze_dependencies = true }) => {
+        try {
+          const analyzer = new DependencyAnalyzer(client);
+          const confirmationBuilder = new ConfirmationBuilder();
+
+          // Analyze dependencies if requested
+          if (analyze_dependencies) {
+            const analysis = await analyzer.analyzeBoards(resource_ids);
+            const confirmation = confirmationBuilder.buildConfirmation(analysis);
+
+            if (confirmation && confirmation.hasConfirmation) {
+              // Return confirmation message for user approval
+              return createSuccessResponse(
+                {
+                  requires_confirmation: true,
+                  confirmation_message: confirmation.message,
+                  resources_with_dependencies: confirmation.resourcesWithDeps.length,
+                  resources_without_dependencies: confirmation.resourcesWithoutDeps.length,
+                  total_impact: confirmation.totalImpact,
+                },
+                'Confirmation required before deletion:'
+              );
+            }
+          }
+
+          // Execute bulk delete
+          const results = await client.bulkDeleteBoards(resource_ids);
+
+          const successes = results.filter((r) => r.success);
+          const failures = results.filter((r) => !r.success);
+
+          if (failures.length === 0) {
+            // All successful
+            const boards = await Promise.all(
+              successes.map(async (r) => {
+                try {
+                  const board = await client.getBoard(r.id);
+                  return { id: r.id, name: board.name };
+                } catch {
+                  return { id: r.id, name: `Board ${r.id}` };
+                }
+              })
+            );
+
+            const message = confirmationBuilder.formatSimpleSuccess('board', successes.length, boards);
+            return createSuccessResponse({ deleted: successes.length, results }, message);
+          } else if (successes.length > 0) {
+            // Partial success
+            const message = confirmationBuilder.formatPartialSuccess(
+              'board',
+              successes.map((s) => ({ id: s.id, name: `Board ${s.id}` })),
+              failures.map((f) => ({ id: f.id, name: `Board ${f.id}`, error: f.error || 'Unknown error' }))
+            );
+            return createSuccessResponse(
+              { successful: successes.length, failed: failures.length, results },
+              message
+            );
+          } else {
+            // All failed
+            return createErrorResponse(
+              new Error(`All ${failures.length} deletions failed`),
+              'bulk deleting boards'
+            );
+          }
+        } catch (error) {
+          return createErrorResponse(error, 'bulk deleting boards');
+        }
+      }
+    );
+  }
+
+  private registerBulkUpdateBoards(server: McpServer, client: BusinessMapClient): void {
+    server.registerTool(
+      'bulk_update_boards',
+      {
+        title: 'Bulk Update Boards',
+        description: 'Update multiple boards with the same changes. Maximum 50 boards per request.',
+        inputSchema: bulkUpdateBoardsSchema as any,
+      },
+      async (params: any) => {
+        const { resource_ids, name, description, is_archived } = params;
+        try {
+          const updates: any = {};
+          if (name !== undefined) updates.name = name;
+          if (description !== undefined) updates.description = description;
+          if (is_archived !== undefined) updates.is_archived = is_archived;
+
+          const results = await client.bulkUpdateBoards(resource_ids, updates);
+
+          const successes = results.filter((r) => r.success);
+          const failures = results.filter((r) => !r.success);
+
+          if (failures.length === 0) {
+            return createSuccessResponse(
+              { updated: successes.length, boards: successes.map((s) => s.board) },
+              `✓ Successfully updated ${successes.length} board${successes.length > 1 ? 's' : ''}`
+            );
+          } else if (successes.length > 0) {
+            const confirmationBuilder = new ConfirmationBuilder();
+            const message = confirmationBuilder.formatPartialSuccess(
+              'board',
+              successes.map((s) => ({ id: s.id, name: s.board?.name || `Board ${s.id}` })),
+              failures.map((f) => ({ id: f.id, name: `Board ${f.id}`, error: f.error || 'Unknown error' }))
+            );
+            return createSuccessResponse(
+              { successful: successes.length, failed: failures.length, results },
+              message
+            );
+          } else {
+            return createErrorResponse(
+              new Error(`All ${failures.length} updates failed`),
+              'bulk updating boards'
+            );
+          }
+        } catch (error) {
+          return createErrorResponse(error, 'bulk updating boards');
         }
       }
     );

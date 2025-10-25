@@ -104,6 +104,18 @@ temp/
 *_DELIVERABLES.md
 *_INDEX.md
 *_ROADMAP.md
-TESTING_IMPLEMENTATION_STATUS.md
+*_INVESTIGATION.md
+*_STATUS.md
 *_MATRIX.csv
-test-stdout.sh
+cleanup-*.sh
+test-*.sh
+diagnose-*.ts
+test-*.ts
+
+# Claude Code files & GITHUB Spec-kit files
+.claude/
+.serena/
+.specify/
+CLAUDE.md
+docs/architecture/
+.mcp.json

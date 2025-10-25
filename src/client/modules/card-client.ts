@@ -27,6 +27,8 @@ import {
   SubtaskResponse,
   SubtasksResponse,
   UpdateCardParams,
+  UpdateCommentParams,
+  UpdateSubtaskParams,
 } from '../../types/index.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
@@ -163,9 +165,19 @@ export class CardClient extends BaseClientModuleImpl {
 
   /**
    * Delete a card
+   * @param cardId - The ID of the card to delete
+   * @param options - Optional configuration
+   * @param options.archive_first - Archive card before deletion to avoid BS05 error. Default: true
    */
-  async deleteCard(cardId: number): Promise<void> {
+  async deleteCard(cardId: number, options?: { archive_first?: boolean }): Promise<void> {
     this.checkReadOnlyMode('delete card');
+
+    if (options?.archive_first !== false) {
+      // Default: true - Archive first
+      await this.http.patch(`/cards/${cardId}`, { is_archived: 1 });
+    }
+
+    // Then delete
     await this.http.delete(`/cards/${cardId}`);
   }
 
@@ -183,6 +195,23 @@ export class CardClient extends BaseClientModuleImpl {
   async getCardComment(cardId: number, commentId: number): Promise<Comment> {
     const response = await this.http.get<CommentResponse>(`/cards/${cardId}/comments/${commentId}`);
     return response.data.data;
+  }
+
+  /**
+   * Update a card comment
+   */
+  async updateCardComment(cardId: number, commentId: number, params: UpdateCommentParams): Promise<Comment> {
+    this.checkReadOnlyMode('update card comment');
+    const response = await this.http.patch<CommentResponse>(`/cards/${cardId}/comments/${commentId}`, params);
+    return response.data.data;
+  }
+
+  /**
+   * Delete a card comment
+   */
+  async deleteCardComment(cardId: number, commentId: number): Promise<void> {
+    this.checkReadOnlyMode('delete card comment');
+    await this.http.delete(`/cards/${cardId}/comments/${commentId}`);
   }
 
   /**
@@ -253,6 +282,23 @@ export class CardClient extends BaseClientModuleImpl {
   }
 
   /**
+   * Update a card subtask
+   */
+  async updateCardSubtask(cardId: number, subtaskId: number, params: UpdateSubtaskParams): Promise<Subtask> {
+    this.checkReadOnlyMode('update card subtask');
+    const response = await this.http.patch<SubtaskResponse>(`/cards/${cardId}/subtasks/${subtaskId}`, params);
+    return response.data.data;
+  }
+
+  /**
+   * Delete a card subtask
+   */
+  async deleteCardSubtask(cardId: number, subtaskId: number): Promise<void> {
+    this.checkReadOnlyMode('delete card subtask');
+    await this.http.delete(`/cards/${cardId}/subtasks/${subtaskId}`);
+  }
+
+  /**
    * Get parent cards for a specific card
    */
   async getCardParents(cardId: number): Promise<ParentCardItem[]> {
@@ -303,5 +349,56 @@ export class CardClient extends BaseClientModuleImpl {
   async getCardChildren(cardId: number): Promise<ChildCardItem[]> {
     const response = await this.http.get<ChildCardsResponse>(`/cards/${cardId}/children`);
     return response.data.data;
+  }
+
+  /**
+   * Bulk delete cards (T059)
+   * Deletes multiple cards sequentially
+   */
+  async bulkDeleteCards(cardIds: number[]): Promise<Array<{ id: number; success: boolean; error?: string }>> {
+    this.checkReadOnlyMode('bulk delete cards');
+
+    const results = [];
+    for (const id of cardIds) {
+      try {
+        await this.deleteCard(id);
+        results.push({ id, success: true });
+      } catch (error) {
+        results.push({
+          id,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Bulk update cards (T063)
+   * Updates multiple cards sequentially with the same changes
+   */
+  async bulkUpdateCards(
+    cardIds: number[],
+    updates: Omit<Partial<UpdateCardParams>, 'card_id'>
+  ): Promise<Array<{ id: number; success: boolean; card?: Card; error?: string }>> {
+    this.checkReadOnlyMode('bulk update cards');
+
+    const results = [];
+    for (const id of cardIds) {
+      try {
+        const card = await this.updateCard({ card_id: id, ...updates });
+        results.push({ id, success: true, card });
+      } catch (error) {
+        results.push({
+          id,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    return results;
   }
 }
