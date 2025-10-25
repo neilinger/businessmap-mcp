@@ -51,7 +51,7 @@ CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo "📋 Current version: $CURRENT_VERSION"
 
 # Check if this version is already published
-if npm view @edicarlos.lds/businessmap-mcp@$CURRENT_VERSION > /dev/null 2>&1; then
+if npm view @neilinger/businessmap-mcp@$CURRENT_VERSION > /dev/null 2>&1; then
     echo "❌ Version $CURRENT_VERSION is already published to NPM"
     echo ""
     echo "🔄 Would you like to bump the version and publish?"
@@ -119,13 +119,13 @@ fi
 echo "📤 Publishing to npm..."
 npm publish
 
-echo "✅ Successfully published @edicarlos.lds/businessmap-mcp@$CURRENT_VERSION to NPM"
+echo "✅ Successfully published @neilinger/businessmap-mcp@$CURRENT_VERSION to NPM"
 echo ""
 echo "🎉 Users can now install with:"
-echo "   npx @edicarlos.lds/businessmap-mcp"
-echo "   npm install -g @edicarlos.lds/businessmap-mcp"
+echo "   npx @neilinger/businessmap-mcp"
+echo "   npm install -g @neilinger/businessmap-mcp"
 echo ""
-echo "🔗 NPM Package: https://www.npmjs.com/package/@edicarlos.lds/businessmap-mcp"
+echo "🔗 NPM Package: https://www.npmjs.com/package/@neilinger/businessmap-mcp"
 echo ""
 echo "🏁 NPM publication process completed successfully!"
 exit 0
