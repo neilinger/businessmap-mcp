@@ -1,8 +1,8 @@
 # BusinessMap MCP Server
 
-[![npm version](https://img.shields.io/npm/v/@edicarlos.lds/businessmap-mcp.svg)](https://www.npmjs.com/package/@edicarlos.lds/businessmap-mcp)
-[![GitHub release](https://img.shields.io/github/v/release/edicarloslds/businessmap-mcp)](https://github.com/edicarloslds/businessmap-mcp/releases)
-[![npm downloads](https://img.shields.io/npm/dm/@edicarlos.lds/businessmap-mcp)](https://www.npmjs.com/package/@edicarlos.lds/businessmap-mcp)
+[![npm version](https://img.shields.io/npm/v/@neilinger/businessmap-mcp.svg)](https://www.npmjs.com/package/@neilinger/businessmap-mcp)
+[![GitHub release](https://img.shields.io/github/v/release/neilinger/businessmap-mcp)](https://github.com/neilinger/businessmap-mcp/releases)
+[![npm downloads](https://img.shields.io/npm/dm/@neilinger/businessmap-mcp)](https://www.npmjs.com/package/@neilinger/businessmap-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -17,13 +17,13 @@ Model Context Protocol server for BusinessMap (Kanbanize) integration. Provides 
 You can run the BusinessMap MCP server directly using npx without installing it globally:
 
 ```bash
-npx @edicarlos.lds/businessmap-mcp
+npx @neilinger/businessmap-mcp
 ```
 
 ### Global Installation
 
 ```bash
-npm install -g @edicarlos.lds/businessmap-mcp
+npm install -g @neilinger/businessmap-mcp
 ```
 
 ## Configuration
@@ -46,7 +46,7 @@ Add the following configuration to your `claude_desktop_config.json` file:
   "mcpServers": {
     "Businessmap": {
       "command": "npx",
-      "args": ["-y", "@edicarlos.lds/businessmap-mcp"],
+      "args": ["-y", "@neilinger/businessmap-mcp"],
       "env": {
         "BUSINESSMAP_API_TOKEN": "your_token_here",
         "BUSINESSMAP_API_URL": "https://your-account.kanbanize.com/api/v2",
@@ -70,7 +70,7 @@ To use the BusinessMap MCP server with Cursor, add the following configuration t
 {
   "name": "BusinessMap",
   "command": "npx",
-  "args": ["-y", "@edicarlos.lds/businessmap-mcp"],
+  "args": ["-y", "@neilinger/businessmap-mcp"],
   "env": {
     "BUSINESSMAP_API_TOKEN": "your_token_here",
     "BUSINESSMAP_API_URL": "https://your-account.kanbanize.com/api/v2",
@@ -91,7 +91,7 @@ To use the BusinessMap MCP server with VSCode, add the following configuration:
   "servers": {
     "businessmap": {
       "command": "npx",
-      "args": ["-y", "@edicarlos.lds/businessmap-mcp"],
+      "args": ["-y", "@neilinger/businessmap-mcp"],
       "env": {
         "BUSINESSMAP_API_TOKEN": "your_token_here",
         "BUSINESSMAP_API_URL": "https://your-account.kanbanize.com/api/v2",
@@ -107,7 +107,7 @@ To use the BusinessMap MCP server with VSCode, add the following configuration:
 
 For other MCP clients, use the appropriate configuration format for your client, ensuring you specify:
 
-- Command: `npx @edicarlos.lds/businessmap-mcp` (or `businessmap-mcp` if globally installed)
+- Command: `npx @neilinger/businessmap-mcp` (or `businessmap-mcp` if globally installed)
 - Environment variables: `BUSINESSMAP_API_TOKEN`, `BUSINESSMAP_API_URL`, and optionally `BUSINESSMAP_READ_ONLY_MODE`, `BUSINESSMAP_DEFAULT_WORKSPACE_ID`
 
 ### Manual Setup
@@ -115,7 +115,7 @@ For other MCP clients, use the appropriate configuration format for your client,
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/edicarloslds/businessmap-mcp.git
+   git clone https://github.com/neilinger/businessmap-mcp.git
    cd businessmap-mcp
    ```
 
