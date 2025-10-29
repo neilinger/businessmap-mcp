@@ -69,7 +69,7 @@ export class CardToolHandler implements BaseToolHandler {
       'list_cards',
       {
         title: 'List Cards',
-        description: 'Get a list of cards from a board with optional filters',
+        description: 'List cards',
         inputSchema: listCardsSchema.shape,
       },
       async (params) => {
@@ -89,7 +89,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card',
       {
         title: 'Get Card',
-        description: 'Get details of a specific card',
+        description: 'Get card details',
         inputSchema: getCardSchema.shape,
       },
       async ({ card_id }) => {
@@ -108,7 +108,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_size',
       {
         title: 'Get Card Size',
-        description: 'Get the size/points of a specific card',
+        description: 'Get card size',
         inputSchema: getCardSchema.shape,
       },
       async ({ card_id }) => {
@@ -135,7 +135,7 @@ export class CardToolHandler implements BaseToolHandler {
       'create_card',
       {
         title: 'Create Card',
-        description: 'Create a new card in a board',
+        description: 'Create card',
         inputSchema: createCardSchema.shape,
       },
       async (params) => {
@@ -154,7 +154,7 @@ export class CardToolHandler implements BaseToolHandler {
       'move_card',
       {
         title: 'Move Card',
-        description: 'Move a card to a different column or lane',
+        description: 'Move card',
         inputSchema: moveCardSchema.shape,
       },
       async ({ card_id, column_id, lane_id, position }) => {
@@ -173,7 +173,7 @@ export class CardToolHandler implements BaseToolHandler {
       'update_card',
       {
         title: 'Update Card',
-        description: "Update a card's properties",
+        description: 'Update card',
         inputSchema: updateCardSchema.shape,
       },
       async (params) => {
@@ -193,8 +193,7 @@ export class CardToolHandler implements BaseToolHandler {
       'delete_card',
       {
         title: 'Delete Card',
-        description:
-          'Delete a card. By default, archives the card before deletion to prevent API errors. The API requires resources to be archived before they can be deleted (BS05 error). Set archive_first=false only if the card is already archived.',
+        description: 'Delete card',
         inputSchema: deleteCardSchema.shape,
       },
       async ({ card_id, archive_first }) => {
@@ -213,7 +212,7 @@ export class CardToolHandler implements BaseToolHandler {
       'set_card_size',
       {
         title: 'Set Card Size',
-        description: 'Set the size/points of a specific card',
+        description: 'Set card size',
         inputSchema: cardSizeSchema.shape,
       },
       async ({ card_id, size }) => {
@@ -239,7 +238,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_comments',
       {
         title: 'Get Card Comments',
-        description: 'Get all comments for a specific card',
+        description: 'Get card comments',
         inputSchema: getCardSchema.shape,
       },
       async ({ card_id }) => {
@@ -261,7 +260,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_comment',
       {
         title: 'Get Card Comment',
-        description: 'Get details of a specific comment from a card',
+        description: 'Get comment details',
         inputSchema: getCardCommentSchema.shape,
       },
       async ({ card_id, comment_id }) => {
@@ -280,7 +279,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_custom_fields',
       {
         title: 'Get Card Custom Fields',
-        description: 'Get all custom fields for a specific card',
+        description: 'Get card custom fields',
         inputSchema: getCardSchema.shape,
       },
       async ({ card_id }) => {
@@ -302,7 +301,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_types',
       {
         title: 'Get Card Types',
-        description: 'Get all available card types',
+        description: 'Get card types',
         inputSchema: getCardTypesSchema.shape,
       },
       async () => {
@@ -324,7 +323,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_history',
       {
         title: 'Get Card History',
-        description: 'Get the history of a specific card outcome',
+        description: 'Get card history',
         inputSchema: getCardHistorySchema.shape,
       },
       async ({ card_id, outcome_id }) => {
@@ -346,7 +345,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_outcomes',
       {
         title: 'Get Card Outcomes',
-        description: 'Get all outcomes for a specific card',
+        description: 'Get card outcomes',
         inputSchema: getCardOutcomesSchema.shape,
       },
       async ({ card_id }) => {
@@ -368,7 +367,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_linked_cards',
       {
         title: 'Get Card Linked Cards',
-        description: 'Get all linked cards for a specific card',
+        description: 'Get card linked cards',
         inputSchema: getCardLinkedCardsSchema.shape,
       },
       async ({ card_id }) => {
@@ -390,7 +389,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_subtasks',
       {
         title: 'Get Card Subtasks',
-        description: 'Get all subtasks for a specific card',
+        description: 'Get card subtasks',
         inputSchema: getCardSubtasksSchema.shape,
       },
       async ({ card_id }) => {
@@ -412,7 +411,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_subtask',
       {
         title: 'Get Card Subtask',
-        description: 'Get details of a specific subtask from a card',
+        description: 'Get subtask details',
         inputSchema: getCardSubtaskSchema.shape,
       },
       async ({ card_id, subtask_id }) => {
@@ -431,7 +430,7 @@ export class CardToolHandler implements BaseToolHandler {
       'create_card_subtask',
       {
         title: 'Create Card Subtask',
-        description: 'Create a new subtask for a card',
+        description: 'Create subtask',
         inputSchema: createCardSubtaskSchema.shape,
       },
       async (params) => {
@@ -451,7 +450,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_parents',
       {
         title: 'Get Card Parents',
-        description: 'Get a list of parent cards for a specific card',
+        description: 'Get card parents',
         inputSchema: getCardParentsSchema.shape,
       },
       async ({ card_id }) => {
@@ -473,7 +472,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_parent',
       {
         title: 'Get Card Parent',
-        description: 'Check if a card is a parent of a given card',
+        description: 'Get card parent',
         inputSchema: getCardParentSchema.shape,
       },
       async ({ card_id, parent_card_id }) => {
@@ -492,7 +491,7 @@ export class CardToolHandler implements BaseToolHandler {
       'add_card_parent',
       {
         title: 'Add Card Parent',
-        description: 'Make a card a parent of a given card',
+        description: 'Add card parent',
         inputSchema: addCardParentSchema.shape,
       },
       async ({ card_id, parent_card_id }) => {
@@ -511,7 +510,7 @@ export class CardToolHandler implements BaseToolHandler {
       'remove_card_parent',
       {
         title: 'Remove Card Parent',
-        description: 'Remove the link between a child card and a parent card',
+        description: 'Remove card parent',
         inputSchema: removeCardParentSchema.shape,
       },
       async ({ card_id, parent_card_id }) => {
@@ -533,7 +532,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_parent_graph',
       {
         title: 'Get Card Parent Graph',
-        description: 'Get a list of parent cards including their parent cards too',
+        description: 'Get card parent graph',
         inputSchema: getCardParentGraphSchema.shape,
       },
       async ({ card_id }) => {
@@ -555,7 +554,7 @@ export class CardToolHandler implements BaseToolHandler {
       'get_card_children',
       {
         title: 'Get Card Children',
-        description: 'Get a list of child cards of a specified parent card',
+        description: 'Get card children',
         inputSchema: getCardChildrenSchema.shape,
       },
       async ({ card_id }) => {
@@ -577,7 +576,7 @@ export class CardToolHandler implements BaseToolHandler {
       'bulk_delete_cards',
       {
         title: 'Bulk Delete Cards',
-        description: 'Delete multiple cards with dependency analysis and consolidated confirmation. Maximum 50 cards per request.',
+        description: 'Delete multiple cards',
         inputSchema: bulkDeleteCardsSchema.shape,
       },
       async ({ resource_ids, analyze_dependencies = true }) => {
@@ -656,7 +655,7 @@ export class CardToolHandler implements BaseToolHandler {
       'bulk_update_cards',
       {
         title: 'Bulk Update Cards',
-        description: 'Update multiple cards with the same changes. Maximum 50 cards per request.',
+        description: 'Update multiple cards',
         inputSchema: bulkUpdateCardsSchema as any,
       },
       async (params: any) => {
