@@ -226,8 +226,15 @@ export class CardClient extends BaseClientModuleImpl {
    * Get all card types
    */
   async getCardTypes(): Promise<CardType[]> {
-    const response = await this.http.get<CardTypesResponse>('/cardTypes');
-    return response.data.data;
+    const ttl = this.config.cacheCardTypesTtl || 300000; // 5 minutes default
+    return this.cache.get<CardType[]>(
+      'cardTypes:all',
+      async () => {
+        const response = await this.http.get<CardTypesResponse>('/cardTypes');
+        return response.data.data;
+      },
+      ttl
+    );
   }
 
   /**

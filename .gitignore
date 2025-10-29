@@ -119,3 +119,4 @@ test-*.ts
 CLAUDE.md
 docs/architecture/
 .mcp.json
+test/*debug*.test.ts
