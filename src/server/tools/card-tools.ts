@@ -585,9 +585,11 @@ export class CardToolHandler implements BaseToolHandler {
           const analyzer = new DependencyAnalyzer(client);
           const confirmationBuilder = new ConfirmationBuilder();
 
-          // Analyze dependencies if requested
+          // Analyze dependencies if requested (also extracts names for post-delete display)
+          let nameMap: Map<number, string | undefined> | undefined;
           if (analyze_dependencies) {
             const analysis = await analyzer.analyzeCards(resource_ids);
+            nameMap = analysis.nameMap;
             const confirmation = confirmationBuilder.buildConfirmation(analysis);
 
             if (confirmation && confirmation.hasConfirmation) {
@@ -612,17 +614,11 @@ export class CardToolHandler implements BaseToolHandler {
           const failures = results.filter((r) => !r.success);
 
           if (failures.length === 0) {
-            // All successful
-            const cards = await Promise.all(
-              successes.map(async (r) => {
-                try {
-                  const card = await client.getCard(r.id);
-                  return { id: r.id, name: card.title };
-                } catch {
-                  return { id: r.id, name: `Card ${r.id}` };
-                }
-              })
-            );
+            // All successful - use pre-extracted names from analysis (avoids read-after-delete)
+            const cards = successes.map((r) => ({
+              id: r.id,
+              name: nameMap?.get(r.id),
+            }));
 
             const message = confirmationBuilder.formatSimpleSuccess('card', successes.length, cards);
             return createSuccessResponse({ deleted: successes.length, results }, message);

@@ -368,9 +368,11 @@ export class BoardToolHandler implements BaseToolHandler {
           const analyzer = new DependencyAnalyzer(client);
           const confirmationBuilder = new ConfirmationBuilder();
 
-          // Analyze dependencies if requested
+          // Analyze dependencies if requested (also extracts names for post-delete display)
+          let nameMap: Map<number, string | undefined> | undefined;
           if (analyze_dependencies) {
             const analysis = await analyzer.analyzeBoards(resource_ids);
+            nameMap = analysis.nameMap;
             const confirmation = confirmationBuilder.buildConfirmation(analysis);
 
             if (confirmation && confirmation.hasConfirmation) {
@@ -395,17 +397,11 @@ export class BoardToolHandler implements BaseToolHandler {
           const failures = results.filter((r) => !r.success);
 
           if (failures.length === 0) {
-            // All successful
-            const boards = await Promise.all(
-              successes.map(async (r) => {
-                try {
-                  const board = await client.getBoard(r.id);
-                  return { id: r.id, name: board.name };
-                } catch {
-                  return { id: r.id, name: `Board ${r.id}` };
-                }
-              })
-            );
+            // All successful - use pre-extracted names from analysis (avoids read-after-delete)
+            const boards = successes.map((r) => ({
+              id: r.id,
+              name: nameMap?.get(r.id),
+            }));
 
             const message = confirmationBuilder.formatSimpleSuccess('board', successes.length, boards);
             return createSuccessResponse({ deleted: successes.length, results }, message);
