@@ -18,7 +18,7 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "watch": "tsx --watch src/index.ts",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:npx": "bash scripts/test-npx.sh",
     "publish:npm": "bash scripts/publish-npm.sh",
     "publish:github": "bash scripts/publish-github.sh",
@@ -63,6 +63,7 @@
     "axios": "^1.12.0",
     "axios-retry": "^4.5.0",
     "dotenv": "^16.3.1",
+    "p-limit": "^6.1.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {

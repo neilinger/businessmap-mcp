@@ -1,3 +1,4 @@
+import pLimit from 'p-limit';
 import {
   ApiResponse,
   Card,
@@ -30,6 +31,7 @@ import {
   UpdateCommentParams,
   UpdateSubtaskParams,
 } from '../../types/index.js';
+import { BULK_OPERATION_DEFAULTS } from '../constants.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
 export interface CardFilters {
@@ -353,52 +355,136 @@ export class CardClient extends BaseClientModuleImpl {
 
   /**
    * Bulk delete cards (T059)
-   * Deletes multiple cards sequentially
+   * Deletes multiple cards concurrently using Promise.all() with rate limiting
+   *
+   * @param cardIds - Array of card IDs to delete (max 500)
+   * @param options - Optional configuration
+   * @param options.maxConcurrent - Maximum concurrent requests (default: 10)
+   *
+   * @returns Array of results with success/failure status for each card
+   *
+   * @throws TypeError if cardIds is not an array
+   * @throws RangeError if batch size exceeds 500 or IDs are invalid
+   * @throws Error if in read-only mode
+   *
+   * @remarks
+   * - Each delete makes 2 API calls (PATCH to archive + DELETE)
+   * - Maximum 10 concurrent requests by default (configurable)
+   * - Recommended batch size: 50-100 items for optimal performance
+   * - Monitor rate limits for large batches
+   *
+   * @example
+   * const results = await client.cards.bulkDeleteCards([1, 2, 3]);
+   * const failed = results.filter(r => !r.success);
    */
-  async bulkDeleteCards(cardIds: number[]): Promise<Array<{ id: number; success: boolean; error?: string }>> {
-    this.checkReadOnlyMode('bulk delete cards');
-
-    const results = [];
-    for (const id of cardIds) {
-      try {
-        await this.deleteCard(id);
-        results.push({ id, success: true });
-      } catch (error) {
-        results.push({
-          id,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      }
+  async bulkDeleteCards(
+    cardIds: number[],
+    options?: { maxConcurrent?: number }
+  ): Promise<Array<{ id: number; success: boolean; error?: string }>> {
+    // 1. Input validation
+    if (!Array.isArray(cardIds)) {
+      throw new TypeError('cardIds must be an array');
+    }
+    if (cardIds.length === 0) {
+      return [];
+    }
+    if (cardIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
+      throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
+    }
+    if (cardIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+      throw new RangeError('All card IDs must be positive integers');
     }
 
-    return results;
+    this.checkReadOnlyMode('bulk delete cards');
+
+    // 2. Rate limiting with p-limit
+    const limit = pLimit(options?.maxConcurrent || BULK_OPERATION_DEFAULTS.MAX_CONCURRENT);
+
+    const promises = cardIds.map((id) =>
+      limit(async () => {
+        try {
+          await this.deleteCard(id);
+          return { id, success: true };
+        } catch (error) {
+          return {
+            id,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+        }
+      })
+    );
+
+    return await Promise.all(promises);
   }
 
   /**
    * Bulk update cards (T063)
-   * Updates multiple cards sequentially with the same changes
+   * Updates multiple cards concurrently using Promise.all() with rate limiting
+   *
+   * @param cardIds - Array of card IDs to update (max 500)
+   * @param updates - Card properties to update (applied to all cards)
+   * @param options - Optional configuration
+   * @param options.maxConcurrent - Maximum concurrent requests (default: 10)
+   *
+   * @returns Array of results with success/failure status and updated card for each ID
+   *
+   * @throws TypeError if cardIds is not an array
+   * @throws RangeError if batch size exceeds 500 or IDs are invalid
+   * @throws Error if in read-only mode
+   *
+   * @remarks
+   * - Each update makes 1 API call (PATCH)
+   * - Maximum 10 concurrent requests by default (configurable)
+   * - Recommended batch size: 100-200 items for optimal performance
+   * - Monitor rate limits for large batches
+   *
+   * @example
+   * const results = await client.cards.bulkUpdateCards(
+   *   [1, 2, 3],
+   *   { priority: 2, title: 'Updated' }
+   * );
+   * const successful = results.filter(r => r.success);
    */
   async bulkUpdateCards(
     cardIds: number[],
-    updates: Omit<Partial<UpdateCardParams>, 'card_id'>
+    updates: Omit<Partial<UpdateCardParams>, 'card_id'>,
+    options?: { maxConcurrent?: number }
   ): Promise<Array<{ id: number; success: boolean; card?: Card; error?: string }>> {
-    this.checkReadOnlyMode('bulk update cards');
-
-    const results = [];
-    for (const id of cardIds) {
-      try {
-        const card = await this.updateCard({ card_id: id, ...updates });
-        results.push({ id, success: true, card });
-      } catch (error) {
-        results.push({
-          id,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      }
+    // 1. Input validation
+    if (!Array.isArray(cardIds)) {
+      throw new TypeError('cardIds must be an array');
+    }
+    if (cardIds.length === 0) {
+      return [];
+    }
+    if (cardIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
+      throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
+    }
+    if (cardIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+      throw new RangeError('All card IDs must be positive integers');
     }
 
-    return results;
+    this.checkReadOnlyMode('bulk update cards');
+
+    // 2. Rate limiting with p-limit
+    const limit = pLimit(options?.maxConcurrent || BULK_OPERATION_DEFAULTS.MAX_CONCURRENT);
+
+    const promises = cardIds.map((id) =>
+      limit(async () => {
+        try {
+          const card = await this.updateCard({ card_id: id, ...updates });
+          return { id, success: true, card };
+        } catch (error) {
+          return {
+            id,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+        }
+      })
+    );
+
+    return await Promise.all(promises);
   }
 }

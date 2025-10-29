@@ -1,3 +1,4 @@
+import pLimit from 'p-limit';
 import {
   ApiResponse,
   Board,
@@ -8,6 +9,7 @@ import {
   CurrentBoardStructureResponse,
   Lane,
 } from '../../types/index.js';
+import { BULK_OPERATION_DEFAULTS } from '../constants.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
 export interface BoardFilters {
@@ -138,52 +140,136 @@ export class BoardClient extends BaseClientModuleImpl {
 
   /**
    * Bulk delete boards (T058)
-   * Deletes multiple boards sequentially
+   * Deletes multiple boards concurrently using Promise.all() with rate limiting
+   *
+   * @param boardIds - Array of board IDs to delete (max 500)
+   * @param options - Optional configuration
+   * @param options.maxConcurrent - Maximum concurrent requests (default: 10)
+   *
+   * @returns Array of results with success/failure status for each board
+   *
+   * @throws TypeError if boardIds is not an array
+   * @throws RangeError if batch size exceeds 500 or IDs are invalid
+   * @throws Error if in read-only mode
+   *
+   * @remarks
+   * - Each delete makes 2 API calls (PATCH to archive + DELETE)
+   * - Maximum 10 concurrent requests by default (configurable)
+   * - Recommended batch size: 50-100 items for optimal performance
+   * - Monitor rate limits for large batches
+   *
+   * @example
+   * const results = await client.boards.bulkDeleteBoards([1, 2, 3]);
+   * const failed = results.filter(r => !r.success);
    */
-  async bulkDeleteBoards(boardIds: number[]): Promise<Array<{ id: number; success: boolean; error?: string }>> {
-    this.checkReadOnlyMode('bulk delete boards');
-
-    const results = [];
-    for (const id of boardIds) {
-      try {
-        await this.deleteBoard(id);
-        results.push({ id, success: true });
-      } catch (error) {
-        results.push({
-          id,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      }
+  async bulkDeleteBoards(
+    boardIds: number[],
+    options?: { maxConcurrent?: number }
+  ): Promise<Array<{ id: number; success: boolean; error?: string }>> {
+    // 1. Input validation
+    if (!Array.isArray(boardIds)) {
+      throw new TypeError('boardIds must be an array');
+    }
+    if (boardIds.length === 0) {
+      return [];
+    }
+    if (boardIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
+      throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
+    }
+    if (boardIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+      throw new RangeError('All board IDs must be positive integers');
     }
 
-    return results;
+    this.checkReadOnlyMode('bulk delete boards');
+
+    // 2. Rate limiting with p-limit
+    const limit = pLimit(options?.maxConcurrent || BULK_OPERATION_DEFAULTS.MAX_CONCURRENT);
+
+    const promises = boardIds.map((id) =>
+      limit(async () => {
+        try {
+          await this.deleteBoard(id);
+          return { id, success: true };
+        } catch (error) {
+          return {
+            id,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+        }
+      })
+    );
+
+    return await Promise.all(promises);
   }
 
   /**
    * Bulk update boards (T062)
-   * Updates multiple boards sequentially with the same changes
+   * Updates multiple boards concurrently using Promise.all() with rate limiting
+   *
+   * @param boardIds - Array of board IDs to update (max 500)
+   * @param updates - Board properties to update (applied to all boards)
+   * @param options - Optional configuration
+   * @param options.maxConcurrent - Maximum concurrent requests (default: 10)
+   *
+   * @returns Array of results with success/failure status and updated board for each ID
+   *
+   * @throws TypeError if boardIds is not an array
+   * @throws RangeError if batch size exceeds 500 or IDs are invalid
+   * @throws Error if in read-only mode
+   *
+   * @remarks
+   * - Each update makes 1 API call (PATCH)
+   * - Maximum 10 concurrent requests by default (configurable)
+   * - Recommended batch size: 100-200 items for optimal performance
+   * - Monitor rate limits for large batches
+   *
+   * @example
+   * const results = await client.boards.bulkUpdateBoards(
+   *   [1, 2, 3],
+   *   { name: 'Updated Board', description: 'New description' }
+   * );
+   * const successful = results.filter(r => r.success);
    */
   async bulkUpdateBoards(
     boardIds: number[],
-    updates: Partial<CreateBoardParams>
+    updates: Partial<CreateBoardParams>,
+    options?: { maxConcurrent?: number }
   ): Promise<Array<{ id: number; success: boolean; board?: Board; error?: string }>> {
-    this.checkReadOnlyMode('bulk update boards');
-
-    const results = [];
-    for (const id of boardIds) {
-      try {
-        const board = await this.updateBoard(id, updates);
-        results.push({ id, success: true, board });
-      } catch (error) {
-        results.push({
-          id,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      }
+    // 1. Input validation
+    if (!Array.isArray(boardIds)) {
+      throw new TypeError('boardIds must be an array');
+    }
+    if (boardIds.length === 0) {
+      return [];
+    }
+    if (boardIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
+      throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
+    }
+    if (boardIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+      throw new RangeError('All board IDs must be positive integers');
     }
 
-    return results;
+    this.checkReadOnlyMode('bulk update boards');
+
+    // 2. Rate limiting with p-limit
+    const limit = pLimit(options?.maxConcurrent || BULK_OPERATION_DEFAULTS.MAX_CONCURRENT);
+
+    const promises = boardIds.map((id) =>
+      limit(async () => {
+        try {
+          const board = await this.updateBoard(id, updates);
+          return { id, success: true, board };
+        } catch (error) {
+          return {
+            id,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+        }
+      })
+    );
+
+    return await Promise.all(promises);
   }
 }
