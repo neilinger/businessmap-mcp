@@ -65,8 +65,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'search_board',
       {
         title: 'Search Board',
-        description:
-          'Search for a board by ID or name, with intelligent fallback to list all boards if direct search fails',
+        description: 'Search board by ID or name with fallback',
         inputSchema: searchBoardSchema.shape,
       },
       async ({ board_id, board_name, workspace_id }) => {
@@ -195,7 +194,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_columns',
       {
         title: 'Get Board Columns',
-        description: 'Get all columns for a board (válido na API oficial)',
+        description: 'Get all columns for a board',
         inputSchema: getBoardSchema.shape,
       },
       async ({ board_id }) => {
@@ -214,7 +213,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_lanes',
       {
         title: 'Get Board Lanes',
-        description: 'Get all lanes/swimlanes for a board (válido na API oficial)',
+        description: 'Get all lanes/swimlanes for a board',
         inputSchema: getBoardSchema.shape,
       },
       async ({ board_id }) => {
@@ -233,7 +232,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_lane',
       {
         title: 'Get Lane Details',
-        description: 'Get details of a specific lane/swimlane (válido na API oficial)',
+        description: 'Get details of a specific lane/swimlane',
         inputSchema: getLaneSchema.shape,
       },
       async ({ lane_id }) => {
@@ -275,7 +274,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'create_lane',
       {
         title: 'Create Lane',
-        description: 'Create a new lane/swimlane in a board (válido na API oficial)',
+        description: 'Create a new lane/swimlane in a board',
         inputSchema: createLaneSchema.shape,
       },
       async ({ workflow_id, name, description, color, position }) => {
@@ -320,8 +319,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'delete_board',
       {
         title: 'Delete Board',
-        description:
-          'Delete a board. By default, archives the board before deletion to prevent API errors. The API requires resources to be archived before they can be deleted (BS05 error). Set archive_first=false only if the board is already archived.',
+        description: 'Delete board (archives first to avoid API errors)',
         inputSchema: deleteBoardSchema.shape,
       },
       async ({ board_id, archive_first }) => {

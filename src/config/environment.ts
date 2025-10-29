@@ -18,6 +18,9 @@ export interface EnvironmentConfig {
     sse: boolean;
     streamableHttp: boolean;
   };
+  formatting: {
+    prettyJson: boolean;
+  };
 }
 
 export function getRequiredEnvVar(name: string): string {
@@ -59,6 +62,9 @@ export const config: EnvironmentConfig = {
   transport: {
     sse: getBooleanEnvVar('SSE', false),
     streamableHttp: getBooleanEnvVar('STREAMABLE_HTTP', true),
+  },
+  formatting: {
+    prettyJson: getBooleanEnvVar('BUSINESSMAP_PRETTY_JSON', false),
   },
 };
 

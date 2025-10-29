@@ -39,8 +39,7 @@ export class WorkflowToolHandler implements BaseToolHandler {
       'get_workflow_effective_cycle_time_columns',
       {
         title: 'Get Workflow Effective Cycle Time Columns',
-        description:
-          "Get workflow's effective cycle time columns (the columns actually used for cycle time calculation with applied filters/logic)",
+        description: 'Get effective cycle time columns',
         inputSchema: getWorkflowCycleTimeColumnsSchema.shape,
       },
       async ({ board_id, workflow_id }) => {

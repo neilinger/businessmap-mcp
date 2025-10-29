@@ -123,11 +123,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'delete_custom_field',
       {
         title: 'Delete Custom Field',
-        description: `Delete a custom field definition. This operation will:
-1. Analyze dependency impact (affected boards and cards)
-2. Prompt for explicit confirmation showing field name, board count, card count, and data loss warning
-3. Cascade delete to all card values only after user confirmation
-4. Return 403 error for insufficient permissions (requires workspace admin role)`,
+        description: 'Delete custom field with dependency analysis',
         inputSchema: deleteCustomFieldSchema.shape,
       },
       async ({ custom_field_id }) => {

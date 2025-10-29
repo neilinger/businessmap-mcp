@@ -33,13 +33,14 @@ export function createErrorResponse(error: unknown, operation: string) {
  * Standard success handler for tool responses
  */
 export function createSuccessResponse(data: any, message?: string) {
+  const prettyJson = process.env.BUSINESSMAP_PRETTY_JSON === 'true';
+  const jsonString = prettyJson ? JSON.stringify(data, null, 2) : JSON.stringify(data);
+
   return {
     content: [
       {
         type: 'text' as const,
-        text: message
-          ? `${message}\n${JSON.stringify(data, null, 2)}`
-          : JSON.stringify(data, null, 2),
+        text: message ? `${message}\n${jsonString}` : jsonString,
       },
     ],
   };

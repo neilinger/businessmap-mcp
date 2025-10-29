@@ -111,8 +111,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
       'archive_workspace',
       {
         title: 'Archive Workspace',
-        description:
-          'Archive a workspace (soft delete). The API does not support permanent deletion (DELETE returns 405). Only archiving via PATCH is available.',
+        description: 'Archive workspace (soft delete only)',
         inputSchema: archiveWorkspaceSchema.shape,
       },
       async ({ workspace_id }) => {
