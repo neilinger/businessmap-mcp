@@ -15,6 +15,7 @@ import {
   CommentResponse,
   CreateCardParams,
   CreateSubtaskParams,
+  LinkedCard,
   LinkedCardItem,
   LinkedCardsResponse,
   Outcome,
@@ -137,16 +138,68 @@ export class CardClient extends BaseClientModuleImpl {
 
   /**
    * Update an existing card
+   *
+   * IMPORTANT: This method automatically preserves linked_cards to prevent data loss.
+   * BusinessMap API resets omitted fields to empty in PATCH requests, causing
+   * parent-child relationships to be lost. This wrapper fetches current state
+   * and merges it with updates before sending the PATCH request.
+   *
+   * @param params - Update parameters including card_id
+   * @returns Updated card with all fields preserved
    */
   async updateCard(params: UpdateCardParams): Promise<Card> {
     this.checkReadOnlyMode('update card');
     const { card_id, ...updateData } = params;
-    const response = await this.http.patch<ApiResponse<Card>>(`/cards/${card_id}`, updateData);
+
+    // Ensure card_id is defined
+    const cardId = card_id ?? params.id;
+    if (!cardId) {
+      throw new Error('card_id is required for updateCard');
+    }
+
+    // Preserve linked_cards unless explicitly provided in updateData
+    // This prevents BusinessMap API from resetting the field to empty
+    if (!updateData.linked_cards) {
+      try {
+        // Fetch current card state to get existing linked_cards
+        const currentCard = await this.getCard(cardId);
+
+        // Merge current linked_cards with update data
+        updateData.linked_cards = currentCard.linked_cards;
+
+        // Log preservation for debugging
+        if (currentCard.linked_cards && currentCard.linked_cards.length > 0) {
+          console.debug(
+            `[card-client] Preserving ${currentCard.linked_cards.length} linked_cards for card ${cardId}`
+          );
+        }
+      } catch (error) {
+        // If getCard fails, log warning but proceed with update
+        // This allows update to succeed even if fetch fails (transient error)
+        console.warn(
+          `[card-client] Failed to fetch card ${cardId} for linked_cards preservation:`,
+          error instanceof Error ? error.message : 'Unknown error'
+        );
+      }
+    }
+
+    const response = await this.http.patch<ApiResponse<Card>>(`/cards/${cardId}`, updateData);
     return response.data.data;
   }
 
   /**
    * Move a card to a different column or lane
+   *
+   * IMPORTANT: This method automatically preserves linked_cards during moves.
+   * Card moves across workflows are particularly prone to data loss as the API
+   * resets omitted fields. This wrapper ensures parent-child relationships
+   * survive cross-workflow moves.
+   *
+   * @param cardId - ID of card to move
+   * @param columnId - Target column ID
+   * @param laneId - Optional target lane ID
+   * @param position - Optional position in target column
+   * @returns Moved card with all relationships preserved
    */
   async moveCard(
     cardId: number,
@@ -155,10 +208,32 @@ export class CardClient extends BaseClientModuleImpl {
     position?: number
   ): Promise<Card> {
     this.checkReadOnlyMode('move card');
+
+    // Preserve linked_cards during move operation
+    // Cross-workflow moves are especially prone to data loss
+    let linkedCards: LinkedCard[] | undefined;
+    try {
+      const currentCard = await this.getCard(cardId);
+      linkedCards = currentCard.linked_cards;
+
+      // Log cross-workflow moves (higher risk)
+      if (linkedCards && linkedCards.length > 0) {
+        console.debug(
+          `[card-client] Preserving ${linkedCards.length} linked_cards during move of card ${cardId} to column ${columnId}`
+        );
+      }
+    } catch (error) {
+      console.warn(
+        `[card-client] Failed to fetch card ${cardId} for linked_cards preservation during move:`,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+
     const response = await this.http.patch<ApiResponse<Card>>(`/cards/${cardId}`, {
       column_id: columnId,
       lane_id: laneId,
       position: position,
+      linked_cards: linkedCards,
     });
     return response.data.data;
   }
