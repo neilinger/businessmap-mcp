@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+#### Claude Code Skills (Issue #10)
+
+**Interactive API Guidance Skills**
+- `businessmap-consultant` - Interactive workflow guidance for board setup, card migrations, and bulk operations
+- `businessmap-troubleshooting` - Error diagnosis and resolution for API errors (403, 404, 429, BS05)
+- `businessmap-best-practices` - Performance optimization, rate limiting strategies, and production patterns
+
+These skills provide comprehensive, context-aware guidance for BusinessMap API usage, automatically invoking when users ask relevant questions.
+
+### Changed
+
+#### Token Optimization (Issue #10)
+
+**MCP Tool Description Refactoring**
+- Reduced all 58 tool descriptions from verbose (avg 9.1 words) to concise (avg 2.5 words)
+- **Token savings**: ~385 tokens per MCP connection (~73% reduction)
+- **Improved efficiency**: Moved detailed usage patterns from tool descriptions to Claude Code skills
+- Maintained full functionality and clarity while optimizing for token usage
+
+**Before**: "Get a list of boards with optional filters" (8 words)
+**After**: "List boards" (2 words) ✅
+
 ## [1.6.0] - 2025-10-25
 
 ### Added

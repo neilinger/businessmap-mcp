@@ -34,7 +34,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
       'list_workspaces',
       {
         title: 'List Workspaces',
-        description: 'Get a list of all workspaces',
+        description: 'List workspaces',
         inputSchema: listWorkspacesSchema.shape,
       },
       async () => {
@@ -53,7 +53,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
       'get_workspace',
       {
         title: 'Get Workspace',
-        description: 'Get details of a specific workspace',
+        description: 'Get workspace details',
         inputSchema: getWorkspaceSchema.shape,
       },
       async ({ workspace_id }) => {
@@ -72,7 +72,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
       'create_workspace',
       {
         title: 'Create Workspace',
-        description: 'Create a new workspace',
+        description: 'Create workspace',
         inputSchema: createWorkspaceSchema.shape,
       },
       async ({ name, description }) => {
@@ -92,7 +92,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
       'update_workspace',
       {
         title: 'Update Workspace',
-        description: 'Update an existing workspace',
+        description: 'Update workspace',
         inputSchema: updateWorkspaceSchema.shape,
       },
       async ({ workspace_id, name, description }) => {
@@ -111,8 +111,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
       'archive_workspace',
       {
         title: 'Archive Workspace',
-        description:
-          'Archive a workspace (soft delete). The API does not support permanent deletion (DELETE returns 405). Only archiving via PATCH is available.',
+        description: 'Archive workspace',
         inputSchema: archiveWorkspaceSchema.shape,
       },
       async ({ workspace_id }) => {
@@ -134,7 +133,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
       'bulk_archive_workspaces',
       {
         title: 'Bulk Archive Workspaces',
-        description: 'Archive multiple workspaces with dependency analysis and consolidated confirmation. Maximum 50 workspaces per request.',
+        description: 'Archive multiple workspaces',
         inputSchema: bulkArchiveWorkspacesSchema.shape,
       },
       async ({ resource_ids, analyze_dependencies = true }) => {
@@ -207,7 +206,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
       'bulk_update_workspaces',
       {
         title: 'Bulk Update Workspaces',
-        description: 'Update multiple workspaces with the same changes. Maximum 50 workspaces per request.',
+        description: 'Update multiple workspaces',
         inputSchema: bulkUpdateWorkspacesSchema as any,
       },
       async (params: any) => {

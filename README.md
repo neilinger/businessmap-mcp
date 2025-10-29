@@ -148,6 +148,60 @@ For other MCP clients, use the appropriate configuration format for your client,
    npm start
    ```
 
+## Claude Code Skills
+
+For Claude Code users, this project includes specialized skills for interactive API guidance and best practices.
+
+### Installation
+
+Copy the skills to your Claude Code skills directory:
+
+```bash
+cp -r skills/businessmap-* ~/.claude/skills/
+```
+
+Or for project-specific skills, copy to `.claude/skills/` in your project root.
+
+### BusinessMap API Consultant
+
+**When to use**: Ask "How do I [work with boards/cards/workspaces]?" or any BusinessMap workflow questions.
+
+The consultant skill provides:
+- Interactive workflow guidance for board setup, card migrations, bulk operations
+- Tool usage demonstrations with actual MCP tool calls
+- Common patterns: board structure, card hierarchies, custom fields
+- Error handling and troubleshooting assistance
+
+**Example**: "How do I migrate 50 cards from board A to board B?"
+
+### BusinessMap Troubleshooting
+
+**When to use**: Encountering API errors (403, 404, 429, BS05) or unexpected behavior.
+
+The troubleshooting skill provides:
+- Error code diagnosis (HTTP 403/404/429/500, BS05)
+- Authentication and configuration issue resolution
+- Rate limiting strategies and solutions
+- Resource dependency conflict resolution
+- Performance optimization recommendations
+
+**Example**: "I'm getting BS05 error when deleting a board"
+
+### BusinessMap Best Practices
+
+**When to use**: Optimizing API usage, implementing production deployments, or bulk operations.
+
+The best practices skill provides:
+- Performance optimization patterns (bulk operations, pagination strategies)
+- Rate limiting strategies (token bucket, exponential backoff, circuit breaker)
+- Caching strategies (board structure, user data, custom fields)
+- Security best practices (token management, input validation, audit logging)
+- Production deployment checklist
+
+**Example**: "What's the best way to handle rate limiting for 1000+ card updates?"
+
+These skills auto-invoke based on your questions and provide comprehensive guidance using the MCP tools.
+
 ## Usage
 
 The BusinessMap MCP server provides the following tools:
