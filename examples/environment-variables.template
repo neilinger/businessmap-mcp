@@ -1,0 +1,40 @@
+# Multi-Instance Configuration - Environment Variables Template
+# ================================================================
+# Copy this file to .env and fill in your actual values
+# This example shows how to configure environment variables for multi-instance setup
+
+# Path to multi-instance configuration file
+BUSINESSMAP_CONFIG_FILE=~/.config/businessmap-mcp/instances.json
+
+# API Tokens for each instance (store securely!)
+# Format: BUSINESSMAP_API_TOKEN_<INSTANCE_ID>=<token>
+BUSINESSMAP_API_TOKEN_PROD=ace_prod_your_token_here_xxx
+BUSINESSMAP_API_TOKEN_STAGING=ace_staging_your_token_here_yyy
+BUSINESSMAP_API_TOKEN_DEV=ace_dev_your_token_here_zzz
+
+# Optional: Override default instance (if not specified in config file)
+# BUSINESSMAP_DEFAULT_INSTANCE=production
+
+# Optional: Disable multi-instance support (force single-instance mode)
+# BUSINESSMAP_DISABLE_MULTI_INSTANCE=true
+
+# MCP Server Configuration (optional overrides)
+# MCP_SERVER_NAME=businessmap-mcp
+# MCP_SERVER_VERSION=1.7.0
+# PORT=3000
+
+# Transport Configuration (optional)
+# SSE=false
+# STREAMABLE_HTTP=true
+
+# ======================================
+# Security Best Practices:
+# ======================================
+# 1. Never commit .env files to version control
+# 2. Use environment-specific files (.env.production, .env.staging)
+# 3. Consider using secret management tools (Vault, AWS Secrets Manager)
+# 4. Rotate tokens regularly
+# 5. Use read-only tokens for development/staging instances
+# 6. Set restrictive file permissions: chmod 600 .env
+# 7. Use different tokens for each environment
+# 8. Store tokens in secure secret storage, not plaintext files

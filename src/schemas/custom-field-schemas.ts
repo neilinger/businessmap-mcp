@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { instanceParameterSchema } from './common-schemas.js';
 
 // Schema para obter detalhes de um custom field específico
 export const getCustomFieldSchema = z.object({
   custom_field_id: z.number().describe('The ID of the custom field'),
+  ...instanceParameterSchema,
 });
 
 // Custom field type enumeration
@@ -23,11 +25,13 @@ export const listCustomFieldsSchema = z.object({
   page: z.number().min(1).optional().describe('Page number for pagination'),
   page_size: z.number().min(1).max(100).optional().describe('Number of items per page'),
   field_type: customFieldTypeSchema.optional().describe('Filter by field type'),
+  ...instanceParameterSchema,
 });
 
 // Schema for listing board custom fields
 export const listBoardCustomFieldsSchema = z.object({
   board_id: z.number().describe('The ID of the board'),
+  ...instanceParameterSchema,
 });
 
 // Schema for creating a custom field
@@ -54,6 +58,7 @@ export const createCustomFieldSchema = z.object({
     })
     .optional()
     .describe('Validation rules for number fields'),
+  ...instanceParameterSchema,
 });
 
 // Schema for updating a custom field
@@ -80,9 +85,11 @@ export const updateCustomFieldSchema = z.object({
     })
     .optional()
     .describe('Updated validation rules'),
+  ...instanceParameterSchema,
 });
 
 // Schema for deleting a custom field
 export const deleteCustomFieldSchema = z.object({
   custom_field_id: z.number().describe('The ID of the custom field to delete'),
+  ...instanceParameterSchema,
 });

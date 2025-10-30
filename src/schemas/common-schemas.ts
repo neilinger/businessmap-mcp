@@ -2,6 +2,16 @@ import { z } from 'zod';
 
 // Common schemas that are reused across different modules
 
+// Instance parameter (for multi-instance support)
+export const instanceParameterSchema = {
+  instance: z
+    .string()
+    .optional()
+    .describe(
+      'Optional instance name to target a specific BusinessMap instance. If not provided, uses the default instance.'
+    ),
+};
+
 // Date and time filters
 export const dateTimeFilterSchema = {
   from: z.string().optional(),
