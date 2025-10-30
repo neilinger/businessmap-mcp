@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
+import { BusinessMapClientFactory } from '../../client/client-factory.js';
 
 /**
  * Base interface for tool handlers
@@ -8,10 +9,14 @@ export interface BaseToolHandler {
   /**
    * Register all tools provided by this handler
    * @param server The MCP server instance
-   * @param client The BusinessMap client instance
+   * @param clientOrFactory The BusinessMap client instance or client factory
    * @param readOnlyMode Whether the server is in read-only mode
    */
-  registerTools(server: McpServer, client: BusinessMapClient, readOnlyMode: boolean): void;
+  registerTools(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
+    readOnlyMode: boolean
+  ): void;
 }
 
 /**
@@ -43,4 +48,41 @@ export function createSuccessResponse(data: any, message?: string) {
       },
     ],
   };
+}
+
+/**
+ * Helper function to get client for a specific instance
+ * Supports both legacy single-client mode and new multi-instance factory mode
+ *
+ * @param clientOrFactory - Either a BusinessMapClient (legacy) or BusinessMapClientFactory (new)
+ * @param instance - Optional instance name
+ * @returns BusinessMapClient for the specified instance
+ */
+export async function getClientForInstance(
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
+  instance?: string
+): Promise<BusinessMapClient> {
+  // Check if this is a factory instance
+  if (clientOrFactory instanceof BusinessMapClientFactory) {
+    return await clientOrFactory.getClient(instance);
+  }
+
+  // Legacy mode - single client
+  // If instance parameter is provided in legacy mode, log a warning
+  if (instance) {
+    console.warn(
+      `Instance parameter '${instance}' provided but server is running in legacy single-instance mode. Using default client.`
+    );
+  }
+
+  return clientOrFactory;
+}
+
+/**
+ * Check if the server is running in multi-instance mode
+ */
+export function isMultiInstanceMode(
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+): boolean {
+  return clientOrFactory instanceof BusinessMapClientFactory;
 }

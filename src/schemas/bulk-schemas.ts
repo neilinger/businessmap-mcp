@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { instanceParameterSchema } from './common-schemas.js';
 
 /**
  * Bulk operation schemas for workspace, board, and card operations
@@ -17,6 +18,7 @@ export const bulkArchiveBaseSchema = z.object({
     .optional()
     .default(true)
     .describe('Whether to analyze dependencies before archiving'),
+  ...instanceParameterSchema,
 });
 
 // Base bulk delete schema (for resources that support permanent deletion)
@@ -31,6 +33,7 @@ export const bulkDeleteBaseSchema = z.object({
     .optional()
     .default(true)
     .describe('Whether to analyze dependencies before deletion'),
+  ...instanceParameterSchema,
 });
 
 // Base bulk update schema
@@ -40,6 +43,7 @@ export const bulkUpdateBaseSchema = z.object({
     .min(1, 'At least one resource ID is required')
     .max(50, 'Maximum 50 resources per bulk operation')
     .describe('Array of resource IDs to update'),
+  ...instanceParameterSchema,
 });
 
 // Bulk archive workspaces (workspaces don't support permanent deletion)

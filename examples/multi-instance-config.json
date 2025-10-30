@@ -1,0 +1,33 @@
+{
+  "version": "1.0",
+  "default_instance": "production",
+  "instances": {
+    "production": {
+      "name": "Production",
+      "description": "Production BusinessMap instance for customer-facing operations",
+      "api_url": "https://fimancia.kanbanize.com/api/v2",
+      "api_token_env": "BUSINESSMAP_API_TOKEN_PROD",
+      "default_workspace_id": 123,
+      "read_only_mode": false,
+      "tags": ["prod", "primary", "customer"]
+    },
+    "staging": {
+      "name": "Staging",
+      "description": "Staging environment for QA testing and integration validation",
+      "api_url": "https://fimancia-staging.kanbanize.com/api/v2",
+      "api_token_env": "BUSINESSMAP_API_TOKEN_STAGING",
+      "default_workspace_id": 456,
+      "read_only_mode": false,
+      "tags": ["staging", "qa", "testing"]
+    },
+    "development": {
+      "name": "Development",
+      "description": "Development instance (read-only to prevent accidental modifications)",
+      "api_url": "https://fimancia-dev.kanbanize.com/api/v2",
+      "api_token_env": "BUSINESSMAP_API_TOKEN_DEV",
+      "default_workspace_id": 789,
+      "read_only_mode": true,
+      "tags": ["dev", "local", "readonly"]
+    }
+  }
+}
