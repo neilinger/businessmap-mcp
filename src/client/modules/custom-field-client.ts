@@ -20,20 +20,34 @@ export class CustomFieldClient extends BaseClientModuleImpl {
    * List custom fields for a specific board
    */
   async listBoardCustomFields(boardId: number): Promise<CustomField[]> {
-    const response = await this.http.get<ApiResponse<CustomField[]>>(
-      `/boards/${boardId}/custom_fields`
+    const ttl = this.config.cacheTtl || 300000; // 5 minutes default
+    return this.cache.get<CustomField[]>(
+      `customFields:board:${boardId}`,
+      async () => {
+        const response = await this.http.get<ApiResponse<CustomField[]>>(
+          `/boards/${boardId}/custom_fields`
+        );
+        return response.data.data;
+      },
+      ttl
     );
-    return response.data.data;
   }
 
   /**
    * Get a specific custom field by ID
    */
   async getCustomField(customFieldId: number): Promise<CustomField> {
-    const response = await this.http.get<ApiResponse<CustomField>>(
-      `/custom_fields/${customFieldId}`
+    const ttl = this.config.cacheTtl || 300000; // 5 minutes default
+    return this.cache.get<CustomField>(
+      `customField:${customFieldId}`,
+      async () => {
+        const response = await this.http.get<ApiResponse<CustomField>>(
+          `/custom_fields/${customFieldId}`
+        );
+        return response.data.data;
+      },
+      ttl
     );
-    return response.data.data;
   }
 
   /**
@@ -52,10 +66,16 @@ export class CustomFieldClient extends BaseClientModuleImpl {
       max?: number;
     };
   }): Promise<CustomField> {
+    this.checkReadOnlyMode('create custom field');
+
     const response = await this.http.post<ApiResponse<CustomField>>(
       `/boards/${params.board_id}/custom_fields`,
       params
     );
+
+    // Invalidate custom fields cache for this board
+    this.cache.invalidate(`customFields:board:${params.board_id}`);
+
     return response.data.data;
   }
 
@@ -76,10 +96,17 @@ export class CustomFieldClient extends BaseClientModuleImpl {
       };
     }
   ): Promise<CustomField> {
+    this.checkReadOnlyMode('update custom field');
+
     const response = await this.http.patch<ApiResponse<CustomField>>(
       `/custom_fields/${customFieldId}`,
       params
     );
+    
+    // Invalidate cache for this custom field and all board custom field lists
+    this.cache.invalidate(`customField:${customFieldId}`);
+    this.cache.invalidate(/^customFields:board:/);
+    
     return response.data.data;
   }
 
@@ -87,6 +114,12 @@ export class CustomFieldClient extends BaseClientModuleImpl {
    * Delete a custom field
    */
   async deleteCustomField(customFieldId: number): Promise<void> {
+    this.checkReadOnlyMode('delete custom field');
+
     await this.http.delete(`/custom_fields/${customFieldId}`);
+    
+    // Invalidate cache for this custom field and all board custom field lists
+    this.cache.invalidate(`customField:${customFieldId}`);
+    this.cache.invalidate(/^customFields:board:/);
   }
 }

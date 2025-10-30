@@ -6,16 +6,30 @@ export class WorkspaceClient extends BaseClientModuleImpl {
    * Get all workspaces
    */
   async getWorkspaces(): Promise<Workspace[]> {
-    const response = await this.http.get<ApiResponse<Workspace[]>>('/workspaces');
-    return response.data.data;
+    const ttl = this.config.cacheWorkspacesTtl || 900000; // 15 minutes default
+    return this.cache.get<Workspace[]>(
+      'workspaces:all',
+      async () => {
+        const response = await this.http.get<ApiResponse<Workspace[]>>('/workspaces');
+        return response.data.data;
+      },
+      ttl
+    );
   }
 
   /**
    * Get a specific workspace by ID
    */
   async getWorkspace(workspaceId: number): Promise<Workspace> {
-    const response = await this.http.get<ApiResponse<Workspace>>(`/workspaces/${workspaceId}`);
-    return response.data.data;
+    const ttl = this.config.cacheWorkspacesTtl || 900000; // 15 minutes default
+    return this.cache.get<Workspace>(
+      `workspace:${workspaceId}`,
+      async () => {
+        const response = await this.http.get<ApiResponse<Workspace>>(`/workspaces/${workspaceId}`);
+        return response.data.data;
+      },
+      ttl
+    );
   }
 
   /**
@@ -24,6 +38,10 @@ export class WorkspaceClient extends BaseClientModuleImpl {
   async createWorkspace(params: CreateWorkspaceParams): Promise<Workspace> {
     this.checkReadOnlyMode('create workspace');
     const response = await this.http.post<ApiResponse<Workspace>>('/workspaces', params);
+    
+    // Invalidate workspaces list cache
+    this.cache.invalidate(/^workspaces:/);
+    
     return response.data.data;
   }
 
@@ -39,6 +57,11 @@ export class WorkspaceClient extends BaseClientModuleImpl {
       `/workspaces/${workspaceId}`,
       params
     );
+    
+    // Invalidate cache for this workspace and list
+    this.cache.invalidate(/^workspaces:/);
+    this.cache.invalidate(`workspace:${workspaceId}`);
+    
     return response.data.data;
   }
 
@@ -54,6 +77,11 @@ export class WorkspaceClient extends BaseClientModuleImpl {
       `/workspaces/${workspaceId}`,
       { is_archived: 1 }
     );
+    
+    // Invalidate cache for this workspace and list
+    this.cache.invalidate(/^workspaces:/);
+    this.cache.invalidate(`workspace:${workspaceId}`);
+    
     return response.data.data;
   }
 
