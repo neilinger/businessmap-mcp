@@ -97,8 +97,11 @@ export class WorkspaceClient extends BaseClientModuleImpl {
     if (workspaceIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
       throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
     }
-    if (workspaceIds.some((id) => !Number.isInteger(id) || id <= 0)) {
-      throw new RangeError('All workspace IDs must be positive integers');
+    const invalidIds = workspaceIds.filter((id) => !Number.isInteger(id) || id <= 0);
+    if (invalidIds.length > 0) {
+      throw new RangeError(
+        `All workspace IDs must be positive integers (found invalid: ${invalidIds.slice(0, 5).join(', ')}${invalidIds.length > 5 ? '...' : ''})`
+      );
     }
 
     this.checkReadOnlyMode('bulk archive workspaces');
@@ -167,8 +170,11 @@ export class WorkspaceClient extends BaseClientModuleImpl {
     if (workspaceIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
       throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
     }
-    if (workspaceIds.some((id) => !Number.isInteger(id) || id <= 0)) {
-      throw new RangeError('All workspace IDs must be positive integers');
+    const invalidIds = workspaceIds.filter((id) => !Number.isInteger(id) || id <= 0);
+    if (invalidIds.length > 0) {
+      throw new RangeError(
+        `All workspace IDs must be positive integers (found invalid: ${invalidIds.slice(0, 5).join(', ')}${invalidIds.length > 5 ? '...' : ''})`
+      );
     }
 
     this.checkReadOnlyMode('bulk update workspaces');

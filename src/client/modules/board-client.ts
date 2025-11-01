@@ -176,8 +176,11 @@ export class BoardClient extends BaseClientModuleImpl {
     if (boardIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
       throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
     }
-    if (boardIds.some((id) => !Number.isInteger(id) || id <= 0)) {
-      throw new RangeError('All board IDs must be positive integers');
+    const invalidIds = boardIds.filter((id) => !Number.isInteger(id) || id <= 0);
+    if (invalidIds.length > 0) {
+      throw new RangeError(
+        `All board IDs must be positive integers (found invalid: ${invalidIds.slice(0, 5).join(', ')}${invalidIds.length > 5 ? '...' : ''})`
+      );
     }
 
     this.checkReadOnlyMode('bulk delete boards');
@@ -246,8 +249,11 @@ export class BoardClient extends BaseClientModuleImpl {
     if (boardIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
       throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
     }
-    if (boardIds.some((id) => !Number.isInteger(id) || id <= 0)) {
-      throw new RangeError('All board IDs must be positive integers');
+    const invalidIds = boardIds.filter((id) => !Number.isInteger(id) || id <= 0);
+    if (invalidIds.length > 0) {
+      throw new RangeError(
+        `All board IDs must be positive integers (found invalid: ${invalidIds.slice(0, 5).join(', ')}${invalidIds.length > 5 ? '...' : ''})`
+      );
     }
 
     this.checkReadOnlyMode('bulk update boards');

@@ -391,8 +391,11 @@ export class CardClient extends BaseClientModuleImpl {
     if (cardIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
       throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
     }
-    if (cardIds.some((id) => !Number.isInteger(id) || id <= 0)) {
-      throw new RangeError('All card IDs must be positive integers');
+    const invalidIds = cardIds.filter((id) => !Number.isInteger(id) || id <= 0);
+    if (invalidIds.length > 0) {
+      throw new RangeError(
+        `All card IDs must be positive integers (found invalid: ${invalidIds.slice(0, 5).join(', ')}${invalidIds.length > 5 ? '...' : ''})`
+      );
     }
 
     this.checkReadOnlyMode('bulk delete cards');
@@ -461,8 +464,11 @@ export class CardClient extends BaseClientModuleImpl {
     if (cardIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
       throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
     }
-    if (cardIds.some((id) => !Number.isInteger(id) || id <= 0)) {
-      throw new RangeError('All card IDs must be positive integers');
+    const invalidIds = cardIds.filter((id) => !Number.isInteger(id) || id <= 0);
+    if (invalidIds.length > 0) {
+      throw new RangeError(
+        `All card IDs must be positive integers (found invalid: ${invalidIds.slice(0, 5).join(', ')}${invalidIds.length > 5 ? '...' : ''})`
+      );
     }
 
     this.checkReadOnlyMode('bulk update cards');
