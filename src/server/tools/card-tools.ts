@@ -193,8 +193,7 @@ export class CardToolHandler implements BaseToolHandler {
       'delete_card',
       {
         title: 'Delete Card',
-        description:
-          'Delete a card. By default, archives the card before deletion to prevent API errors. The API requires resources to be archived before they can be deleted (BS05 error). Set archive_first=false only if the card is already archived.',
+        description: 'Delete card (archives first to avoid API errors)',
         inputSchema: deleteCardSchema.shape,
       },
       async ({ card_id, archive_first }) => {

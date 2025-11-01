@@ -40,8 +40,7 @@ export class UtilityToolHandler implements BaseToolHandler {
       'get_api_info',
       {
         title: 'Get API Info',
-        description:
-          'Get information about the BusinessMap API (nota: endpoint /info não existe na API oficial)',
+        description: 'Get BusinessMap API information',
         inputSchema: getApiInfoSchema.shape,
       },
       async () => {
