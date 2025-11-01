@@ -40,6 +40,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See `docs/ISSUE-7-FIX-SUMMARY.md` for detailed analysis.
 
+## [1.6.2] - 2025-11-01
+
+### Fixed
+
+- **Parent-Child Link Preservation (Issue #4)** - Critical data loss bug
+  - Fixed 100% loss of parent-child relationships during card update/move operations
+  - BusinessMap API quirk: PATCH requests reset omitted fields to empty values
+  - Implemented fetch-merge-update pattern to preserve `linked_cards` field
+  - Graceful error handling with fallback behavior
+  - Performance impact: +200ms overhead per operation (within <500ms target)
+
+### Added
+
+- Comprehensive test suite: 14 test scenarios (unit, integration, regression, edge cases)
+- JSDoc documentation explaining API behavior and preservation requirement
+- `linked_cards` field added to `UpdateCardParams` interface
+
+### Changed
+
+- `updateCard()` now preserves existing linked_cards when not explicitly provided
+- `moveCard()` now preserves existing linked_cards during all move operations
+- Full backward compatibility maintained - explicit linked_cards parameters still work
+
+### Technical Details
+
+- Test coverage: 835 lines, 14 comprehensive test scenarios
+- Zero breaking changes to method signatures
+- All existing tests pass without modification
+- Production-ready with defensive programming and comprehensive error handling
+
 ## [1.6.0] - 2025-10-25
 
 ### Added
