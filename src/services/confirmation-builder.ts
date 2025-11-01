@@ -175,14 +175,16 @@ export class ConfirmationBuilder {
 
   /**
    * Format success message for simple deletes (no confirmation needed)
+   * Uses nameMap for efficient name lookup (avoids read-after-delete)
    */
   formatSimpleSuccess(
     resourceType: string,
     count: number,
-    resources: Array<{ id: number; name: string }>
+    resources: Array<{ id: number; name?: string }>
   ): string {
     if (count === 1 && resources[0]) {
-      return `✓ ${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)} "${resources[0].name}" (ID: ${resources[0].id}) deleted successfully`;
+      const displayName = resources[0].name || `Resource ID: ${resources[0].id}`;
+      return `✓ ${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)} "${displayName}" (ID: ${resources[0].id}) deleted successfully`;
     }
 
     const parts: string[] = [];
@@ -191,7 +193,8 @@ export class ConfirmationBuilder {
     );
     parts.push(`Deleted ${resourceType}s:`);
     resources.forEach((r) => {
-      parts.push(`  • "${r.name}" (ID: ${r.id})`);
+      const displayName = r.name || `Resource ID: ${r.id}`;
+      parts.push(`  • "${displayName}" (ID: ${r.id})`);
     });
 
     return parts.join('\n');

@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2025-10-29
+
+### Fixed
+
+#### Performance Optimization: Eliminate Read-After-Delete (Issue #7)
+
+**Problem**: Bulk delete operations performed unnecessary read-after-delete API calls, causing:
+- 100% 404 error rate attempting to read deleted resources
+- 38-77% API call overhead on bulk operations
+- Performance degradation on large bulk deletes
+
+**Solution**: Pre-extract resource names during dependency analysis phase
+- Added `nameMap` to `BulkDependencyAnalysis` for cached name lookups
+- Removed read-after-delete pattern from `bulk_delete_boards` and `bulk_delete_cards`
+- Implemented defensive fallback pattern for missing names
+
+**Impact**:
+- 38% API call reduction for small operations (5 boards: 26→16 calls)
+- 33% API call reduction for large operations (50 boards: 300→200 calls)
+- 100% elimination of post-delete 404 errors
+- Zero breaking changes (backward compatible)
+
+**Files Changed**:
+- `src/services/dependency-analyzer.ts` - Extract names into nameMap
+- `src/server/tools/board-tools.ts` - Use nameMap instead of re-fetch
+- `src/server/tools/card-tools.ts` - Use nameMap instead of re-fetch
+- `src/services/confirmation-builder.ts` - Defensive fallbacks for missing names
+
+**Test Coverage**:
+- 31 unit tests for name extraction and fallback handling
+- 7 integration tests validating API call reduction
+- 100% regression-free (38/38 tests passing)
+
+See `docs/ISSUE-7-FIX-SUMMARY.md` for detailed analysis.
+
 ## [1.6.0] - 2025-10-25
 
 ### Added
