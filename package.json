@@ -58,6 +58,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@ce-dot-net/ace-client": "^3.6.1",
     "@modelcontextprotocol/sdk": "^1.17.0",
     "@toolprint/mcp-logger": "^0.0.7",
     "axios": "^1.12.0",
