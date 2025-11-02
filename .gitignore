@@ -130,3 +130,4 @@ docs/architecture/
 .ace-cache/
 # ACE local cache (SQLite database)
 .ace-cache/
+.worktree/
