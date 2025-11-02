@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.1] - 2025-11-02
+
+### Fixed
+
+#### Server Version Exposure (Hotfix)
+
+**Problem**: Server was exposing hardcoded version "1.0.0" instead of actual package version
+- Configuration logs showed: `"serverVersion": "1.0.0"`
+- Server info showed: `"version": "1.0.0"`
+- Incorrect version exposed in MCP server metadata
+
+**Solution**: Read version dynamically from package.json
+- Import version from package.json at runtime
+- Remove hardcoded "1.0.0" fallback
+- Use `PACKAGE_VERSION` constant from parsed package.json
+
+**Impact**:
+- Server now correctly exposes actual version (1.9.1)
+- Configuration logs show accurate version
+- MCP clients see correct server version
+- No breaking changes
+
+**Files Changed**:
+- `src/config/environment.ts` - Dynamic version loading from package.json
+
+**Root Cause**:
+Line 59 had hardcoded fallback: `version: process.env.MCP_SERVER_VERSION || '1.0.0'`
+
 ## [1.9.0] - 2025-11-01
 
 ### Added

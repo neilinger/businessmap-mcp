@@ -1,9 +1,20 @@
 import dotenv from 'dotenv';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { createLoggerSync } from '@toolprint/mcp-logger';
 import { BusinessMapConfig } from '../types/index.js';
 
 // Load environment variables
 dotenv.config();
+
+// Get package version
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(
+  readFileSync(join(__dirname, '../../package.json'), 'utf-8')
+);
+const PACKAGE_VERSION = packageJson.version;
 
 const logger = createLoggerSync({ level: 'info' });
 
@@ -56,7 +67,7 @@ export const config: EnvironmentConfig = {
   },
   server: {
     name: process.env.MCP_SERVER_NAME || 'businessmap-mcp',
-    version: process.env.MCP_SERVER_VERSION || '1.0.0',
+    version: process.env.MCP_SERVER_VERSION || PACKAGE_VERSION,
     port: getNumberEnvVar('PORT'),
   },
   transport: {
