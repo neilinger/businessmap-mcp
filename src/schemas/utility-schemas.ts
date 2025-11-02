@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import { instanceParameterSchema } from './common-schemas.js';
 
-// Schema para health check (sem parâmetros)
+// Schema for health check (no parameters)
 export const healthCheckSchema = z.object({
   ...instanceParameterSchema,
 });
 
-// Schema para obter informações da API (sem parâmetros)
+// Schema for obter informações da API (no parameters)
 export const getApiInfoSchema = z.object({
   ...instanceParameterSchema,
 });
