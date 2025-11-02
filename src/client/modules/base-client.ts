@@ -1,4 +1,5 @@
 import { AxiosInstance } from 'axios';
+// @ts-expect-error - lru-cache types not fully compatible with v11
 import { LRUCache } from 'lru-cache';
 import { BusinessMapConfig } from '../../types/index.js';
 
@@ -32,7 +33,7 @@ export class CacheManager {
     this.cache = new LRUCache<string, CacheEntry<any>>({
       max: maxSize,
       // LRU will automatically evict least recently used entries when max is reached
-      disposeAfter: (value, key) => {
+      disposeAfter: (value: CacheEntry<any>, key: string) => {
         // Clean up prefix index when entries are evicted
         // Use setImmediate to avoid blocking event loop on eviction
         setImmediate(() => {
