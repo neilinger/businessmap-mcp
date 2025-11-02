@@ -460,4 +460,36 @@ export class BusinessMapClient {
   async getApiInfo() {
     return this.utilityClient.getApiInfo();
   }
+
+  /**
+   * Get cache statistics for all client modules
+   */
+  getCacheStats(): Record<string, { hits: number; misses: number; hitRate: number; size: number }> {
+    return {
+      workspace: this.workspaceClient['cache'].getStats(),
+      board: this.boardClient['cache'].getStats(),
+      card: this.cardClient['cache'].getStats(),
+      user: this.userClient['cache'].getStats(),
+      customField: this.customFieldClient['cache'].getStats(),
+      utility: this.utilityClient['cache'].getStats(),
+      workflow: this.workflowClient['cache'].getStats(),
+    };
+  }
+
+  /**
+   * Clear all caches across all client modules
+   */
+  clearAllCaches(): void {
+    [
+      this.workspaceClient,
+      this.boardClient,
+      this.cardClient,
+      this.userClient,
+      this.customFieldClient,
+      this.utilityClient,
+      this.workflowClient,
+    ].forEach((module) => {
+      module['cache'].clear();
+    });
+  }
 }
