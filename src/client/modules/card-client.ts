@@ -1,3 +1,4 @@
+import pLimit from 'p-limit';
 import {
   ApiResponse,
   Card,
@@ -15,6 +16,7 @@ import {
   CommentResponse,
   CreateCardParams,
   CreateSubtaskParams,
+  LinkedCard,
   LinkedCardItem,
   LinkedCardsResponse,
   Outcome,
@@ -30,6 +32,7 @@ import {
   UpdateCommentParams,
   UpdateSubtaskParams,
 } from '../../types/index.js';
+import { BULK_OPERATION_DEFAULTS } from '../constants.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
 export interface CardFilters {
@@ -137,16 +140,68 @@ export class CardClient extends BaseClientModuleImpl {
 
   /**
    * Update an existing card
+   *
+   * IMPORTANT: This method automatically preserves linked_cards to prevent data loss.
+   * BusinessMap API resets omitted fields to empty in PATCH requests, causing
+   * parent-child relationships to be lost. This wrapper fetches current state
+   * and merges it with updates before sending the PATCH request.
+   *
+   * @param params - Update parameters including card_id
+   * @returns Updated card with all fields preserved
    */
   async updateCard(params: UpdateCardParams): Promise<Card> {
     this.checkReadOnlyMode('update card');
     const { card_id, ...updateData } = params;
-    const response = await this.http.patch<ApiResponse<Card>>(`/cards/${card_id}`, updateData);
+
+    // Ensure card_id is defined
+    const cardId = card_id ?? params.id;
+    if (!cardId) {
+      throw new Error('card_id is required for updateCard');
+    }
+
+    // Preserve linked_cards unless explicitly provided in updateData
+    // This prevents BusinessMap API from resetting the field to empty
+    if (!updateData.linked_cards) {
+      try {
+        // Fetch current card state to get existing linked_cards
+        const currentCard = await this.getCard(cardId);
+
+        // Merge current linked_cards with update data
+        updateData.linked_cards = currentCard.linked_cards;
+
+        // Log preservation for debugging
+        if (currentCard.linked_cards && currentCard.linked_cards.length > 0) {
+          console.debug(
+            `[card-client] Preserving ${currentCard.linked_cards.length} linked_cards for card ${cardId}`
+          );
+        }
+      } catch (error) {
+        // If getCard fails, log warning but proceed with update
+        // This allows update to succeed even if fetch fails (transient error)
+        console.warn(
+          `[card-client] Failed to fetch card ${cardId} for linked_cards preservation:`,
+          error instanceof Error ? error.message : 'Unknown error'
+        );
+      }
+    }
+
+    const response = await this.http.patch<ApiResponse<Card>>(`/cards/${cardId}`, updateData);
     return response.data.data;
   }
 
   /**
    * Move a card to a different column or lane
+   *
+   * IMPORTANT: This method automatically preserves linked_cards during moves.
+   * Card moves across workflows are particularly prone to data loss as the API
+   * resets omitted fields. This wrapper ensures parent-child relationships
+   * survive cross-workflow moves.
+   *
+   * @param cardId - ID of card to move
+   * @param columnId - Target column ID
+   * @param laneId - Optional target lane ID
+   * @param position - Optional position in target column
+   * @returns Moved card with all relationships preserved
    */
   async moveCard(
     cardId: number,
@@ -155,10 +210,32 @@ export class CardClient extends BaseClientModuleImpl {
     position?: number
   ): Promise<Card> {
     this.checkReadOnlyMode('move card');
+
+    // Preserve linked_cards during move operation
+    // Cross-workflow moves are especially prone to data loss
+    let linkedCards: LinkedCard[] | undefined;
+    try {
+      const currentCard = await this.getCard(cardId);
+      linkedCards = currentCard.linked_cards;
+
+      // Log cross-workflow moves (higher risk)
+      if (linkedCards && linkedCards.length > 0) {
+        console.debug(
+          `[card-client] Preserving ${linkedCards.length} linked_cards during move of card ${cardId} to column ${columnId}`
+        );
+      }
+    } catch (error) {
+      console.warn(
+        `[card-client] Failed to fetch card ${cardId} for linked_cards preservation during move:`,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+
     const response = await this.http.patch<ApiResponse<Card>>(`/cards/${cardId}`, {
       column_id: columnId,
       lane_id: laneId,
       position: position,
+      linked_cards: linkedCards,
     });
     return response.data.data;
   }
@@ -360,52 +437,142 @@ export class CardClient extends BaseClientModuleImpl {
 
   /**
    * Bulk delete cards (T059)
-   * Deletes multiple cards sequentially
+   * Deletes multiple cards concurrently using Promise.all() with rate limiting
+   *
+   * @param cardIds - Array of card IDs to delete (max 500)
+   * @param options - Optional configuration
+   * @param options.maxConcurrent - Maximum concurrent requests (default: 10)
+   *
+   * @returns Array of results with success/failure status for each card
+   *
+   * @throws TypeError if cardIds is not an array
+   * @throws RangeError if batch size exceeds 500 or IDs are invalid
+   * @throws Error if in read-only mode
+   *
+   * @remarks
+   * - Each delete makes 2 API calls (PATCH to archive + DELETE)
+   * - Maximum 10 concurrent requests by default (configurable)
+   * - Recommended batch size: 50-100 items for optimal performance
+   * - Monitor rate limits for large batches
+   *
+   * @example
+   * const results = await client.cards.bulkDeleteCards([1, 2, 3]);
+   * const failed = results.filter(r => !r.success);
    */
-  async bulkDeleteCards(cardIds: number[]): Promise<Array<{ id: number; success: boolean; error?: string }>> {
-    this.checkReadOnlyMode('bulk delete cards');
-
-    const results = [];
-    for (const id of cardIds) {
-      try {
-        await this.deleteCard(id);
-        results.push({ id, success: true });
-      } catch (error) {
-        results.push({
-          id,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      }
+  async bulkDeleteCards(
+    cardIds: number[],
+    options?: { maxConcurrent?: number }
+  ): Promise<Array<{ id: number; success: boolean; error?: string }>> {
+    // 1. Input validation
+    if (!Array.isArray(cardIds)) {
+      throw new TypeError('cardIds must be an array');
+    }
+    if (cardIds.length === 0) {
+      return [];
+    }
+    if (cardIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
+      throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
+    }
+    const invalidIds = cardIds.filter((id) => !Number.isInteger(id) || id <= 0);
+    if (invalidIds.length > 0) {
+      throw new RangeError(
+        `All card IDs must be positive integers (found invalid: ${invalidIds.slice(0, 5).join(', ')}${invalidIds.length > 5 ? '...' : ''})`
+      );
     }
 
-    return results;
+    this.checkReadOnlyMode('bulk delete cards');
+
+    // 2. Rate limiting with p-limit
+    const limit = pLimit(options?.maxConcurrent || BULK_OPERATION_DEFAULTS.MAX_CONCURRENT);
+
+    const promises = cardIds.map((id) =>
+      limit(async () => {
+        try {
+          await this.deleteCard(id);
+          return { id, success: true };
+        } catch (error) {
+          return {
+            id,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+        }
+      })
+    );
+
+    return await Promise.all(promises);
   }
 
   /**
    * Bulk update cards (T063)
-   * Updates multiple cards sequentially with the same changes
+   * Updates multiple cards concurrently using Promise.all() with rate limiting
+   *
+   * @param cardIds - Array of card IDs to update (max 500)
+   * @param updates - Card properties to update (applied to all cards)
+   * @param options - Optional configuration
+   * @param options.maxConcurrent - Maximum concurrent requests (default: 10)
+   *
+   * @returns Array of results with success/failure status and updated card for each ID
+   *
+   * @throws TypeError if cardIds is not an array
+   * @throws RangeError if batch size exceeds 500 or IDs are invalid
+   * @throws Error if in read-only mode
+   *
+   * @remarks
+   * - Each update makes 1 API call (PATCH)
+   * - Maximum 10 concurrent requests by default (configurable)
+   * - Recommended batch size: 100-200 items for optimal performance
+   * - Monitor rate limits for large batches
+   *
+   * @example
+   * const results = await client.cards.bulkUpdateCards(
+   *   [1, 2, 3],
+   *   { priority: 2, title: 'Updated' }
+   * );
+   * const successful = results.filter(r => r.success);
    */
   async bulkUpdateCards(
     cardIds: number[],
-    updates: Omit<Partial<UpdateCardParams>, 'card_id'>
+    updates: Omit<Partial<UpdateCardParams>, 'card_id'>,
+    options?: { maxConcurrent?: number }
   ): Promise<Array<{ id: number; success: boolean; card?: Card; error?: string }>> {
-    this.checkReadOnlyMode('bulk update cards');
-
-    const results = [];
-    for (const id of cardIds) {
-      try {
-        const card = await this.updateCard({ card_id: id, ...updates });
-        results.push({ id, success: true, card });
-      } catch (error) {
-        results.push({
-          id,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-      }
+    // 1. Input validation
+    if (!Array.isArray(cardIds)) {
+      throw new TypeError('cardIds must be an array');
+    }
+    if (cardIds.length === 0) {
+      return [];
+    }
+    if (cardIds.length > BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE) {
+      throw new RangeError(`Maximum batch size is ${BULK_OPERATION_DEFAULTS.MAX_BATCH_SIZE}`);
+    }
+    const invalidIds = cardIds.filter((id) => !Number.isInteger(id) || id <= 0);
+    if (invalidIds.length > 0) {
+      throw new RangeError(
+        `All card IDs must be positive integers (found invalid: ${invalidIds.slice(0, 5).join(', ')}${invalidIds.length > 5 ? '...' : ''})`
+      );
     }
 
-    return results;
+    this.checkReadOnlyMode('bulk update cards');
+
+    // 2. Rate limiting with p-limit
+    const limit = pLimit(options?.maxConcurrent || BULK_OPERATION_DEFAULTS.MAX_CONCURRENT);
+
+    const promises = cardIds.map((id) =>
+      limit(async () => {
+        try {
+          const card = await this.updateCard({ card_id: id, ...updates });
+          return { id, success: true, card };
+        } catch (error) {
+          return {
+            id,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+        }
+      })
+    );
+
+    return await Promise.all(promises);
   }
 }

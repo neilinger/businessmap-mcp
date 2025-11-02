@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
-import { BaseToolHandler, createErrorResponse, createSuccessResponse } from './base-tool.js';
+import { BusinessMapClientFactory } from '../../client/client-factory.js';
+import { BaseToolHandler, createErrorResponse, createSuccessResponse, getClientForInstance } from './base-tool.js';
 import {
   createCustomFieldSchema,
   deleteCustomFieldSchema,
@@ -11,28 +12,29 @@ import {
 } from '../../schemas/custom-field-schemas.js';
 
 export class CustomFieldToolHandler implements BaseToolHandler {
-  registerTools(server: McpServer, client: BusinessMapClient, readOnlyMode: boolean): void {
-    this.registerListCustomFields(server, client);
-    this.registerListBoardCustomFields(server, client);
-    this.registerGetCustomField(server, client);
+  registerTools(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory, readOnlyMode: boolean): void {
+    this.registerListCustomFields(server, clientOrFactory);
+    this.registerListBoardCustomFields(server, clientOrFactory);
+    this.registerGetCustomField(server, clientOrFactory);
 
     if (!readOnlyMode) {
-      this.registerCreateCustomField(server, client);
-      this.registerUpdateCustomField(server, client);
-      this.registerDeleteCustomField(server, client);
+      this.registerCreateCustomField(server, clientOrFactory);
+      this.registerUpdateCustomField(server, clientOrFactory);
+      this.registerDeleteCustomField(server, clientOrFactory);
     }
   }
 
-  private registerListCustomFields(server: McpServer, client: BusinessMapClient): void {
+  private registerListCustomFields(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'list_custom_fields',
       {
         title: 'List Custom Fields',
-        description: 'Retrieve a list of all custom field definitions with optional pagination and filtering',
+        description: 'List custom fields',
         inputSchema: listCustomFieldsSchema.shape,
       },
-      async ({ page, page_size, field_type }) => {
+      async ({ page, page_size, field_type, instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const customFields = await client.listCustomFields({ page, page_size, field_type });
           return createSuccessResponse(customFields);
         } catch (error) {
@@ -42,16 +44,17 @@ export class CustomFieldToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerListBoardCustomFields(server: McpServer, client: BusinessMapClient): void {
+  private registerListBoardCustomFields(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'list_board_custom_fields',
       {
         title: 'List Board Custom Fields',
-        description: 'Retrieve all custom fields configured for a specific board',
+        description: 'List board custom fields',
         inputSchema: listBoardCustomFieldsSchema.shape,
       },
-      async ({ board_id }) => {
+      async ({ board_id, instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const customFields = await client.listBoardCustomFields(board_id);
           return createSuccessResponse(customFields);
         } catch (error) {
@@ -61,16 +64,17 @@ export class CustomFieldToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCustomField(server: McpServer, client: BusinessMapClient): void {
+  private registerGetCustomField(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'get_custom_field',
       {
         title: 'Get Custom Field',
-        description: 'Get details of a specific custom field by ID',
+        description: 'Get custom field details',
         inputSchema: getCustomFieldSchema.shape,
       },
-      async ({ custom_field_id }) => {
+      async ({ custom_field_id, instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const customField = await client.getCustomField(custom_field_id);
           return createSuccessResponse(customField);
         } catch (error) {
@@ -80,17 +84,19 @@ export class CustomFieldToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerCreateCustomField(server: McpServer, client: BusinessMapClient): void {
+  private registerCreateCustomField(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'create_custom_field',
       {
         title: 'Create Custom Field',
-        description: 'Create a new custom field definition for a board',
+        description: 'Create custom field',
         inputSchema: createCustomFieldSchema.shape,
       },
-      async (params) => {
+      async (params: any) => {
         try {
-          const customField = await client.createCustomField(params as any);
+          const { instance, ...fieldParams } = params;
+          const client = await getClientForInstance(clientOrFactory, instance);
+          const customField = await client.createCustomField(fieldParams);
           return createSuccessResponse(customField, 'Custom field created successfully:');
         } catch (error) {
           return createErrorResponse(error, 'creating custom field');
@@ -99,16 +105,17 @@ export class CustomFieldToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerUpdateCustomField(server: McpServer, client: BusinessMapClient): void {
+  private registerUpdateCustomField(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'update_custom_field',
       {
         title: 'Update Custom Field',
-        description: 'Update an existing custom field definition',
+        description: 'Update custom field',
         inputSchema: updateCustomFieldSchema.shape,
       },
-      async ({ custom_field_id, ...params }) => {
+      async ({ custom_field_id, instance, ...params }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const customField = await client.updateCustomField(custom_field_id, params);
           return createSuccessResponse(customField, 'Custom field updated successfully:');
         } catch (error) {
@@ -118,27 +125,24 @@ export class CustomFieldToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerDeleteCustomField(server: McpServer, client: BusinessMapClient): void {
+  private registerDeleteCustomField(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'delete_custom_field',
       {
         title: 'Delete Custom Field',
-        description: `Delete a custom field definition. This operation will:
-1. Analyze dependency impact (affected boards and cards)
-2. Prompt for explicit confirmation showing field name, board count, card count, and data loss warning
-3. Cascade delete to all card values only after user confirmation
-4. Return 403 error for insufficient permissions (requires workspace admin role)`,
+        description: 'Delete custom field',
         inputSchema: deleteCustomFieldSchema.shape,
       },
-      async ({ custom_field_id }) => {
+      async ({ custom_field_id, instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           // Step 1: Pre-delete dependency analysis
           const customField = await client.getCustomField(custom_field_id);
-          
+
           // Get boards using this custom field
           const boards = await client.getBoards();
           const affectedBoards = [];
-          
+
           for (const board of boards) {
             if (!board.board_id) continue;
             const boardFields = await client.listBoardCustomFields(board.board_id);

@@ -16,16 +16,18 @@ import { BusinessMapClient } from '../../src/client/businessmap-client';
 const API_URL = process.env.BUSINESSMAP_API_URL || 'https://demo.kanbanize.com/api/v2';
 const API_TOKEN = process.env.BUSINESSMAP_API_TOKEN;
 
-if (!API_TOKEN) {
-  throw new Error('BUSINESSMAP_API_TOKEN environment variable is required');
+// Skip tests if API token not available (environment-dependent integration test)
+const skipTests = !API_TOKEN;
+if (skipTests) {
+  console.warn('⚠️  Skipping phase9-validation tests - BUSINESSMAP_API_TOKEN not set');
 }
 
-// Create BusinessMap client with archive_first support
-const client = new BusinessMapClient({
+// Create BusinessMap client with archive_first support (only if token available)
+const client = API_TOKEN ? new BusinessMapClient({
   apiUrl: API_URL,
   apiToken: API_TOKEN,
   readOnlyMode: false
-});
+}) : null as any;
 
 // Test helpers
 interface TestResource {
@@ -160,7 +162,7 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
   };
 }
 
-describe('Phase 9: Integration Testing (T070-T080)', () => {
+(skipTests ? describe.skip : describe)('Phase 9: Integration Testing (T070-T080)', () => {
   // Global timeout for all tests
   jest.setTimeout(30000);
 
@@ -170,7 +172,9 @@ describe('Phase 9: Integration Testing (T070-T080)', () => {
     console.log(`🔑 API Token: ${API_TOKEN?.substring(0, 10)}...`);
 
     // Initialize client
-    await client.initialize();
+    if (API_TOKEN) {
+      await client.initialize();
+    }
   });
 
   afterAll(async () => {

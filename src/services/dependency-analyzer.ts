@@ -1,4 +1,6 @@
 import { BusinessMapClient } from '../client/businessmap-client.js';
+import { Board } from '../types/board.js';
+import { ChildCardItem } from '../types/card.js';
 
 /**
  * Dependency analysis results for a single resource
@@ -29,6 +31,12 @@ export interface BulkDependencyAnalysis {
   resourcesWithDeps: ResourceDependency[];
   resourcesWithoutDeps: ResourceDependency[];
   totalImpact: ImpactSummary;
+  /**
+   * Pre-extracted resource names from list API responses (best-effort optimization).
+   * Maps resource ID to name. Used to avoid read-after-delete API calls.
+   * May contain undefined values if name extraction failed.
+   */
+  nameMap: Map<number, string | undefined>;
 }
 
 /**
@@ -66,7 +74,13 @@ export class DependencyAnalyzer {
       workspaceIds.map((id) => this.analyzeWorkspace(id))
     );
 
-    return this.aggregateResults(results);
+    // Extract names from analysis results for post-delete display
+    const nameMap = new Map<number, string | undefined>();
+    results.forEach((result) => {
+      nameMap.set(result.id, result.name);
+    });
+
+    return this.aggregateResults(results, nameMap);
   }
 
   /**
@@ -86,10 +100,10 @@ export class DependencyAnalyzer {
       if (hasDependencies) {
         // Get card counts for each board
         const boardDetails = await Promise.all(
-          boards.map(async (board: any) => {
-            const cards = await this.client.getCards(board.board_id, { per_page: 1 });
+          boards.map(async (board: Board) => {
+            const cards = await this.client.getCards(board.board_id!, { per_page: 1 });
             return {
-              id: board.board_id,
+              id: board.board_id!,
               name: board.name,
               additionalInfo: `${cards.length || 0} cards`,
             };
@@ -130,7 +144,13 @@ export class DependencyAnalyzer {
       boardIds.map((id) => this.analyzeBoard(id))
     );
 
-    return this.aggregateResults(results);
+    // Extract names from analysis results for post-delete display
+    const nameMap = new Map<number, string | undefined>();
+    results.forEach((result) => {
+      nameMap.set(result.id, result.name);
+    });
+
+    return this.aggregateResults(results, nameMap);
   }
 
   /**
@@ -182,7 +202,13 @@ export class DependencyAnalyzer {
       cardIds.map((id) => this.analyzeCard(id))
     );
 
-    return this.aggregateResults(results);
+    // Extract names from analysis results for post-delete display
+    const nameMap = new Map<number, string | undefined>();
+    results.forEach((result) => {
+      nameMap.set(result.id, result.name);
+    });
+
+    return this.aggregateResults(results, nameMap);
   }
 
   /**
@@ -218,9 +244,9 @@ export class DependencyAnalyzer {
       }
 
       if (children.length > 0) {
-        const childDetails = children.map((child: any) => ({
+        const childDetails = children.map((child: ChildCardItem) => ({
           id: child.card_id,
-          name: child.title || child.name || `Card ${child.card_id}`,
+          name: `Card ${child.card_id}`,
           additionalInfo: 'remains as independent card',
         }));
 
@@ -252,7 +278,10 @@ export class DependencyAnalyzer {
   /**
    * Aggregate multiple resource dependencies into bulk analysis
    */
-  private aggregateResults(results: ResourceDependency[]): BulkDependencyAnalysis {
+  private aggregateResults(
+    results: ResourceDependency[],
+    nameMap: Map<number, string | undefined>
+  ): BulkDependencyAnalysis {
     const resourcesWithDeps = results.filter((r) => r.hasDependencies);
     const resourcesWithoutDeps = results.filter((r) => !r.hasDependencies);
 
@@ -284,6 +313,7 @@ export class DependencyAnalyzer {
       resourcesWithDeps,
       resourcesWithoutDeps,
       totalImpact: impact,
+      nameMap,
     };
   }
 }

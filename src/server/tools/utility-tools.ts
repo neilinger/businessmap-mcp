@@ -1,24 +1,26 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
+import { BusinessMapClientFactory } from '../../client/client-factory.js';
 import { getApiInfoSchema, healthCheckSchema } from '../../schemas/utility-schemas.js';
-import { BaseToolHandler, createErrorResponse, createSuccessResponse } from './base-tool.js';
+import { BaseToolHandler, createErrorResponse, createSuccessResponse, getClientForInstance } from './base-tool.js';
 
 export class UtilityToolHandler implements BaseToolHandler {
-  registerTools(server: McpServer, client: BusinessMapClient, readOnlyMode: boolean): void {
-    this.registerHealthCheck(server, client);
-    this.registerGetApiInfo(server, client);
+  registerTools(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory, readOnlyMode: boolean): void {
+    this.registerHealthCheck(server, clientOrFactory);
+    this.registerGetApiInfo(server, clientOrFactory);
   }
 
-  private registerHealthCheck(server: McpServer, client: BusinessMapClient): void {
+  private registerHealthCheck(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'health_check',
       {
         title: 'Health Check',
-        description: 'Check the connection to BusinessMap API',
+        description: 'Check API connection',
         inputSchema: healthCheckSchema.shape,
       },
-      async () => {
+      async ({ instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const isHealthy = await client.healthCheck();
           return {
             content: [
@@ -35,17 +37,17 @@ export class UtilityToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetApiInfo(server: McpServer, client: BusinessMapClient): void {
+  private registerGetApiInfo(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'get_api_info',
       {
         title: 'Get API Info',
-        description:
-          'Get information about the BusinessMap API (nota: endpoint /info não existe na API oficial)',
+        description: 'Get API info',
         inputSchema: getApiInfoSchema.shape,
       },
-      async () => {
+      async ({ instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const apiInfo = await client.getApiInfo();
           return createSuccessResponse(apiInfo);
         } catch (error) {

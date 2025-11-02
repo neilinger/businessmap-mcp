@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "default_instance": "us-east",
+  "instances": {
+    "us-east": {
+      "name": "US East",
+      "description": "Primary US region (North Virginia)",
+      "api_url": "https://us-east.kanbanize.com/api/v2",
+      "api_token_env": "BUSINESSMAP_TOKEN_US_EAST",
+      "default_workspace_id": 100,
+      "read_only_mode": false,
+      "tags": ["us", "primary", "north-america"]
+    },
+    "us-west": {
+      "name": "US West",
+      "description": "Secondary US region (California)",
+      "api_url": "https://us-west.kanbanize.com/api/v2",
+      "api_token_env": "BUSINESSMAP_TOKEN_US_WEST",
+      "default_workspace_id": 200,
+      "read_only_mode": false,
+      "tags": ["us", "secondary", "north-america"]
+    },
+    "eu-west": {
+      "name": "EU West",
+      "description": "European region (Ireland)",
+      "api_url": "https://eu-west.kanbanize.com/api/v2",
+      "api_token_env": "BUSINESSMAP_TOKEN_EU_WEST",
+      "default_workspace_id": 300,
+      "read_only_mode": false,
+      "tags": ["eu", "europe", "gdpr"]
+    },
+    "ap-south": {
+      "name": "Asia Pacific South",
+      "description": "APAC region (Singapore)",
+      "api_url": "https://ap-south.kanbanize.com/api/v2",
+      "api_token_env": "BUSINESSMAP_TOKEN_AP_SOUTH",
+      "default_workspace_id": 400,
+      "read_only_mode": false,
+      "tags": ["apac", "asia", "singapore"]
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
+import { BusinessMapClientFactory } from '../../client/client-factory.js';
 import {
   archiveWorkspaceSchema,
   createWorkspaceSchema,
@@ -13,32 +14,33 @@ import {
 } from '../../schemas/bulk-schemas.js';
 import { DependencyAnalyzer } from '../../services/dependency-analyzer.js';
 import { ConfirmationBuilder } from '../../services/confirmation-builder.js';
-import { BaseToolHandler, createErrorResponse, createSuccessResponse } from './base-tool.js';
+import { BaseToolHandler, createErrorResponse, createSuccessResponse, getClientForInstance } from './base-tool.js';
 
 export class WorkspaceToolHandler implements BaseToolHandler {
-  registerTools(server: McpServer, client: BusinessMapClient, readOnlyMode: boolean): void {
-    this.registerListWorkspaces(server, client);
-    this.registerGetWorkspace(server, client);
+  registerTools(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory, readOnlyMode: boolean): void {
+    this.registerListWorkspaces(server, clientOrFactory);
+    this.registerGetWorkspace(server, clientOrFactory);
 
     if (!readOnlyMode) {
-      this.registerCreateWorkspace(server, client);
-      this.registerUpdateWorkspace(server, client);
-      this.registerArchiveWorkspace(server, client);
-      this.registerBulkArchiveWorkspaces(server, client);
-      this.registerBulkUpdateWorkspaces(server, client);
+      this.registerCreateWorkspace(server, clientOrFactory);
+      this.registerUpdateWorkspace(server, clientOrFactory);
+      this.registerArchiveWorkspace(server, clientOrFactory);
+      this.registerBulkArchiveWorkspaces(server, clientOrFactory);
+      this.registerBulkUpdateWorkspaces(server, clientOrFactory);
     }
   }
 
-  private registerListWorkspaces(server: McpServer, client: BusinessMapClient): void {
+  private registerListWorkspaces(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'list_workspaces',
       {
         title: 'List Workspaces',
-        description: 'Get a list of all workspaces',
+        description: 'List workspaces',
         inputSchema: listWorkspacesSchema.shape,
       },
-      async () => {
+      async ({ instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const workspaces = await client.getWorkspaces();
           return createSuccessResponse(workspaces);
         } catch (error) {
@@ -48,16 +50,17 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetWorkspace(server: McpServer, client: BusinessMapClient): void {
+  private registerGetWorkspace(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'get_workspace',
       {
         title: 'Get Workspace',
-        description: 'Get details of a specific workspace',
+        description: 'Get workspace details',
         inputSchema: getWorkspaceSchema.shape,
       },
-      async ({ workspace_id }) => {
+      async ({ workspace_id, instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.getWorkspace(workspace_id);
           return createSuccessResponse(workspace);
         } catch (error) {
@@ -67,16 +70,17 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerCreateWorkspace(server: McpServer, client: BusinessMapClient): void {
+  private registerCreateWorkspace(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'create_workspace',
       {
         title: 'Create Workspace',
-        description: 'Create a new workspace',
+        description: 'Create workspace',
         inputSchema: createWorkspaceSchema.shape,
       },
-      async ({ name, description }) => {
+      async ({ name, description, instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.createWorkspace({ name, description });
           return createSuccessResponse(workspace, 'Workspace created successfully:');
         } catch (error) {
@@ -87,16 +91,17 @@ export class WorkspaceToolHandler implements BaseToolHandler {
   }
 
 
-  private registerUpdateWorkspace(server: McpServer, client: BusinessMapClient): void {
+  private registerUpdateWorkspace(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'update_workspace',
       {
         title: 'Update Workspace',
-        description: 'Update an existing workspace',
+        description: 'Update workspace',
         inputSchema: updateWorkspaceSchema.shape,
       },
-      async ({ workspace_id, name, description }) => {
+      async ({ workspace_id, name, description, instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.updateWorkspace(workspace_id, { name, description });
           return createSuccessResponse(workspace, 'Workspace updated successfully:');
         } catch (error) {
@@ -106,17 +111,17 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerArchiveWorkspace(server: McpServer, client: BusinessMapClient): void {
+  private registerArchiveWorkspace(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'archive_workspace',
       {
         title: 'Archive Workspace',
-        description:
-          'Archive a workspace (soft delete). The API does not support permanent deletion (DELETE returns 405). Only archiving via PATCH is available.',
+        description: 'Archive workspace',
         inputSchema: archiveWorkspaceSchema.shape,
       },
-      async ({ workspace_id }) => {
+      async ({ workspace_id, instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.archiveWorkspace(workspace_id);
           return createSuccessResponse(
             workspace,
@@ -129,16 +134,17 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerBulkArchiveWorkspaces(server: McpServer, client: BusinessMapClient): void {
+  private registerBulkArchiveWorkspaces(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'bulk_archive_workspaces',
       {
         title: 'Bulk Archive Workspaces',
-        description: 'Archive multiple workspaces with dependency analysis and consolidated confirmation. Maximum 50 workspaces per request.',
+        description: 'Archive multiple workspaces',
         inputSchema: bulkArchiveWorkspacesSchema.shape,
       },
-      async ({ resource_ids, analyze_dependencies = true }) => {
+      async ({ resource_ids, analyze_dependencies = true, instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const analyzer = new DependencyAnalyzer(client);
           const confirmationBuilder = new ConfirmationBuilder();
 
@@ -202,17 +208,18 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerBulkUpdateWorkspaces(server: McpServer, client: BusinessMapClient): void {
+  private registerBulkUpdateWorkspaces(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'bulk_update_workspaces',
       {
         title: 'Bulk Update Workspaces',
-        description: 'Update multiple workspaces with the same changes. Maximum 50 workspaces per request.',
+        description: 'Update multiple workspaces',
         inputSchema: bulkUpdateWorkspacesSchema as any,
       },
       async (params: any) => {
-        const { resource_ids, name, description } = params;
+        const { resource_ids, name, description, instance } = params;
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const updates: any = {};
           if (name !== undefined) updates.name = name;
           if (description !== undefined) updates.description = description;
