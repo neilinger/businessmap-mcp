@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "defaultInstance": "fimancia",
+  "instances": [
+    {
+      "name": "fimancia",
+      "apiUrl": "https://fimancia.kanbanize.com/api/v2",
+      "apiTokenEnv": "BUSINESSMAP_API_TOKEN_FIMANCIA",
+      "description": "Fimancia production instance (primary)",
+      "defaultWorkspaceId": 8
+    },
+    {
+      "name": "kerkow",
+      "apiUrl": "https://kerkow.kanbanize.com/api/v2",
+      "apiTokenEnv": "BUSINESSMAP_API_TOKEN_KERKOW",
+      "description": "Kerkow instance (secondary)"
+    }
+  ]
+}

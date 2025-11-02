@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { createLoggerSync } from '@toolprint/mcp-logger';
@@ -58,10 +58,21 @@ export function getNumberEnvVar(name: string, defaultValue?: number): number | u
   return parsed;
 }
 
+// Check if multi-instance mode is enabled
+// Multi-instance mode is active if:
+// 1. BUSINESSMAP_INSTANCES env var is set (JSON config)
+// 2. .businessmap-instances.json file exists in cwd
+// 3. Config file exists in default locations
+const hasMultiInstanceEnv = !!process.env.BUSINESSMAP_INSTANCES;
+const hasDefaultConfigFile = existsSync(join(process.cwd(), '.businessmap-instances.json'));
+const isMultiInstanceMode = hasMultiInstanceEnv || hasDefaultConfigFile;
+
 export const config: EnvironmentConfig = {
   businessMap: {
-    apiUrl: getRequiredEnvVar('BUSINESSMAP_API_URL'),
-    apiToken: getRequiredEnvVar('BUSINESSMAP_API_TOKEN'),
+    // In multi-instance mode, these are optional (will use instance-specific config)
+    // In legacy mode, these are required
+    apiUrl: isMultiInstanceMode ? (process.env.BUSINESSMAP_API_URL || '') : getRequiredEnvVar('BUSINESSMAP_API_URL'),
+    apiToken: isMultiInstanceMode ? (process.env.BUSINESSMAP_API_TOKEN || '') : getRequiredEnvVar('BUSINESSMAP_API_TOKEN'),
     defaultWorkspaceId: getNumberEnvVar('BUSINESSMAP_DEFAULT_WORKSPACE_ID'),
     readOnlyMode: getBooleanEnvVar('BUSINESSMAP_READ_ONLY_MODE', false),
   },
@@ -80,19 +91,29 @@ export const config: EnvironmentConfig = {
 };
 
 export function validateConfig(): void {
-  // Validate API URL format
+  // Skip legacy validation in multi-instance mode
+  if (isMultiInstanceMode) {
+    logger.info('Configuration validated (multi-instance mode)', {
+      serverName: config.server.name,
+      serverVersion: config.server.version,
+      instancesConfig: process.env.BUSINESSMAP_INSTANCES_CONFIG,
+    });
+    return;
+  }
+
+  // Validate API URL format (legacy mode only)
   try {
     new URL(config.businessMap.apiUrl);
   } catch {
     throw new Error('BUSINESSMAP_API_URL must be a valid URL');
   }
 
-  // Validate API token is not empty
+  // Validate API token is not empty (legacy mode only)
   if (!config.businessMap.apiToken.trim()) {
     throw new Error('BUSINESSMAP_API_TOKEN cannot be empty');
   }
 
-  logger.info('Configuration validated', {
+  logger.info('Configuration validated (legacy mode)', {
     serverName: config.server.name,
     serverVersion: config.server.version,
     apiUrl: config.businessMap.apiUrl,

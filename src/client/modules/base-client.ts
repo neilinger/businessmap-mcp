@@ -1,6 +1,6 @@
 import { AxiosInstance } from 'axios';
-// @ts-expect-error - lru-cache types not fully compatible with v11
-import { LRUCache } from 'lru-cache';
+// @ts-expect-error - lru-cache v11 is CommonJS, use default import
+import LRUCache from 'lru-cache';
 import { BusinessMapConfig } from '../../types/index.js';
 
 /**
