@@ -14,7 +14,7 @@ export class UtilityToolHandler implements BaseToolHandler {
       'health_check',
       {
         title: 'Health Check',
-        description: 'Check the connection to BusinessMap API',
+        description: 'Check API connection',
         inputSchema: healthCheckSchema.shape,
       },
       async () => {
@@ -40,7 +40,7 @@ export class UtilityToolHandler implements BaseToolHandler {
       'get_api_info',
       {
         title: 'Get API Info',
-        description: 'Get BusinessMap API information',
+        description: 'Get API info',
         inputSchema: getApiInfoSchema.shape,
       },
       async () => {

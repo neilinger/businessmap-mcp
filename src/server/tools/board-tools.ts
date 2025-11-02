@@ -46,7 +46,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'list_boards',
       {
         title: 'List Boards',
-        description: 'Get a list of boards with optional filters',
+        description: 'List boards',
         inputSchema: listBoardsSchema.shape,
       },
       async (params) => {
@@ -65,7 +65,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'search_board',
       {
         title: 'Search Board',
-        description: 'Search board by ID or name with fallback',
+        description: 'Search board by ID/name',
         inputSchema: searchBoardSchema.shape,
       },
       async ({ board_id, board_name, workspace_id }) => {
@@ -194,7 +194,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_columns',
       {
         title: 'Get Board Columns',
-        description: 'Get all columns for a board',
+        description: 'Get board columns',
         inputSchema: getBoardSchema.shape,
       },
       async ({ board_id }) => {
@@ -213,7 +213,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_lanes',
       {
         title: 'Get Board Lanes',
-        description: 'Get all lanes/swimlanes for a board',
+        description: 'Get board lanes',
         inputSchema: getBoardSchema.shape,
       },
       async ({ board_id }) => {
@@ -232,7 +232,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_lane',
       {
         title: 'Get Lane Details',
-        description: 'Get details of a specific lane/swimlane',
+        description: 'Get lane details',
         inputSchema: getLaneSchema.shape,
       },
       async ({ lane_id }) => {
@@ -251,7 +251,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'create_board',
       {
         title: 'Create Board',
-        description: 'Create a new board in a workspace',
+        description: 'Create board',
         inputSchema: createBoardSchema.shape,
       },
       async ({ name, workspace_id, description }) => {
@@ -274,7 +274,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'create_lane',
       {
         title: 'Create Lane',
-        description: 'Create a new lane/swimlane in a board',
+        description: 'Create lane',
         inputSchema: createLaneSchema.shape,
       },
       async ({ workflow_id, name, description, color, position }) => {
@@ -300,7 +300,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'update_board',
       {
         title: 'Update Board',
-        description: 'Update an existing board',
+        description: 'Update board',
         inputSchema: updateBoardSchema.shape,
       },
       async ({ board_id, name, description }) => {
@@ -319,7 +319,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'delete_board',
       {
         title: 'Delete Board',
-        description: 'Delete board (archives first to avoid API errors)',
+        description: 'Delete board',
         inputSchema: deleteBoardSchema.shape,
       },
       async ({ board_id, archive_first }) => {
@@ -338,8 +338,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_current_board_structure',
       {
         title: 'Get Current Board Structure',
-        description:
-          'Get the complete current structure of a board including workflows, columns, lanes, and configurations',
+        description: 'Get board structure',
         inputSchema: getCurrentBoardStructureSchema.shape,
       },
       async ({ board_id }) => {
@@ -358,7 +357,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'bulk_delete_boards',
       {
         title: 'Bulk Delete Boards',
-        description: 'Delete multiple boards with dependency analysis and consolidated confirmation. Maximum 50 boards per request.',
+        description: 'Delete multiple boards',
         inputSchema: bulkDeleteBoardsSchema.shape,
       },
       async ({ resource_ids, analyze_dependencies = true }) => {
@@ -366,11 +365,9 @@ export class BoardToolHandler implements BaseToolHandler {
           const analyzer = new DependencyAnalyzer(client);
           const confirmationBuilder = new ConfirmationBuilder();
 
-          // Analyze dependencies if requested (also extracts names for post-delete display)
-          let nameMap: Map<number, string | undefined> | undefined;
+          // Analyze dependencies if requested
           if (analyze_dependencies) {
             const analysis = await analyzer.analyzeBoards(resource_ids);
-            nameMap = analysis.nameMap;
             const confirmation = confirmationBuilder.buildConfirmation(analysis);
 
             if (confirmation && confirmation.hasConfirmation) {
@@ -395,11 +392,17 @@ export class BoardToolHandler implements BaseToolHandler {
           const failures = results.filter((r) => !r.success);
 
           if (failures.length === 0) {
-            // All successful - use pre-extracted names from analysis (avoids read-after-delete)
-            const boards = successes.map((r) => ({
-              id: r.id,
-              name: nameMap?.get(r.id),
-            }));
+            // All successful
+            const boards = await Promise.all(
+              successes.map(async (r) => {
+                try {
+                  const board = await client.getBoard(r.id);
+                  return { id: r.id, name: board.name };
+                } catch {
+                  return { id: r.id, name: `Board ${r.id}` };
+                }
+              })
+            );
 
             const message = confirmationBuilder.formatSimpleSuccess('board', successes.length, boards);
             return createSuccessResponse({ deleted: successes.length, results }, message);
@@ -433,7 +436,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'bulk_update_boards',
       {
         title: 'Bulk Update Boards',
-        description: 'Update multiple boards with the same changes. Maximum 50 boards per request.',
+        description: 'Update multiple boards',
         inputSchema: bulkUpdateBoardsSchema as any,
       },
       async (params: any) => {

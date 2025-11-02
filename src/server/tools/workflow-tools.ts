@@ -17,7 +17,7 @@ export class WorkflowToolHandler implements BaseToolHandler {
       'get_workflow_cycle_time_columns',
       {
         title: 'Get Workflow Cycle Time Columns',
-        description: "Get workflow's cycle time columns",
+        description: 'Get cycle time columns',
         inputSchema: getWorkflowCycleTimeColumnsSchema.shape,
       },
       async ({ board_id, workflow_id }) => {

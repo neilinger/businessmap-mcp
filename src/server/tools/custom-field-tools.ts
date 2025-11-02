@@ -28,7 +28,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'list_custom_fields',
       {
         title: 'List Custom Fields',
-        description: 'Retrieve a list of all custom field definitions with optional pagination and filtering',
+        description: 'List custom fields',
         inputSchema: listCustomFieldsSchema.shape,
       },
       async ({ page, page_size, field_type }) => {
@@ -47,7 +47,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'list_board_custom_fields',
       {
         title: 'List Board Custom Fields',
-        description: 'Retrieve all custom fields configured for a specific board',
+        description: 'List board custom fields',
         inputSchema: listBoardCustomFieldsSchema.shape,
       },
       async ({ board_id }) => {
@@ -66,7 +66,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'get_custom_field',
       {
         title: 'Get Custom Field',
-        description: 'Get details of a specific custom field by ID',
+        description: 'Get custom field details',
         inputSchema: getCustomFieldSchema.shape,
       },
       async ({ custom_field_id }) => {
@@ -85,7 +85,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'create_custom_field',
       {
         title: 'Create Custom Field',
-        description: 'Create a new custom field definition for a board',
+        description: 'Create custom field',
         inputSchema: createCustomFieldSchema.shape,
       },
       async (params) => {
@@ -104,7 +104,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'update_custom_field',
       {
         title: 'Update Custom Field',
-        description: 'Update an existing custom field definition',
+        description: 'Update custom field',
         inputSchema: updateCustomFieldSchema.shape,
       },
       async ({ custom_field_id, ...params }) => {
@@ -123,7 +123,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'delete_custom_field',
       {
         title: 'Delete Custom Field',
-        description: 'Delete custom field with dependency analysis',
+        description: 'Delete custom field',
         inputSchema: deleteCustomFieldSchema.shape,
       },
       async ({ custom_field_id }) => {
