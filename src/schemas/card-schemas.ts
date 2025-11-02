@@ -563,7 +563,12 @@ export const moveCardSchema = z.object({
 });
 
 // Schema para atualização de cards
-export const updateCardSchema = z.object({
+export const // Schema para atualização de cards (legacy - use updateCardFullSchema)
+export const updateCardSchema = updateCardFullSchema;;
+
+// Schema for card updates (supports full create_card parameters)
+// CRITICAL: BusinessMap API supports most create_card params in PATCH requests
+export const updateCardFullSchema = z.object({
   card_id: z.number().describe('The ID of the card to update'),
   id: z.number().optional().describe('Alternative ID field'),
   title: z.string().optional().describe('New title for the card'),
@@ -576,6 +581,46 @@ export const updateCardSchema = z.object({
   size: z.number().optional().describe('New card size/points'),
   priority: z.string().optional().describe('New priority level'),
   deadline: z.string().optional().describe('New deadline (ISO date string)'),
+
+  // Arrays de relacionamentos (from create_card)
+  co_owner_ids_to_add: z.array(z.number()).optional().describe('Optional co-owner IDs to add'),
+  co_owner_ids_to_remove: z.array(z.number()).optional().describe('Optional co-owner IDs to remove'),
+  watcher_ids_to_add: z.array(z.number()).optional().describe('Optional watcher IDs to add'),
+  watcher_ids_to_remove: z.array(z.number()).optional().describe('Optional watcher IDs to remove'),
+  tag_ids_to_add: z.array(z.number()).optional().describe('Optional tag IDs to add'),
+  tag_ids_to_remove: z.array(z.number()).optional().describe('Optional tag IDs to remove'),
+  milestone_ids_to_add: z.array(z.number()).optional().describe('Optional milestone IDs to add'),
+  milestone_ids_to_remove: z.array(z.number()).optional().describe('Optional milestone IDs to remove'),
+
+  // Subtasks e links (from create_card)
+  subtasks_to_add: z.array(subtaskSchema).optional().describe('Optional subtasks to add'),
+  links_to_existing_cards_to_add_or_update: z
+    .array(cardLinkSchema)
+    .optional()
+    .describe('Optional links to existing cards to add or update'),
+  links_to_new_cards_to_add: z
+    .array(newCardLinkSchema)
+    .optional()
+    .describe('Optional links to new cards to add'),
+
+  // Custom fields e anexos (from create_card)
+  custom_fields_to_add_or_update: z
+    .array(customFieldSchema)
+    .optional()
+    .describe('Optional custom fields to add or update'),
+  custom_field_ids_to_remove: z
+    .array(z.number())
+    .optional()
+    .describe('Optional custom field IDs to remove'),
+  attachments_to_add: z.array(fileAttachmentSchema).optional().describe('Optional attachments to add'),
+
+  // Advanced parameters (from create_card)
+  stickers_to_add: z.array(stickerSchema).optional().describe('Optional stickers to add'),
+  column_checklist_items_to_check_or_update: z
+    .array(columnChecklistItemSchema)
+    .optional()
+    .describe('Optional column checklist items to check or update'),
+
   ...instanceParameterSchema,
 });
 
