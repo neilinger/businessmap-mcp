@@ -1,6 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
-import { BusinessMapClientFactory } from '../../client/client-factory.js';
+import { config } from '../../config/environment.js';
+import { createLoggerSync } from '@toolprint/mcp-logger';
+
+const logger = createLoggerSync({ level: 'debug' });
 
 /**
  * Base interface for tool handlers
@@ -9,14 +12,10 @@ export interface BaseToolHandler {
   /**
    * Register all tools provided by this handler
    * @param server The MCP server instance
-   * @param clientOrFactory The BusinessMap client instance or client factory
+   * @param client The BusinessMap client instance
    * @param readOnlyMode Whether the server is in read-only mode
    */
-  registerTools(
-    server: McpServer,
-    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean
-  ): void;
+  registerTools(server: McpServer, client: BusinessMapClient, readOnlyMode: boolean): void;
 }
 
 /**
@@ -36,53 +35,39 @@ export function createErrorResponse(error: unknown, operation: string) {
 
 /**
  * Standard success handler for tool responses
+ *
+ * @param data - Response data to serialize
+ * @param message - Optional message prefix
+ * @returns MCP-formatted response with JSON content
+ *
+ * @remarks
+ * Token overhead optimization:
+ * - Defaults to compact JSON (BUSINESSMAP_PRETTY_JSON=false)
+ * - Pretty-printing available for debugging (BUSINESSMAP_PRETTY_JSON=true)
+ * - Monitors large responses (>10K tokens) with pagination suggestions
+ *
+ * TODO: Add unit tests for BUSINESSMAP_PRETTY_JSON flag behavior
  */
 export function createSuccessResponse(data: any, message?: string) {
+  const prettyJson = config.formatting.prettyJson;
+  const jsonString = prettyJson ? JSON.stringify(data, null, 2) : JSON.stringify(data);
+
+  // Monitor response size and estimate token usage
+  const byteSize = Buffer.byteLength(jsonString, 'utf8');
+  // Token estimation heuristic: 1 token ≈ 4 bytes for English text
+  // Note: Accuracy varies for non-ASCII characters (may be 2-3x off for Unicode-heavy content)
+  const tokenEstimate = Math.ceil(byteSize / 4);
+
+  if (tokenEstimate > 10000) {
+    logger.warn(`Large response: ${tokenEstimate} tokens (~${(byteSize / 1024).toFixed(1)}KB) - consider pagination`);
+  }
+
   return {
     content: [
       {
         type: 'text' as const,
-        text: message
-          ? `${message}\n${JSON.stringify(data, null, 2)}`
-          : JSON.stringify(data, null, 2),
+        text: message ? `${message}\n${jsonString}` : jsonString,
       },
     ],
   };
-}
-
-/**
- * Helper function to get client for a specific instance
- * Supports both legacy single-client mode and new multi-instance factory mode
- *
- * @param clientOrFactory - Either a BusinessMapClient (legacy) or BusinessMapClientFactory (new)
- * @param instance - Optional instance name
- * @returns BusinessMapClient for the specified instance
- */
-export async function getClientForInstance(
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  instance?: string
-): Promise<BusinessMapClient> {
-  // Check if this is a factory instance
-  if (clientOrFactory instanceof BusinessMapClientFactory) {
-    return await clientOrFactory.getClient(instance);
-  }
-
-  // Legacy mode - single client
-  // If instance parameter is provided in legacy mode, log a warning
-  if (instance) {
-    console.warn(
-      `Instance parameter '${instance}' provided but server is running in legacy single-instance mode. Using default client.`
-    );
-  }
-
-  return clientOrFactory;
-}
-
-/**
- * Check if the server is running in multi-instance mode
- */
-export function isMultiInstanceMode(
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
-): boolean {
-  return clientOrFactory instanceof BusinessMapClientFactory;
 }

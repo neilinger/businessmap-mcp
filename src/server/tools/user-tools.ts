@@ -20,7 +20,7 @@ export class UserToolHandler implements BaseToolHandler {
       'list_users',
       {
         title: 'List Users',
-        description: 'Get a list of all users',
+        description: 'List users',
         inputSchema: listUsersSchema.shape,
       },
       async ({ instance }: any) => {
@@ -40,7 +40,7 @@ export class UserToolHandler implements BaseToolHandler {
       'get_user',
       {
         title: 'Get User',
-        description: 'Get details of a specific user',
+        description: 'Get user details',
         inputSchema: getUserSchema.shape,
       },
       async ({ user_id, instance }: any) => {
@@ -60,7 +60,7 @@ export class UserToolHandler implements BaseToolHandler {
       'get_current_user',
       {
         title: 'Get Current User',
-        description: 'Get details of the current logged user',
+        description: 'Get current user',
         inputSchema: getCurrentUserSchema.shape,
       },
       async ({ instance }: any) => {

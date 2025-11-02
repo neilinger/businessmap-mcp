@@ -31,6 +31,12 @@ export interface BulkDependencyAnalysis {
   resourcesWithDeps: ResourceDependency[];
   resourcesWithoutDeps: ResourceDependency[];
   totalImpact: ImpactSummary;
+  /**
+   * Pre-extracted resource names from list API responses (best-effort optimization).
+   * Maps resource ID to name. Used to avoid read-after-delete API calls.
+   * May contain undefined values if name extraction failed.
+   */
+  nameMap: Map<number, string | undefined>;
 }
 
 /**
@@ -68,7 +74,13 @@ export class DependencyAnalyzer {
       workspaceIds.map((id) => this.analyzeWorkspace(id))
     );
 
-    return this.aggregateResults(results);
+    // Extract names from analysis results for post-delete display
+    const nameMap = new Map<number, string | undefined>();
+    results.forEach((result) => {
+      nameMap.set(result.id, result.name);
+    });
+
+    return this.aggregateResults(results, nameMap);
   }
 
   /**
@@ -132,7 +144,13 @@ export class DependencyAnalyzer {
       boardIds.map((id) => this.analyzeBoard(id))
     );
 
-    return this.aggregateResults(results);
+    // Extract names from analysis results for post-delete display
+    const nameMap = new Map<number, string | undefined>();
+    results.forEach((result) => {
+      nameMap.set(result.id, result.name);
+    });
+
+    return this.aggregateResults(results, nameMap);
   }
 
   /**
@@ -184,7 +202,13 @@ export class DependencyAnalyzer {
       cardIds.map((id) => this.analyzeCard(id))
     );
 
-    return this.aggregateResults(results);
+    // Extract names from analysis results for post-delete display
+    const nameMap = new Map<number, string | undefined>();
+    results.forEach((result) => {
+      nameMap.set(result.id, result.name);
+    });
+
+    return this.aggregateResults(results, nameMap);
   }
 
   /**
@@ -254,7 +278,10 @@ export class DependencyAnalyzer {
   /**
    * Aggregate multiple resource dependencies into bulk analysis
    */
-  private aggregateResults(results: ResourceDependency[]): BulkDependencyAnalysis {
+  private aggregateResults(
+    results: ResourceDependency[],
+    nameMap: Map<number, string | undefined>
+  ): BulkDependencyAnalysis {
     const resourcesWithDeps = results.filter((r) => r.hasDependencies);
     const resourcesWithoutDeps = results.filter((r) => !r.hasDependencies);
 
@@ -286,6 +313,7 @@ export class DependencyAnalyzer {
       resourcesWithDeps,
       resourcesWithoutDeps,
       totalImpact: impact,
+      nameMap,
     };
   }
 }

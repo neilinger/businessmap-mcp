@@ -47,7 +47,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'list_boards',
       {
         title: 'List Boards',
-        description: 'Get a list of boards with optional filters',
+        description: 'List boards',
         inputSchema: listBoardsSchema.shape,
       },
       async (params: any) => {
@@ -68,8 +68,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'search_board',
       {
         title: 'Search Board',
-        description:
-          'Search for a board by ID or name, with intelligent fallback to list all boards if direct search fails',
+        description: 'Search board by ID/name',
         inputSchema: searchBoardSchema.shape,
       },
       async ({ board_id, board_name, workspace_id, instance }: any) => {
@@ -199,7 +198,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_columns',
       {
         title: 'Get Board Columns',
-        description: 'Get all columns for a board (válido na API oficial)',
+        description: 'Get board columns',
         inputSchema: getBoardSchema.shape,
       },
       async ({ board_id , instance }: any) => {
@@ -219,7 +218,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_lanes',
       {
         title: 'Get Board Lanes',
-        description: 'Get all lanes/swimlanes for a board (válido na API oficial)',
+        description: 'Get board lanes',
         inputSchema: getBoardSchema.shape,
       },
       async ({ board_id , instance }: any) => {
@@ -239,7 +238,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_lane',
       {
         title: 'Get Lane Details',
-        description: 'Get details of a specific lane/swimlane (válido na API oficial)',
+        description: 'Get lane details',
         inputSchema: getLaneSchema.shape,
       },
       async ({ lane_id , instance }: any) => {
@@ -259,7 +258,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'create_board',
       {
         title: 'Create Board',
-        description: 'Create a new board in a workspace',
+        description: 'Create board',
         inputSchema: createBoardSchema.shape,
       },
       async ({ name, workspace_id, description , instance }: any) => {
@@ -283,7 +282,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'create_lane',
       {
         title: 'Create Lane',
-        description: 'Create a new lane/swimlane in a board (válido na API oficial)',
+        description: 'Create lane',
         inputSchema: createLaneSchema.shape,
       },
       async ({ workflow_id, name, description, color, position , instance }: any) => {
@@ -310,7 +309,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'update_board',
       {
         title: 'Update Board',
-        description: 'Update an existing board',
+        description: 'Update board',
         inputSchema: updateBoardSchema.shape,
       },
       async ({ board_id, name, description , instance }: any) => {
@@ -330,8 +329,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'delete_board',
       {
         title: 'Delete Board',
-        description:
-          'Delete a board. By default, archives the board before deletion to prevent API errors. The API requires resources to be archived before they can be deleted (BS05 error). Set archive_first=false only if the board is already archived.',
+        description: 'Delete board',
         inputSchema: deleteBoardSchema.shape,
       },
       async ({ board_id, archive_first , instance }: any) => {
@@ -351,8 +349,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'get_current_board_structure',
       {
         title: 'Get Current Board Structure',
-        description:
-          'Get the complete current structure of a board including workflows, columns, lanes, and configurations',
+        description: 'Get board structure',
         inputSchema: getCurrentBoardStructureSchema.shape,
       },
       async ({ board_id , instance }: any) => {
@@ -372,7 +369,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'bulk_delete_boards',
       {
         title: 'Bulk Delete Boards',
-        description: 'Delete multiple boards with dependency analysis and consolidated confirmation. Maximum 50 boards per request.',
+        description: 'Delete multiple boards',
         inputSchema: bulkDeleteBoardsSchema.shape,
       },
       async ({ resource_ids, analyze_dependencies = true , instance }: any) => {
@@ -452,7 +449,7 @@ export class BoardToolHandler implements BaseToolHandler {
       'bulk_update_boards',
       {
         title: 'Bulk Update Boards',
-        description: 'Update multiple boards with the same changes. Maximum 50 boards per request.',
+        description: 'Update multiple boards',
         inputSchema: bulkUpdateBoardsSchema as any,
       },
       async (params: any) => {

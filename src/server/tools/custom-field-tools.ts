@@ -29,7 +29,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'list_custom_fields',
       {
         title: 'List Custom Fields',
-        description: 'Retrieve a list of all custom field definitions with optional pagination and filtering',
+        description: 'List custom fields',
         inputSchema: listCustomFieldsSchema.shape,
       },
       async ({ page, page_size, field_type, instance }: any) => {
@@ -49,7 +49,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'list_board_custom_fields',
       {
         title: 'List Board Custom Fields',
-        description: 'Retrieve all custom fields configured for a specific board',
+        description: 'List board custom fields',
         inputSchema: listBoardCustomFieldsSchema.shape,
       },
       async ({ board_id, instance }: any) => {
@@ -69,7 +69,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'get_custom_field',
       {
         title: 'Get Custom Field',
-        description: 'Get details of a specific custom field by ID',
+        description: 'Get custom field details',
         inputSchema: getCustomFieldSchema.shape,
       },
       async ({ custom_field_id, instance }: any) => {
@@ -89,7 +89,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'create_custom_field',
       {
         title: 'Create Custom Field',
-        description: 'Create a new custom field definition for a board',
+        description: 'Create custom field',
         inputSchema: createCustomFieldSchema.shape,
       },
       async (params: any) => {
@@ -110,7 +110,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'update_custom_field',
       {
         title: 'Update Custom Field',
-        description: 'Update an existing custom field definition',
+        description: 'Update custom field',
         inputSchema: updateCustomFieldSchema.shape,
       },
       async ({ custom_field_id, instance, ...params }: any) => {
@@ -130,11 +130,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
       'delete_custom_field',
       {
         title: 'Delete Custom Field',
-        description: `Delete a custom field definition. This operation will:
-1. Analyze dependency impact (affected boards and cards)
-2. Prompt for explicit confirmation showing field name, board count, card count, and data loss warning
-3. Cascade delete to all card values only after user confirmation
-4. Return 403 error for insufficient permissions (requires workspace admin role)`,
+        description: 'Delete custom field',
         inputSchema: deleteCustomFieldSchema.shape,
       },
       async ({ custom_field_id, instance }: any) => {

@@ -298,6 +298,11 @@ export interface UpdateCardParams {
   assignee_user_id?: number;
   deadline?: string;
   position?: number;
+  /**
+   * Linked cards array - IMPORTANT: Must be preserved during updates
+   * BusinessMap API resets this field to empty if omitted in PATCH requests
+   */
+  linked_cards?: LinkedCard[];
 }
 
 // Comment types

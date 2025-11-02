@@ -10,17 +10,6 @@
 
 Model Context Protocol server for BusinessMap (Kanbanize) integration. Provides comprehensive access to BusinessMap's project management features including workspaces, boards, cards, subtasks, parent-child relationships, outcomes, custom fields, and more.
 
-## Features
-
-- Multi-instance configuration support - manage multiple BusinessMap instances simultaneously
-- Complete CRUD operations for workspaces, boards, cards, comments, subtasks, and custom fields
-- Advanced card management with parent-child hierarchies and outcome tracking
-- Comprehensive board operations with column and lane management
-- Workflow intelligence with cycle time analysis
-- Enterprise features including read-only mode, bulk operations, and cascade delete protection
-- Robust error handling with automatic retry logic
-- Docker support for containerized deployments
-
 ## Installation
 
 ### Via NPX (Recommended)
@@ -159,116 +148,59 @@ For other MCP clients, use the appropriate configuration format for your client,
    npm start
    ```
 
-## Multi-Instance Configuration
+## Claude Code Skills
 
-The BusinessMap MCP server supports managing multiple BusinessMap instances simultaneously. This is useful for:
-- Managing production, staging, and development environments
-- Connecting to multiple regional instances
-- Supporting multi-tenant scenarios
-- Isolating different teams or projects
+For Claude Code users, this project includes specialized skills for interactive API guidance and best practices.
 
-### Configuration File
+### Installation
 
-Create a configuration file (`.businessmap-instances.json`) with your instance definitions:
+Copy the skills to your Claude Code skills directory:
 
-```json
-{
-  "version": "1.0",
-  "default_instance": "production",
-  "instances": {
-    "production": {
-      "name": "Production",
-      "description": "Production environment",
-      "api_url": "https://your-prod.kanbanize.com/api/v2",
-      "api_token_env": "BUSINESSMAP_API_TOKEN_PROD",
-      "read_only_mode": false,
-      "tags": ["prod", "primary"]
-    },
-    "staging": {
-      "name": "Staging",
-      "api_url": "https://your-staging.kanbanize.com/api/v2",
-      "api_token_env": "BUSINESSMAP_API_TOKEN_STAGING",
-      "read_only_mode": false,
-      "tags": ["staging", "qa"]
-    }
-  }
-}
-```
-
-### Environment Setup
-
-1. Set the config file path:
 ```bash
-export BUSINESSMAP_CONFIG_FILE="/path/to/.businessmap-instances.json"
+cp -r skills/businessmap-* ~/.claude/skills/
 ```
 
-2. Set instance-specific API tokens:
-```bash
-export BUSINESSMAP_API_TOKEN_PROD="ace_your_prod_token"
-export BUSINESSMAP_API_TOKEN_STAGING="ace_your_staging_token"
-```
+Or for project-specific skills, copy to `.claude/skills/` in your project root.
 
-### Usage in Claude Desktop
+### BusinessMap API Consultant
 
-```json
-{
-  "mcpServers": {
-    "Businessmap": {
-      "command": "npx",
-      "args": ["-y", "@neilinger/businessmap-mcp"],
-      "env": {
-        "BUSINESSMAP_CONFIG_FILE": "/Users/you/.config/businessmap-mcp/instances.json",
-        "BUSINESSMAP_API_TOKEN_PROD": "ace_your_prod_token",
-        "BUSINESSMAP_API_TOKEN_STAGING": "ace_your_staging_token"
-      }
-    }
-  }
-}
-```
+**When to use**: Ask "How do I [work with boards/cards/workspaces]?" or any BusinessMap workflow questions.
 
-### Tool Usage
+The consultant skill provides:
+- Interactive workflow guidance for board setup, card migrations, bulk operations
+- Tool usage demonstrations with actual MCP tool calls
+- Common patterns: board structure, card hierarchies, custom fields
+- Error handling and troubleshooting assistance
 
-All tools accept an optional `instance` parameter:
+**Example**: "How do I migrate 50 cards from board A to board B?"
 
-```javascript
-// Use default instance
-await list_workspaces();
+### BusinessMap Troubleshooting
 
-// Use specific instance
-await list_workspaces({ instance: "staging" });
-await create_card({
-  instance: "production",
-  title: "New Task",
-  column_id: 123
-});
-```
+**When to use**: Encountering API errors (403, 404, 429, BS05) or unexpected behavior.
 
-### Instance Discovery
+The troubleshooting skill provides:
+- Error code diagnosis (HTTP 403/404/429/500, BS05)
+- Authentication and configuration issue resolution
+- Rate limiting strategies and solutions
+- Resource dependency conflict resolution
+- Performance optimization recommendations
 
-Use the instance discovery tools to see available instances:
+**Example**: "I'm getting BS05 error when deleting a board"
 
-```javascript
-// List all configured instances
-await list_instances();
+### BusinessMap Best Practices
 
-// Get details for specific instance
-await get_instance_info({ instance: "production" });
-```
+**When to use**: Optimizing API usage, implementing production deployments, or bulk operations.
 
-### Backward Compatibility
+The best practices skill provides:
+- Performance optimization patterns (bulk operations, pagination strategies)
+- Rate limiting strategies (token bucket, exponential backoff, circuit breaker)
+- Caching strategies (board structure, user data, custom fields)
+- Security best practices (token management, input validation, audit logging)
+- Production deployment checklist
 
-The multi-instance feature is 100% backward compatible. Existing single-instance configurations continue to work without any changes:
+**Example**: "What's the best way to handle rate limiting for 1000+ card updates?"
 
-```json
-{
-  "env": {
-    "BUSINESSMAP_API_TOKEN": "your_token",
-    "BUSINESSMAP_API_URL": "https://your-account.kanbanize.com/api/v2"
-  }
-}
-```
-
-See [MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md) for detailed migration instructions.
+These skills auto-invoke based on your questions and provide comprehensive guidance using the MCP tools.
 
 ## Usage
 
@@ -375,11 +307,6 @@ The BusinessMap MCP server provides the following tools:
 - `get_user` - Get user details
 - `get_current_user` - Get current logged user details
 
-### Instance Discovery
-
-- `list_instances` - List all configured instances with status
-- `get_instance_info` - Get detailed information about specific instance
-
 ### System
 
 - `health_check` - Check API connection
@@ -387,7 +314,7 @@ The BusinessMap MCP server provides the following tools:
 
 ## Tool Summary
 
-The BusinessMap MCP server provides **67 tools** across 10 categories:
+The BusinessMap MCP server provides **65 tools** across 9 categories:
 
 - **Workspace Management**: 5 tools
 - **Board Management**: 11 tools
@@ -396,7 +323,6 @@ The BusinessMap MCP server provides **67 tools** across 10 categories:
 - **Workflow & Cycle Time Analysis**: 2 tools
 - **Bulk Operations**: 6 tools
 - **User Management**: 3 tools
-- **Instance Discovery**: 2 tools
 - **System**: 2 tools
 
 ## Key Features
@@ -630,57 +556,6 @@ The server now performs the following steps during initialization:
 4. **Server startup** - Starts the MCP server only after successful connection
 
 If the connection fails, the server will display detailed error messages and retry automatically.
-
-### Multi-Instance Configuration Issues
-
-#### Issue 1: "Instance not found" error
-
-**Cause**: Typo in instance name or instance not in configuration
-
-**Solution**:
-```javascript
-// List available instances
-await list_instances();
-
-// Verify spelling matches configuration
-```
-
-#### Issue 2: "Token not found" error
-
-**Cause**: Environment variable for token not set
-
-**Solution**:
-```bash
-# Check configuration file for token env var name
-cat ~/.config/businessmap-mcp/instances.json | grep api_token_env
-
-# Ensure env var is set
-echo $BUSINESSMAP_API_TOKEN_PROD
-```
-
-#### Issue 3: Server uses legacy mode unexpectedly
-
-**Cause**: BUSINESSMAP_CONFIG_FILE not set or file not found
-
-**Solution**:
-```bash
-# Verify config file exists
-ls -la $BUSINESSMAP_CONFIG_FILE
-
-# Verify env var is set
-echo $BUSINESSMAP_CONFIG_FILE
-```
-
-#### Issue 4: Cannot switch between instances
-
-**Cause**: All tools using default instance without explicit parameter
-
-**Solution**:
-```javascript
-// Always specify instance parameter when not using default
-await list_workspaces({ instance: "staging" });
-await create_card({ instance: "production", title: "Task", column_id: 123 });
-```
 
 ### Release Process
 
