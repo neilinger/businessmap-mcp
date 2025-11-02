@@ -24,7 +24,7 @@ describe('Backward Compatibility Integration Tests', () => {
 
   // Multi-instance configuration
   const multiInstanceConfig: MultiInstanceConfig = {
-    version: '1.0.0',
+    version: '1.0',
     defaultInstance: 'production',
     instances: [
       {

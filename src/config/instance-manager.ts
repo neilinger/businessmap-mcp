@@ -43,7 +43,7 @@ const InstanceConfigSchema = z.object({
  * Zod schema for runtime validation of MultiInstanceConfig.
  */
 const MultiInstanceConfigSchema = z.object({
-  version: z.string().regex(/^\d+\.\d+\.\d+$/, 'Version must be in semver format (e.g., 1.0.0)'),
+  version: z.string().regex(/^\d+\.\d+$/, 'Version must be in major.minor format (e.g., 1.0)'),
   defaultInstance: z.string().min(1, 'Default instance name cannot be empty'),
   instances: z.array(InstanceConfigSchema).min(1, 'At least one instance must be configured'),
 }).refine(

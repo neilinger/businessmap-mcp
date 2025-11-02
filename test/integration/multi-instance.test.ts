@@ -20,7 +20,7 @@ describe('Multi-Instance Integration Tests', () => {
 
   // Test configuration for multi-instance setup
   const multiInstanceConfig: MultiInstanceConfig = {
-    version: '1.0.0',
+    version: '1.0',
     defaultInstance: 'production',
     instances: [
       {
@@ -133,7 +133,7 @@ describe('Multi-Instance Integration Tests', () => {
 
         configManager = InstanceConfigManager.getInstance();
         const emptyConfig: MultiInstanceConfig = {
-          version: '1.0.0',
+          version: '1.0',
           defaultInstance: 'default',
           instances: [
             {
@@ -423,7 +423,7 @@ describe('Multi-Instance Integration Tests', () => {
         BusinessMapClientFactory.resetInstance();
 
         const newConfig: MultiInstanceConfig = {
-          version: '1.0.0',
+          version: '1.0',
           defaultInstance: 'missing-token',
           instances: [
             {
@@ -504,7 +504,7 @@ describe('Multi-Instance Integration Tests', () => {
         InstanceConfigManager.resetInstance();
 
         const invalidConfig = {
-          version: '1.0.0',
+          version: '1.0',
           defaultInstance: 'prod',
           instances: [
             {

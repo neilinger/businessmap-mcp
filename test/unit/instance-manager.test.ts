@@ -28,7 +28,7 @@ describe('InstanceConfigManager', () => {
 
   // Sample valid configuration
   const validConfig: MultiInstanceConfig = {
-    version: '1.0.0',
+    version: '1.0',
     defaultInstance: 'production',
     instances: [
       {
@@ -502,7 +502,7 @@ describe('InstanceConfigManager', () => {
         const config = manager.getConfig();
 
         expect(config).not.toBeNull();
-        expect(config?.version).toBe('1.0.0');
+        expect(config?.version).toBe('1.0');
         expect(config?.instances).toHaveLength(3);
       });
 

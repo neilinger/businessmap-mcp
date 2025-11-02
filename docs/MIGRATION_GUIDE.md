@@ -70,6 +70,12 @@ export BUSINESSMAP_CONFIG_FILE="$HOME/.config/businessmap-mcp/instances.json"
 export BUSINESSMAP_API_TOKEN_PROD="ace_your_token"
 ```
 
+> **💡 Environment Variable Naming Convention**
+>
+> Token environment variable names must follow the pattern `^[A-Z_][A-Z0-9_]*$` (uppercase letters, digits, underscores only).
+>
+> This security best practice helps distinguish system environment variables from user-defined variables and prevents accidental exposure through case-sensitive shells.
+
 **Remove old variables** (optional, but recommended):
 ```bash
 unset BUSINESSMAP_API_TOKEN

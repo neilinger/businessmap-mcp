@@ -36,7 +36,7 @@ const createTestConfig = (instanceCount: number): MultiInstanceConfig => {
   }));
 
   return {
-    version: '1.0.0',
+    version: '1.0',
     defaultInstance: 'instance0',
     instances,
   };
