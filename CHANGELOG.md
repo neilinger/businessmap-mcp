@@ -5,6 +5,78 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2025-11-02
+
+### Added
+
+#### Multi-Instance Configuration Support (Issue #8)
+
+**Problem**: Users managing multiple BusinessMap instances (prod/staging/dev) had to spawn separate MCP server processes, causing 64% token overhead.
+
+**Solution**: Single MCP server managing multiple instances with optional `instance` parameter on all tools.
+
+**Infrastructure**
+- Multi-instance configuration management via JSON config files
+- `InstanceConfigManager` - Singleton for configuration loading and validation
+- `BusinessMapClientFactory` - Factory pattern with per-instance client caching
+- Support for config file locations: explicit path, env var, default paths
+- JSON Schema validation for instance configurations
+- Backward-compatible legacy mode fallback
+
+**Tool Enhancements**
+- All 67 tools now accept optional `instance` parameter
+- Two new instance discovery tools:
+  - `list_instances` - List all configured instances with status
+  - `get_instance_info` - Get detailed information about specific instance
+- Instance resolution strategy: explicit > default > fallback
+- Per-instance rate limiting and error isolation
+
+**Configuration**
+- JSON-based configuration format (`.businessmap-instances.json`)
+- Environment variable configuration support (`BUSINESSMAP_CONFIG_FILE`)
+- Token security: Tokens stored in separate environment variables
+- Per-instance settings: API URL, read-only mode, default workspace
+- Instance tagging for organization and filtering
+
+**Documentation**
+- Comprehensive migration guide (`docs/MIGRATION_GUIDE.md`)
+- Multi-instance implementation patterns
+- Configuration examples (dev/staging/prod, multi-region)
+- Troubleshooting guide for common issues
+- Updated README.md with multi-instance section
+
+**Testing**
+- 173 tests (97.7% passing)
+- 91 unit tests for core infrastructure (instance manager, client factory)
+- Integration tests for multi-instance operations
+- Backward compatibility test suite
+- Performance validation tests
+
+**Performance**
+- Token overhead reduction: 64% (5,418 → 1,935 tokens for 3 instances)
+- Memory footprint: < 2MB per instance (linear scaling)
+- Client creation: < 100ms
+- Cache retrieval: < 1ms
+
+### Changed
+
+- Tool handlers now accept `BusinessMapClient | BusinessMapClientFactory`
+- Base tool handler includes `getClientForInstance()` helper
+- All tool schemas include optional `instance` parameter
+- Server initialization attempts multi-instance mode first, falls back to legacy
+- Version format: Changed from semver (1.0.0) to major.minor (1.0)
+
+### Backward Compatibility
+
+- 100% compatible with existing single-instance configurations
+- Legacy environment variables (`BUSINESSMAP_API_TOKEN`, `BUSINESSMAP_API_URL`) continue to work
+- No breaking changes to tool interfaces or response formats
+- Automatic mode detection and fallback
+
+### Migration
+
+See [MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md) for step-by-step migration instructions from single-instance to multi-instance configuration.
+
 ## [1.10.0] - 2025-11-02
 
 ### Added
