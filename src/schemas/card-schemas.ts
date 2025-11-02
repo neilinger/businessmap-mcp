@@ -562,9 +562,6 @@ export const moveCardSchema = z.object({
   ...instanceParameterSchema,
 });
 
-// Schema for card updates (legacy - use updateCardFullSchema)
-export const updateCardSchema = updateCardFullSchema;
-
 // Schema for card updates (supports full create_card parameters)
 // CRITICAL: BusinessMap API supports most create_card params in PATCH requests
 export const updateCardFullSchema = z.object({
@@ -622,6 +619,9 @@ export const updateCardFullSchema = z.object({
 
   ...instanceParameterSchema,
 });
+
+// Legacy alias for updateCardFullSchema
+export const updateCardSchema = updateCardFullSchema;
 
 // Schemas for parent cards
 export const getCardParentsSchema = z.object({
