@@ -1,20 +1,21 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
+import { BusinessMapClientFactory } from '../../client/client-factory.js';
 import {
   getCurrentUserSchema,
   getUserSchema,
   listUsersSchema,
 } from '../../schemas/user-schemas.js';
-import { BaseToolHandler, createErrorResponse, createSuccessResponse } from './base-tool.js';
+import { BaseToolHandler, createErrorResponse, createSuccessResponse, getClientForInstance } from './base-tool.js';
 
 export class UserToolHandler implements BaseToolHandler {
-  registerTools(server: McpServer, client: BusinessMapClient, readOnlyMode: boolean): void {
-    this.registerListUsers(server, client);
-    this.registerGetUser(server, client);
-    this.registerGetCurrentUser(server, client);
+  registerTools(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory, readOnlyMode: boolean): void {
+    this.registerListUsers(server, clientOrFactory);
+    this.registerGetUser(server, clientOrFactory);
+    this.registerGetCurrentUser(server, clientOrFactory);
   }
 
-  private registerListUsers(server: McpServer, client: BusinessMapClient): void {
+  private registerListUsers(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'list_users',
       {
@@ -22,8 +23,9 @@ export class UserToolHandler implements BaseToolHandler {
         description: 'List users',
         inputSchema: listUsersSchema.shape,
       },
-      async () => {
+      async ({ instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const users = await client.getUsers();
           return createSuccessResponse(users);
         } catch (error) {
@@ -33,7 +35,7 @@ export class UserToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetUser(server: McpServer, client: BusinessMapClient): void {
+  private registerGetUser(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'get_user',
       {
@@ -41,8 +43,9 @@ export class UserToolHandler implements BaseToolHandler {
         description: 'Get user details',
         inputSchema: getUserSchema.shape,
       },
-      async ({ user_id }) => {
+      async ({ user_id, instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const user = await client.getUser(user_id);
           return createSuccessResponse(user);
         } catch (error) {
@@ -52,7 +55,7 @@ export class UserToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCurrentUser(server: McpServer, client: BusinessMapClient): void {
+  private registerGetCurrentUser(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
     server.registerTool(
       'get_current_user',
       {
@@ -60,8 +63,9 @@ export class UserToolHandler implements BaseToolHandler {
         description: 'Get current user',
         inputSchema: getCurrentUserSchema.shape,
       },
-      async () => {
+      async ({ instance }: any) => {
         try {
+          const client = await getClientForInstance(clientOrFactory, instance);
           const currentUser = await client.getCurrentUser();
           return createSuccessResponse(currentUser);
         } catch (error) {

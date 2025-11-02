@@ -42,19 +42,17 @@ export class BoardToolHandler implements BaseToolHandler {
     }
   }
 
-  private registerListBoards(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerListBoards(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'list_boards',
       {
         title: 'List Boards',
-        description: 'List boards',
+        description: 'Get a list of boards with optional filters',
         inputSchema: listBoardsSchema.shape,
       },
-      async (params: any) => {
+      async (params) => {
         try {
-          const { instance, ...restParams } = params;
-          const client = await getClientForInstance(clientOrFactory, instance);
-          const boards = await client.getBoards(restParams);
+          const boards = await client.getBoards(params);
           return createSuccessResponse(boards);
         } catch (error) {
           return createErrorResponse(error, 'fetching boards');
@@ -63,17 +61,17 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerSearchBoard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerSearchBoard(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'search_board',
       {
         title: 'Search Board',
-        description: 'Search board by ID/name',
+        description:
+          'Search for a board by ID or name, with intelligent fallback to list all boards if direct search fails',
         inputSchema: searchBoardSchema.shape,
       },
-      async ({ board_id, board_name, workspace_id, instance }: any) => {
+      async ({ board_id, board_name, workspace_id }) => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           if (board_id) {
             return await this.searchBoardById(client, board_id, workspace_id);
           }
@@ -193,17 +191,16 @@ export class BoardToolHandler implements BaseToolHandler {
     }));
   }
 
-  private registerGetColumns(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetColumns(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_columns',
       {
         title: 'Get Board Columns',
-        description: 'Get board columns',
+        description: 'Get all columns for a board (válido na API oficial)',
         inputSchema: getBoardSchema.shape,
       },
-      async ({ board_id , instance }: any) => {
+      async ({ board_id }) => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const columns = await client.getColumns(board_id);
           return createSuccessResponse(columns);
         } catch (error) {
@@ -213,17 +210,16 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetLanes(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetLanes(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_lanes',
       {
         title: 'Get Board Lanes',
-        description: 'Get board lanes',
+        description: 'Get all lanes/swimlanes for a board (válido na API oficial)',
         inputSchema: getBoardSchema.shape,
       },
-      async ({ board_id , instance }: any) => {
+      async ({ board_id }) => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const lanes = await client.getLanes(board_id);
           return createSuccessResponse(lanes);
         } catch (error) {
@@ -233,17 +229,16 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetLane(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetLane(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_lane',
       {
         title: 'Get Lane Details',
-        description: 'Get lane details',
+        description: 'Get details of a specific lane/swimlane (válido na API oficial)',
         inputSchema: getLaneSchema.shape,
       },
-      async ({ lane_id , instance }: any) => {
+      async ({ lane_id }) => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const lane = await client.getLane(lane_id);
           return createSuccessResponse(lane);
         } catch (error) {
@@ -253,17 +248,16 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerCreateBoard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerCreateBoard(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'create_board',
       {
         title: 'Create Board',
-        description: 'Create board',
+        description: 'Create a new board in a workspace',
         inputSchema: createBoardSchema.shape,
       },
-      async ({ name, workspace_id, description , instance }: any) => {
+      async ({ name, workspace_id, description }) => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const board = await client.createBoard({
             name,
             workspace_id,
@@ -277,17 +271,16 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerCreateLane(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerCreateLane(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'create_lane',
       {
         title: 'Create Lane',
-        description: 'Create lane',
+        description: 'Create a new lane/swimlane in a board (válido na API oficial)',
         inputSchema: createLaneSchema.shape,
       },
-      async ({ workflow_id, name, description, color, position , instance }: any) => {
+      async ({ workflow_id, name, description, color, position }) => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const lane = await client.createLane({
             workflow_id,
             name,
@@ -304,17 +297,16 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
 
-  private registerUpdateBoard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerUpdateBoard(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'update_board',
       {
         title: 'Update Board',
-        description: 'Update board',
+        description: 'Update an existing board',
         inputSchema: updateBoardSchema.shape,
       },
-      async ({ board_id, name, description , instance }: any) => {
+      async ({ board_id, name, description }) => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const board = await client.updateBoard(board_id, { name, description });
           return createSuccessResponse(board, 'Board updated successfully:');
         } catch (error) {
@@ -324,17 +316,17 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerDeleteBoard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerDeleteBoard(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'delete_board',
       {
         title: 'Delete Board',
-        description: 'Delete board',
+        description:
+          'Delete a board. By default, archives the board before deletion to prevent API errors. The API requires resources to be archived before they can be deleted (BS05 error). Set archive_first=false only if the board is already archived.',
         inputSchema: deleteBoardSchema.shape,
       },
-      async ({ board_id, archive_first , instance }: any) => {
+      async ({ board_id, archive_first }) => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           await client.deleteBoard(board_id, { archive_first });
           return createSuccessResponse({ board_id }, 'Board deleted successfully. ID:');
         } catch (error) {
@@ -344,17 +336,17 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCurrentBoardStructure(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCurrentBoardStructure(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_current_board_structure',
       {
         title: 'Get Current Board Structure',
-        description: 'Get board structure',
+        description:
+          'Get the complete current structure of a board including workflows, columns, lanes, and configurations',
         inputSchema: getCurrentBoardStructureSchema.shape,
       },
-      async ({ board_id , instance }: any) => {
+      async ({ board_id }) => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const structure = await client.getCurrentBoardStructure(board_id);
           return createSuccessResponse(structure, 'Board structure retrieved successfully:');
         } catch (error) {
@@ -364,17 +356,16 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerBulkDeleteBoards(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerBulkDeleteBoards(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'bulk_delete_boards',
       {
         title: 'Bulk Delete Boards',
-        description: 'Delete multiple boards',
+        description: 'Delete multiple boards with dependency analysis and consolidated confirmation. Maximum 50 boards per request.',
         inputSchema: bulkDeleteBoardsSchema.shape,
       },
-      async ({ resource_ids, analyze_dependencies = true , instance }: any) => {
+      async ({ resource_ids, analyze_dependencies = true }) => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const analyzer = new DependencyAnalyzer(client);
           const confirmationBuilder = new ConfirmationBuilder();
 
@@ -444,18 +435,17 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerBulkUpdateBoards(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerBulkUpdateBoards(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'bulk_update_boards',
       {
         title: 'Bulk Update Boards',
-        description: 'Update multiple boards',
+        description: 'Update multiple boards with the same changes. Maximum 50 boards per request.',
         inputSchema: bulkUpdateBoardsSchema as any,
       },
       async (params: any) => {
-        const { resource_ids, name, description, is_archived, instance } = params;
+        const { resource_ids, name, description, is_archived } = params;
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const updates: any = {};
           if (name !== undefined) updates.name = name;
           if (description !== undefined) updates.description = description;
@@ -463,8 +453,8 @@ export class BoardToolHandler implements BaseToolHandler {
 
           const results = await client.bulkUpdateBoards(resource_ids, updates);
 
-          const successes = results.filter((r: any) => r.success);
-          const failures = results.filter((r: any) => !r.success);
+          const successes = results.filter((r) => r.success);
+          const failures = results.filter((r) => !r.success);
 
           if (failures.length === 0) {
             return createSuccessResponse(
@@ -475,8 +465,8 @@ export class BoardToolHandler implements BaseToolHandler {
             const confirmationBuilder = new ConfirmationBuilder();
             const message = confirmationBuilder.formatPartialSuccess(
               'board',
-              successes.map((s: any) => ({ id: s.id, name: s.board?.name || `Board ${s.id}` })),
-              failures.map((f: any) => ({ id: f.id, name: `Board ${f.id}`, error: f.error || 'Unknown error' }))
+              successes.map((s) => ({ id: s.id, name: s.board?.name || `Board ${s.id}` })),
+              failures.map((f) => ({ id: f.id, name: `Board ${f.id}`, error: f.error || 'Unknown error' }))
             );
             return createSuccessResponse(
               { successful: successes.length, failed: failures.length, results },

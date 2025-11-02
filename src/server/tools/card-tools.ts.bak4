@@ -65,12 +65,12 @@ export class CardToolHandler implements BaseToolHandler {
     }
   }
 
-  private registerListCards(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerListCards(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'list_cards',
       {
         title: 'List Cards',
-        description: 'List cards',
+        description: 'Get a list of cards from a board with optional filters',
         inputSchema: listCardsSchema.shape,
       },
       async (params: any) => {
@@ -87,12 +87,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCard(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card',
       {
         title: 'Get Card',
-        description: 'Get card details',
+        description: 'Get details of a specific card',
         inputSchema: getCardSchema.shape,
       },
       async ({ card_id , instance }: any) => {
@@ -107,12 +107,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardSize(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardSize(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_size',
       {
         title: 'Get Card Size',
-        description: 'Get card size',
+        description: 'Get the size/points of a specific card',
         inputSchema: getCardSchema.shape,
       },
       async ({ card_id , instance }: any) => {
@@ -135,12 +135,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerCreateCard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerCreateCard(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'create_card',
       {
         title: 'Create Card',
-        description: 'Create card',
+        description: 'Create a new card in a board',
         inputSchema: createCardSchema.shape,
       },
       async (params: any) => {
@@ -156,12 +156,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerMoveCard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerMoveCard(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'move_card',
       {
         title: 'Move Card',
-        description: 'Move card',
+        description: 'Move a card to a different column or lane',
         inputSchema: moveCardSchema.shape,
       },
       async ({ card_id, column_id, lane_id, position , instance }: any) => {
@@ -176,12 +176,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerUpdateCard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerUpdateCard(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'update_card',
       {
         title: 'Update Card',
-        description: 'Update card',
+        description: "Update a card's properties",
         inputSchema: updateCardSchema.shape,
       },
       async (params: any) => {
@@ -198,12 +198,13 @@ export class CardToolHandler implements BaseToolHandler {
   }
 
 
-  private registerDeleteCard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerDeleteCard(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'delete_card',
       {
         title: 'Delete Card',
-        description: 'Delete card',
+        description:
+          'Delete a card. By default, archives the card before deletion to prevent API errors. The API requires resources to be archived before they can be deleted (BS05 error). Set archive_first=false only if the card is already archived.',
         inputSchema: deleteCardSchema.shape,
       },
       async ({ card_id, archive_first , instance }: any) => {
@@ -218,12 +219,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerSetCardSize(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerSetCardSize(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'set_card_size',
       {
         title: 'Set Card Size',
-        description: 'Set card size',
+        description: 'Set the size/points of a specific card',
         inputSchema: cardSizeSchema.shape,
       },
       async ({ card_id, size , instance }: any) => {
@@ -245,12 +246,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardComments(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardComments(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_comments',
       {
         title: 'Get Card Comments',
-        description: 'Get card comments',
+        description: 'Get all comments for a specific card',
         inputSchema: getCardSchema.shape,
       },
       async ({ card_id , instance }: any) => {
@@ -268,12 +269,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardComment(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardComment(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_comment',
       {
         title: 'Get Card Comment',
-        description: 'Get comment details',
+        description: 'Get details of a specific comment from a card',
         inputSchema: getCardCommentSchema.shape,
       },
       async ({ card_id, comment_id , instance }: any) => {
@@ -288,12 +289,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardCustomFields(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardCustomFields(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_custom_fields',
       {
         title: 'Get Card Custom Fields',
-        description: 'Get card custom fields',
+        description: 'Get all custom fields for a specific card',
         inputSchema: getCardSchema.shape,
       },
       async ({ card_id , instance }: any) => {
@@ -311,17 +312,16 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardTypes(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardTypes(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_types',
       {
         title: 'Get Card Types',
-        description: 'Get card types',
+        description: 'Get all available card types',
         inputSchema: getCardTypesSchema.shape,
       },
-      async ({ instance }: any) => {
+      async () => {
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const cardTypes = await client.getCardTypes();
           return createSuccessResponse({
             cardTypes,
@@ -334,12 +334,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardHistory(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardHistory(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_history',
       {
         title: 'Get Card History',
-        description: 'Get card history',
+        description: 'Get the history of a specific card outcome',
         inputSchema: getCardHistorySchema.shape,
       },
       async ({ card_id, outcome_id , instance }: any) => {
@@ -357,12 +357,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardOutcomes(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardOutcomes(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_outcomes',
       {
         title: 'Get Card Outcomes',
-        description: 'Get card outcomes',
+        description: 'Get all outcomes for a specific card',
         inputSchema: getCardOutcomesSchema.shape,
       },
       async ({ card_id , instance }: any) => {
@@ -380,12 +380,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardLinkedCards(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardLinkedCards(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_linked_cards',
       {
         title: 'Get Card Linked Cards',
-        description: 'Get card linked cards',
+        description: 'Get all linked cards for a specific card',
         inputSchema: getCardLinkedCardsSchema.shape,
       },
       async ({ card_id , instance }: any) => {
@@ -403,12 +403,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardSubtasks(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardSubtasks(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_subtasks',
       {
         title: 'Get Card Subtasks',
-        description: 'Get card subtasks',
+        description: 'Get all subtasks for a specific card',
         inputSchema: getCardSubtasksSchema.shape,
       },
       async ({ card_id , instance }: any) => {
@@ -426,12 +426,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardSubtask(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardSubtask(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_subtask',
       {
         title: 'Get Card Subtask',
-        description: 'Get subtask details',
+        description: 'Get details of a specific subtask from a card',
         inputSchema: getCardSubtaskSchema.shape,
       },
       async ({ card_id, subtask_id , instance }: any) => {
@@ -446,12 +446,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerCreateCardSubtask(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerCreateCardSubtask(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'create_card_subtask',
       {
         title: 'Create Card Subtask',
-        description: 'Create subtask',
+        description: 'Create a new subtask for a card',
         inputSchema: createCardSubtaskSchema.shape,
       },
       async (params: any) => {
@@ -468,12 +468,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardParents(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardParents(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_parents',
       {
         title: 'Get Card Parents',
-        description: 'Get card parents',
+        description: 'Get a list of parent cards for a specific card',
         inputSchema: getCardParentsSchema.shape,
       },
       async ({ card_id , instance }: any) => {
@@ -491,12 +491,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardParent(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardParent(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_parent',
       {
         title: 'Get Card Parent',
-        description: 'Get card parent',
+        description: 'Check if a card is a parent of a given card',
         inputSchema: getCardParentSchema.shape,
       },
       async ({ card_id, parent_card_id , instance }: any) => {
@@ -511,12 +511,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerAddCardParent(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerAddCardParent(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'add_card_parent',
       {
         title: 'Add Card Parent',
-        description: 'Add card parent',
+        description: 'Make a card a parent of a given card',
         inputSchema: addCardParentSchema.shape,
       },
       async ({ card_id, parent_card_id , instance }: any) => {
@@ -531,12 +531,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerRemoveCardParent(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerRemoveCardParent(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'remove_card_parent',
       {
         title: 'Remove Card Parent',
-        description: 'Remove card parent',
+        description: 'Remove the link between a child card and a parent card',
         inputSchema: removeCardParentSchema.shape,
       },
       async ({ card_id, parent_card_id , instance }: any) => {
@@ -554,12 +554,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardParentGraph(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardParentGraph(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_parent_graph',
       {
         title: 'Get Card Parent Graph',
-        description: 'Get card parent graph',
+        description: 'Get a list of parent cards including their parent cards too',
         inputSchema: getCardParentGraphSchema.shape,
       },
       async ({ card_id , instance }: any) => {
@@ -577,12 +577,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCardChildren(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCardChildren(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'get_card_children',
       {
         title: 'Get Card Children',
-        description: 'Get card children',
+        description: 'Get a list of child cards of a specified parent card',
         inputSchema: getCardChildrenSchema.shape,
       },
       async ({ card_id , instance }: any) => {
@@ -600,12 +600,12 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerBulkDeleteCards(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerBulkDeleteCards(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'bulk_delete_cards',
       {
         title: 'Bulk Delete Cards',
-        description: 'Delete multiple cards',
+        description: 'Delete multiple cards with dependency analysis and consolidated confirmation. Maximum 50 cards per request.',
         inputSchema: bulkDeleteCardsSchema.shape,
       },
       async ({ resource_ids, analyze_dependencies = true , instance }: any) => {
@@ -680,18 +680,17 @@ export class CardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerBulkUpdateCards(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerBulkUpdateCards(server: McpServer, client: BusinessMapClient): void {
     server.registerTool(
       'bulk_update_cards',
       {
         title: 'Bulk Update Cards',
-        description: 'Update multiple cards',
+        description: 'Update multiple cards with the same changes. Maximum 50 cards per request.',
         inputSchema: bulkUpdateCardsSchema as any,
       },
       async (params: any) => {
-        const { resource_ids, title, description, column_id, lane_id, priority, owner_user_id, instance } = params;
+        const { resource_ids, title, description, column_id, lane_id, priority, owner_user_id } = params;
         try {
-          const client = await getClientForInstance(clientOrFactory, instance);
           const updates: any = {};
           if (title !== undefined) updates.title = title;
           if (description !== undefined) updates.description = description;
@@ -702,8 +701,8 @@ export class CardToolHandler implements BaseToolHandler {
 
           const results = await client.bulkUpdateCards(resource_ids, updates);
 
-          const successes = results.filter((r: any) => r.success);
-          const failures = results.filter((r: any) => !r.success);
+          const successes = results.filter((r) => r.success);
+          const failures = results.filter((r) => !r.success);
 
           if (failures.length === 0) {
             return createSuccessResponse(
@@ -714,8 +713,8 @@ export class CardToolHandler implements BaseToolHandler {
             const confirmationBuilder = new ConfirmationBuilder();
             const message = confirmationBuilder.formatPartialSuccess(
               'card',
-              successes.map((s: any) => ({ id: s.id, name: s.card?.title || `Card ${s.id}` })),
-              failures.map((f: any) => ({ id: f.id, name: `Card ${f.id}`, error: f.error || 'Unknown error' }))
+              successes.map((s) => ({ id: s.id, name: s.card?.title || `Card ${s.id}` })),
+              failures.map((f) => ({ id: f.id, name: `Card ${f.id}`, error: f.error || 'Unknown error' }))
             );
             return createSuccessResponse(
               { successful: successes.length, failed: failures.length, results },

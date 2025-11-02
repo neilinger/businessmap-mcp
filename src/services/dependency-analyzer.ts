@@ -1,4 +1,6 @@
 import { BusinessMapClient } from '../client/businessmap-client.js';
+import { Board } from '../types/board.js';
+import { ChildCardItem } from '../types/card.js';
 
 /**
  * Dependency analysis results for a single resource
@@ -98,10 +100,10 @@ export class DependencyAnalyzer {
       if (hasDependencies) {
         // Get card counts for each board
         const boardDetails = await Promise.all(
-          boards.map(async (board: any) => {
-            const cards = await this.client.getCards(board.board_id, { per_page: 1 });
+          boards.map(async (board: Board) => {
+            const cards = await this.client.getCards(board.board_id!, { per_page: 1 });
             return {
-              id: board.board_id,
+              id: board.board_id!,
               name: board.name,
               additionalInfo: `${cards.length || 0} cards`,
             };
@@ -242,9 +244,9 @@ export class DependencyAnalyzer {
       }
 
       if (children.length > 0) {
-        const childDetails = children.map((child: any) => ({
+        const childDetails = children.map((child: ChildCardItem) => ({
           id: child.card_id,
-          name: child.title || child.name || `Card ${child.card_id}`,
+          name: `Card ${child.card_id}`,
           additionalInfo: 'remains as independent card',
         }));
 

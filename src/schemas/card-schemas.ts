@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { instanceParameterSchema } from './common-schemas.js';
 import {
   fileAttachmentSchema,
   fileAttachmentWithIdSchema,
@@ -261,57 +262,69 @@ export const listCardsSchema = z.object({
     .array(z.number())
     .optional()
     .describe('Optional array of tag IDs to filter cards (legacy parameter)'),
+  ...instanceParameterSchema,
 });
 
 // Schema básico para get card
 export const getCardSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
+  ...instanceParameterSchema,
 });
 
 // Schema para tamanho do card
 export const cardSizeSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
   size: z.number().optional().describe('The new size/points for the card'),
+  ...instanceParameterSchema,
 });
 
 // Schema para comentários do card
 export const cardCommentsSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
+  ...instanceParameterSchema,
 });
 
 // Schema para obter um comentário específico
 export const getCardCommentSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
   comment_id: z.number().describe('The ID of the comment'),
+  ...instanceParameterSchema,
 });
 
 // Schema para get card types (sem parâmetros)
-export const getCardTypesSchema = z.object({});
+export const getCardTypesSchema = z.object({
+  ...instanceParameterSchema,
+});
 
 // Schema para buscar histórico do card
 export const getCardHistorySchema = z.object({
   card_id: z.number().describe('The ID of the card'),
   outcome_id: z.number().describe('The ID of the outcome'),
+  ...instanceParameterSchema,
 });
 
 // Schema para buscar outcomes do card
 export const getCardOutcomesSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
+  ...instanceParameterSchema,
 });
 
 // Schema para buscar linked cards do card
 export const getCardLinkedCardsSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
+  ...instanceParameterSchema,
 });
 
 // Schemas para subtasks
 export const getCardSubtasksSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
+  ...instanceParameterSchema,
 });
 
 export const getCardSubtaskSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
   subtask_id: z.number().describe('The ID of the subtask'),
+  ...instanceParameterSchema,
 });
 
 export const createCardSubtaskSchema = z.object({
@@ -340,21 +353,25 @@ export const blockReasonSchema = z.object({
   users: z.array(z.number()),
   date: z.string(),
   cards: z.array(z.number()),
+  ...instanceParameterSchema,
 });
 
 export const stickerSchema = z.object({
   sticker_id: z.number(),
   if_not_present: z.number(),
+  ...instanceParameterSchema,
 });
 
 export const customFieldValueSchema = z.object({
   value_id: z.number(),
   position: z.number(),
+  ...instanceParameterSchema,
 });
 
 export const customFieldCardSchema = z.object({
   selected_card_id: z.number(),
   position: z.number(),
+  ...instanceParameterSchema,
 });
 
 export const customFieldSchema = z.object({
@@ -372,6 +389,7 @@ export const customFieldSchema = z.object({
   comment: z.string().optional(),
   selected_cards_to_add_or_update: z.array(customFieldCardSchema).optional(),
   selected_card_ids_to_remove: z.array(z.number()).optional(),
+  ...instanceParameterSchema,
 });
 
 export const subtaskSchema = z.object({
@@ -381,12 +399,14 @@ export const subtaskSchema = z.object({
   deadline: z.string(),
   position: z.number(),
   attachments_to_add: z.array(fileAttachmentSchema),
+  ...instanceParameterSchema,
 });
 
 export const annotationSchema = z.object({
   comment_id: z.string(),
   thread_id: z.string(),
   content: z.string(),
+  ...instanceParameterSchema,
 });
 
 export const cardLinkSchema = z.object({
@@ -394,6 +414,7 @@ export const cardLinkSchema = z.object({
   link_type: z.string(),
   linked_card_position: z.number(),
   card_position: z.number(),
+  ...instanceParameterSchema,
 });
 
 export const newCardLinkSchema = z.object({
@@ -401,21 +422,25 @@ export const newCardLinkSchema = z.object({
   link_type: z.string(),
   linked_card_position: z.number(),
   card_position: z.number(),
+  ...instanceParameterSchema,
 });
 
 export const cardPropertyToCopySchema = z.object({
   properties: z.array(z.string()),
   card_id: z.number(),
+  ...instanceParameterSchema,
 });
 
 export const customFieldToCopySchema = z.object({
   field_ids: z.array(z.number()),
   card_id: z.number(),
+  ...instanceParameterSchema,
 });
 
 export const columnChecklistItemSchema = z.object({
   item_id: z.number(),
   comment: z.string(),
+  ...instanceParameterSchema,
 });
 
 // Schema principal para criação de cards
@@ -525,6 +550,7 @@ export const createCardSchema = z.object({
     .array(newCardLinkSchema)
     .optional()
     .describe('Optional links to new cards to add'),
+  ...instanceParameterSchema,
 });
 
 // Schema para movimentação de cards
@@ -533,6 +559,7 @@ export const moveCardSchema = z.object({
   column_id: z.number().describe('The target column ID'),
   lane_id: z.number().optional().describe('Optional target lane ID'),
   position: z.number().optional().describe('Optional position in the column'),
+  ...instanceParameterSchema,
 });
 
 // Schema para atualização de cards
@@ -549,34 +576,41 @@ export const updateCardSchema = z.object({
   size: z.number().optional().describe('New card size/points'),
   priority: z.string().optional().describe('New priority level'),
   deadline: z.string().optional().describe('New deadline (ISO date string)'),
+  ...instanceParameterSchema,
 });
 
 // Schemas para parent cards
 export const getCardParentsSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
+  ...instanceParameterSchema,
 });
 
 export const getCardParentSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
   parent_card_id: z.number().describe('The ID of the parent card'),
+  ...instanceParameterSchema,
 });
 
 export const addCardParentSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
   parent_card_id: z.number().describe('The ID of the parent card'),
+  ...instanceParameterSchema,
 });
 
 export const removeCardParentSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
   parent_card_id: z.number().describe('The ID of the parent card'),
+  ...instanceParameterSchema,
 });
 
 export const getCardParentGraphSchema = z.object({
   card_id: z.number().describe('The ID of the card'),
+  ...instanceParameterSchema,
 });
 
 export const getCardChildrenSchema = z.object({
   card_id: z.number().describe('The ID of the parent card'),
+  ...instanceParameterSchema,
 });
 
 // Schema para deleção de cards
@@ -589,4 +623,5 @@ export const deleteCardSchema = z.object({
     .describe(
       'Archive the card before deletion to avoid API errors. Default: true. Set to false only if card is already archived.'
     ),
+  ...instanceParameterSchema,
 });
