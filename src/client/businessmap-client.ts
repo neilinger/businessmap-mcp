@@ -190,15 +190,19 @@ export class BusinessMapClient {
     return this.workspaceClient.archiveWorkspace(workspaceId);
   }
 
-  async bulkArchiveWorkspaces(workspaceIds: number[]) {
-    return this.workspaceClient.bulkArchiveWorkspaces(workspaceIds);
+  async bulkArchiveWorkspaces(
+    workspaceIds: number[],
+    options?: { maxConcurrent?: number }
+  ) {
+    return this.workspaceClient.bulkArchiveWorkspaces(workspaceIds, options);
   }
 
   async bulkUpdateWorkspaces(
     workspaceIds: number[],
-    updates: Parameters<WorkspaceClient['bulkUpdateWorkspaces']>[1]
+    updates: Parameters<WorkspaceClient['bulkUpdateWorkspaces']>[1],
+    options?: { maxConcurrent?: number }
   ) {
-    return this.workspaceClient.bulkUpdateWorkspaces(workspaceIds, updates);
+    return this.workspaceClient.bulkUpdateWorkspaces(workspaceIds, updates, options);
   }
 
   // Board Management - Delegated to BoardClient
@@ -249,15 +253,16 @@ export class BusinessMapClient {
     return this.boardClient.getCurrentBoardStructure(boardId);
   }
 
-  async bulkDeleteBoards(boardIds: number[]) {
-    return this.boardClient.bulkDeleteBoards(boardIds);
+  async bulkDeleteBoards(boardIds: number[], options?: { maxConcurrent?: number }) {
+    return this.boardClient.bulkDeleteBoards(boardIds, options);
   }
 
   async bulkUpdateBoards(
     boardIds: number[],
-    updates: Parameters<BoardClient['bulkUpdateBoards']>[1]
+    updates: Parameters<BoardClient['bulkUpdateBoards']>[1],
+    options?: { maxConcurrent?: number }
   ) {
-    return this.boardClient.bulkUpdateBoards(boardIds, updates);
+    return this.boardClient.bulkUpdateBoards(boardIds, updates, options);
   }
 
   // Card Management - Delegated to CardClient
@@ -368,15 +373,16 @@ export class BusinessMapClient {
     return this.cardClient.getCardChildren(cardId);
   }
 
-  async bulkDeleteCards(cardIds: number[]) {
-    return this.cardClient.bulkDeleteCards(cardIds);
+  async bulkDeleteCards(cardIds: number[], options?: { maxConcurrent?: number }) {
+    return this.cardClient.bulkDeleteCards(cardIds, options);
   }
 
   async bulkUpdateCards(
     cardIds: number[],
-    updates: Parameters<CardClient['bulkUpdateCards']>[1]
+    updates: Parameters<CardClient['bulkUpdateCards']>[1],
+    options?: { maxConcurrent?: number }
   ) {
-    return this.cardClient.bulkUpdateCards(cardIds, updates);
+    return this.cardClient.bulkUpdateCards(cardIds, updates, options);
   }
 
   // User Management - Delegated to UserClient
