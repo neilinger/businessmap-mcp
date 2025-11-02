@@ -34,11 +34,19 @@ export class CacheManager {
       // LRU will automatically evict least recently used entries when max is reached
       disposeAfter: (value, key) => {
         // Clean up prefix index when entries are evicted
-        const parts = key.split(':');
-        const prefix = parts[0] ?? key; // split always returns at least ['']
-        this.keysByPrefix.get(prefix)?.delete(key);
-        // Clean up invalidation generation to prevent memory leak
-        this.invalidationGeneration.delete(key);
+        // Use setImmediate to avoid blocking event loop on eviction
+        setImmediate(() => {
+          try {
+            const parts = key.split(':');
+            const prefix = parts[0] ?? key; // split always returns at least ['']
+            this.keysByPrefix.get(prefix)?.delete(key);
+            // Clean up invalidation generation to prevent memory leak
+            this.invalidationGeneration.delete(key);
+          } catch (err) {
+            // Log but don't crash - cache eviction should be resilient
+            console.error('Cache cleanup error:', err);
+          }
+        });
       },
     });
     // Use unbounded Map for pending requests - they self-clean via finally block
@@ -105,7 +113,14 @@ export class CacheManager {
       if (!this.keysByPrefix.has(prefix)) {
         this.keysByPrefix.set(prefix, new Set());
       }
-      this.keysByPrefix.get(prefix)!.add(key);
+      // Defensive programming - use optional chaining instead of non-null assertion
+      const prefixSet = this.keysByPrefix.get(prefix);
+      if (prefixSet) {
+        prefixSet.add(key);
+      } else {
+        // Fallback: should never happen due to check above, but be defensive
+        this.keysByPrefix.set(prefix, new Set([key]));
+      }
 
       return data;
     } catch (error) {
