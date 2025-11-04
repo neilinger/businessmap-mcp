@@ -303,6 +303,65 @@ export interface UpdateCardParams {
    * BusinessMap API resets this field to empty if omitted in PATCH requests
    */
   linked_cards?: LinkedCard[];
+
+  // Arrays de relacionamentos
+  co_owner_ids_to_add?: number[];
+  co_owner_ids_to_remove?: number[];
+  watcher_ids_to_add?: number[];
+  watcher_ids_to_remove?: number[];
+  tag_ids_to_add?: number[];
+  tag_ids_to_remove?: number[];
+  milestone_ids_to_add?: number[];
+  milestone_ids_to_remove?: number[];
+
+  // Subtasks e links
+  subtasks_to_add?: Array<{
+    description: string;
+    owner_user_id: number;
+    is_finished: number;
+    deadline: string | null;
+    position: number;
+    attachments_to_add: Array<{
+      file_name: string;
+      link: string;
+      position: number;
+    }>;
+  }>;
+  links_to_existing_cards_to_add_or_update?: Array<{
+    linked_card_id: number;
+    link_type: string;
+    linked_card_position: number;
+    card_position: number;
+  }>;
+  links_to_new_cards_to_add?: Array<{
+    linked_new_card_reference: string;
+    link_type: string;
+    linked_card_position: number;
+    card_position: number;
+  }>;
+
+  // Custom fields e anexos
+  custom_fields_to_add_or_update?: Array<{
+    field_id: number;
+    value: string;
+    [key: string]: unknown;
+  }>;
+  custom_field_ids_to_remove?: number[];
+  attachments_to_add?: Array<{
+    file_name: string;
+    link: string;
+    position: number;
+  }>;
+
+  // Advanced parameters
+  stickers_to_add?: Array<{
+    sticker_id: number;
+    if_not_present: number;
+  }>;
+  column_checklist_items_to_check_or_update?: Array<{
+    item_id: number;
+    comment: string;
+  }>;
 }
 
 // Comment types

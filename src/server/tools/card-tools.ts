@@ -456,9 +456,8 @@ export class CardToolHandler implements BaseToolHandler {
       },
       async (params: any) => {
         try {
-          const { instance, ...restParams } = params;
+          const { instance, card_id, ...subtaskData } = params;
           const client = await getClientForInstance(clientOrFactory, instance);
-          const { card_id, ...subtaskData } = restParams;
           const subtask = await client.createCardSubtask(card_id, subtaskData);
           return createSuccessResponse(subtask, 'Subtask created successfully:');
         } catch (error) {

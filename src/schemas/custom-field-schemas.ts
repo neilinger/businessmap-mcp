@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { instanceParameterSchema } from './common-schemas.js';
 
-// Schema para obter detalhes de um custom field específico
+// Schema for obter detalhes de um custom field específico
 export const getCustomFieldSchema = z.object({
   custom_field_id: z.number().describe('The ID of the custom field'),
   ...instanceParameterSchema,
