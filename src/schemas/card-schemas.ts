@@ -344,6 +344,7 @@ export const createCardSubtaskSchema = z.object({
     )
     .optional()
     .describe('Attachments to add to the subtask'),
+  ...instanceParameterSchema,
 });
 
 // Schemas complexos para criação de cards
