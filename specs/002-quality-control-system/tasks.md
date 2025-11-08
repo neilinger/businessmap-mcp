@@ -23,13 +23,13 @@
 
 **Purpose**: Install dependencies and initialize git hooks framework
 
-- [ ] T001 Install Husky 9.x dependency in package.json
-- [ ] T002 [P] Install lint-staged 15.x dependency in package.json
-- [ ] T003 [P] Install commitlint 19.x and @commitlint/config-conventional in package.json
-- [ ] T004 [P] Install semantic-release 24.x and plugins in package.json (@semantic-release/changelog, @semantic-release/git, @semantic-release/github, @semantic-release/npm, @semantic-release/commit-analyzer, @semantic-release/release-notes-generator)
-- [ ] T005 Add "prepare": "husky install" script to package.json
-- [ ] T006 [P] Add "test:integration" script to package.json
-- [ ] T007 Run `npm install` to initialize Husky hooks directory (.husky/)
+- [x] T001 Install Husky 9.x dependency in package.json
+- [x] T002 [P] Install lint-staged 15.x dependency in package.json
+- [x] T003 [P] Install commitlint 19.x and @commitlint/config-conventional in package.json
+- [x] T004 [P] Install semantic-release 24.x and plugins in package.json (@semantic-release/changelog, @semantic-release/git, @semantic-release/github, @semantic-release/npm, @semantic-release/commit-analyzer, @semantic-release/release-notes-generator)
+- [x] T005 Add "prepare": "husky install" script to package.json
+- [x] T006 [P] Add "test:integration" script to package.json
+- [x] T007 Run `npm install` to initialize Husky hooks directory (.husky/)
 
 ---
 
@@ -39,11 +39,11 @@
 
 **⚠️ CRITICAL**: This MUST be complete before any user story implementation. Branch protection is the enforcement mechanism for all quality layers.
 
-- [ ] T008 Create branch protection setup script in scripts/setup-branch-protection.sh using gh CLI
-- [ ] T009 Configure initial required status checks: ["CI / Test (Node 18.x)", "CI / Test (Node 20.x)", "CI / Test (Node 22.x)", "CI / Code Quality"] in scripts/setup-branch-protection.sh (Note: CI / Pre-commit Validation and CI / Integration Tests (Mock) will be added after those jobs are created)
-- [ ] T010 Set enforce_admins: false, required_pull_request_reviews: null, allow_force_pushes: false, allow_deletions: false in scripts/setup-branch-protection.sh
-- [ ] T011 Execute scripts/setup-branch-protection.sh to apply branch protection to main branch
-- [ ] T012 Verify direct commits to main are blocked (manual test: attempt git push to main)
+- [x] T008 Create branch protection setup script in scripts/setup-branch-protection.sh using gh CLI
+- [x] T009 Configure initial required status checks: ["CI / Test (Node 18.x)", "CI / Test (Node 20.x)", "CI / Test (Node 22.x)", "CI / Code Quality"] in scripts/setup-branch-protection.sh (Note: CI / Pre-commit Validation and CI / Integration Tests (Mock) will be added after those jobs are created)
+- [x] T010 Set enforce_admins: false, required_pull_request_reviews: null, allow_force_pushes: false, allow_deletions: false in scripts/setup-branch-protection.sh
+- [x] T011 Execute scripts/setup-branch-protection.sh to apply branch protection to main branch
+- [x] T012 Verify direct commits to main are blocked (manual test: attempt git push to main)
 
 **Checkpoint**: Branch protection active - all user stories now depend on this enforcement layer
 
@@ -59,13 +59,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T013 [P] [US1] Extend .github/workflows/ci.yml with pre-commit-validation job (job name: "Pre-commit Validation", re-runs lint-staged --no-stash to catch git commit --no-verify bypasses)
-- [ ] T014 [P] [US1] Add integration-tests-mock job to .github/workflows/ci.yml (job name: "Integration Tests (Mock)", matrix strategy for Node 18.x/20.x/22.x, env.CI: true)
-- [ ] T015 [US1] Verify ci.yml job names match required_status_checks contexts format "CI / {job name}" (e.g., "CI / Pre-commit Validation", "CI / Integration Tests (Mock)")
-- [ ] T016 [US1] Add checkout, setup-node, npm ci steps to pre-commit-validation job in .github/workflows/ci.yml
-- [ ] T017 [US1] Add checkout, setup-node, npm ci, test:integration steps to integration-tests-mock job in .github/workflows/ci.yml
-- [ ] T018 [US1] Document that integration-tests-mock job intentionally omits BUSINESSMAP_API_TOKEN secrets (runs in mock mode)
-- [ ] T018a [US1] Configure GitHub Actions job timeouts (timeout-minutes: 10 for each job) in .github/workflows/ci.yml and document baseline CI timing in README.md
+- [x] T013 [P] [US1] Extend .github/workflows/ci.yml with pre-commit-validation job (job name: "Pre-commit Validation", re-runs lint-staged --no-stash to catch git commit --no-verify bypasses)
+- [x] T014 [P] [US1] Add integration-tests-mock job to .github/workflows/ci.yml (job name: "Integration Tests (Mock)", matrix strategy for Node 18.x/20.x/22.x, env.CI: true)
+- [x] T015 [US1] Verify ci.yml job names match required_status_checks contexts format "CI / {job name}" (e.g., "CI / Pre-commit Validation", "CI / Integration Tests (Mock)")
+- [x] T016 [US1] Add checkout, setup-node, npm ci steps to pre-commit-validation job in .github/workflows/ci.yml
+- [x] T017 [US1] Add checkout, setup-node, npm ci, test:integration steps to integration-tests-mock job in .github/workflows/ci.yml
+- [x] T018 [US1] Document that integration-tests-mock job intentionally omits BUSINESSMAP_API_TOKEN secrets (runs in mock mode)
+- [x] T018a [US1] Configure GitHub Actions job timeouts (timeout-minutes: 10 for each job) in .github/workflows/ci.yml and document baseline CI timing in README.md
 
 **Checkpoint**: CI workflow enforces quality gates. Branch protection blocks merge if any check fails.
 
@@ -81,12 +81,12 @@
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] Create .husky/pre-commit hook file running npx lint-staged
-- [ ] T020 [US2] Create .lintstagedrc.json with patterns: "*.{ts,tsx}": ["eslint --fix", "prettier --write", "bash -c 'tsc --noEmit'"]
-- [ ] T021 [P] [US2] Add "*.{json,md}": ["prettier --write"] pattern to .lintstagedrc.json
-- [ ] T022 [US2] Make .husky/pre-commit executable (chmod +x .husky/pre-commit)
-- [ ] T023 [US2] Verify pre-commit hook runs in under 2 seconds for typical changes (manual test: stage 10 files and commit)
-- [ ] T024 [US2] Verify pre-commit hook blocks commit with clear error messages (manual test: introduce linting error and attempt commit)
+- [x] T019 [US2] Create .husky/pre-commit hook file running npx lint-staged
+- [x] T020 [US2] Create .lintstagedrc.json with patterns: "\*.{ts,tsx}": ["eslint --fix", "prettier --write", "bash -c 'tsc --noEmit'"]
+- [x] T021 [P] [US2] Add "\*.{json,md}": ["prettier --write"] pattern to .lintstagedrc.json
+- [x] T022 [US2] Make .husky/pre-commit executable (chmod +x .husky/pre-commit)
+- [x] T023 [US2] Verify pre-commit hook runs in under 2 seconds for typical changes (manual test: stage 10 files and commit)
+- [x] T024 [US2] Verify pre-commit hook blocks commit with clear error messages (manual test: introduce linting error and attempt commit)
 
 **Checkpoint**: Pre-commit hooks catch lint/format/type errors immediately (<2s feedback loop)
 
@@ -102,12 +102,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T025 [US3] Create .commitlintrc.json extending @commitlint/config-conventional
-- [ ] T026 [US3] Configure rules in .commitlintrc.json: type-enum (feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert), subject-case (never uppercase), header-max-length (100)
-- [ ] T027 [US3] Create .husky/commit-msg hook file running npx --no -- commitlint --edit $1
-- [ ] T028 [US3] Make .husky/commit-msg executable (chmod +x .husky/commit-msg)
-- [ ] T029 [US3] Verify commit-msg hook blocks invalid formats (manual test: attempt commit with "Fixed bug" message)
-- [ ] T030 [US3] Verify commit-msg hook allows valid formats (manual test: commit with "fix: resolve timeout error" message)
+- [x] T025 [US3] Create .commitlintrc.json extending @commitlint/config-conventional
+- [x] T026 [US3] Configure rules in .commitlintrc.json: type-enum (feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert), subject-case (never uppercase), header-max-length (100)
+- [x] T027 [US3] Create .husky/commit-msg hook file running npx --no -- commitlint --edit $1
+- [x] T028 [US3] Make .husky/commit-msg executable (chmod +x .husky/commit-msg)
+- [x] T029 [US3] Verify commit-msg hook blocks invalid formats (manual test: attempt commit with "Fixed bug" message)
+- [x] T030 [US3] Verify commit-msg hook allows valid formats (manual test: commit with "fix: resolve timeout error" message)
 
 **Checkpoint**: All commits follow conventional format, enabling automated release workflow
 
@@ -123,19 +123,19 @@
 
 ### Implementation for User Story 4
 
-- [ ] T031 [US4] Create .releaserc.json with branches: ["main"] and standard plugins array
-- [ ] T032 [US4] Configure @semantic-release/commit-analyzer plugin in .releaserc.json
-- [ ] T033 [US4] Configure @semantic-release/release-notes-generator plugin in .releaserc.json
-- [ ] T034 [US4] Configure @semantic-release/changelog plugin with changelogFile: "CHANGELOG.md" in .releaserc.json
-- [ ] T035 [US4] Configure @semantic-release/npm plugin in .releaserc.json
-- [ ] T036 [US4] Configure @semantic-release/git plugin with assets: ["CHANGELOG.md", "package.json", "package-lock.json"] and message with [skip ci] flag in .releaserc.json
-- [ ] T037 [US4] Configure @semantic-release/github plugin in .releaserc.json
-- [ ] T038 [US4] Create .github/workflows/release.yml triggered on push to main branch
-- [ ] T039 [US4] Configure release.yml with checkout (fetch-depth: 0), setup-node, npm ci, npm run build steps
-- [ ] T040 [US4] Add semantic-release step to release.yml with GITHUB_TOKEN and NPM_TOKEN environment variables
-- [ ] T041 [US4] Set release.yml permissions: contents: write, issues: write, pull-requests: write
-- [ ] T042 [US4] Document that NPM_TOKEN secret must be configured in repository settings (GitHub Actions secrets)
-- [ ] T042a [US4] Configure GitHub Actions timeout on release job: timeout-minutes: 5 in .github/workflows/release.yml and add timing metrics to release logs (echo start/end timestamps)
+- [x] T031 [US4] Create .releaserc.json with branches: ["main"] and standard plugins array
+- [x] T032 [US4] Configure @semantic-release/commit-analyzer plugin in .releaserc.json
+- [x] T033 [US4] Configure @semantic-release/release-notes-generator plugin in .releaserc.json
+- [x] T034 [US4] Configure @semantic-release/changelog plugin with changelogFile: "CHANGELOG.md" in .releaserc.json
+- [x] T035 [US4] Configure @semantic-release/npm plugin in .releaserc.json
+- [x] T036 [US4] Configure @semantic-release/git plugin with assets: ["CHANGELOG.md", "package.json", "package-lock.json"] and message with [skip ci] flag in .releaserc.json
+- [x] T037 [US4] Configure @semantic-release/github plugin in .releaserc.json
+- [x] T038 [US4] Create .github/workflows/release.yml triggered on push to main branch
+- [x] T039 [US4] Configure release.yml with checkout (fetch-depth: 0), setup-node, npm ci, npm run build steps
+- [x] T040 [US4] Add semantic-release step to release.yml with GITHUB_TOKEN and NPM_TOKEN environment variables
+- [x] T041 [US4] Set release.yml permissions: contents: write, issues: write, pull-requests: write
+- [x] T042 [US4] Document that NPM_TOKEN secret must be configured in repository settings (GitHub Actions secrets)
+- [x] T042a [US4] Configure GitHub Actions timeout on release job: timeout-minutes: 5 in .github/workflows/release.yml and add timing metrics to release logs (echo start/end timestamps)
 
 **Checkpoint**: Automated releases work on every merge to main. Zero manual version bumps required.
 
@@ -151,23 +151,23 @@
 
 ### Implementation for User Story 5
 
-- [ ] T043 [US5] Create jest.integration.config.js with testEnvironment: 'node', testMatch: ['**/tests/integration/**/*.test.ts']
-- [ ] T044 [US5] Create tests/integration/setup.ts with TEST_MODE detection logic (real if BUSINESSMAP_API_TOKEN_FIMANCIA present and not CI, else mock)
-- [ ] T044a [US5] Add clear error message in tests/integration/setup.ts when BUSINESSMAP_API_TOKEN_FIMANCIA or BUSINESSMAP_API_TOKEN_KERKOW missing: "Integration tests require real credentials locally. See docs/ONBOARDING.md for setup instructions. CI runs in mock mode automatically."
-- [ ] T045 [US5] Create tests/integration/fixtures/valid-multi-instance.json with fimancia and kerkow instances (apiTokenEnv field, not apiTokenEnvVar)
-- [ ] T046 [P] [US5] Create tests/integration/fixtures/valid-single-instance.json with single instance configuration
-- [ ] T047 [P] [US5] Create tests/integration/fixtures/invalid-schema.json with intentional schema error (apiTokenEnvVar instead of apiTokenEnv)
-- [ ] T048 [US5] Create tests/integration/server-initialization.test.ts with dual-mode tests (real: require('../../src/index') and call listTools(); mock: load config JSON and validate structure only, no server initialization)
-- [ ] T049 [P] [US5] Create tests/integration/config-validation.test.ts with dual-mode schema validation tests (real: full Zod schema validation + server load; mock: JSON.parse() and check instances array structure)
-- [ ] T050 [P] [US5] Create tests/integration/env-validation.test.ts with dual-mode environment variable tests (real: actual callTool('list_workspaces') API connection; mock: typeof check and regex match /^BUSINESSMAP_API_TOKEN_/)
-- [ ] T051 [US5] Create .husky/pre-push hook file running npm run test:integration with timing output (echo start time, run tests, echo elapsed time)
-- [ ] T052 [US5] Make .husky/pre-push executable (chmod +x .husky/pre-push)
-- [ ] T053 [US5] Verify pre-push hook runs integration tests in real mode locally (manual test: ensure BUSINESSMAP_API_TOKEN_FIMANCIA env var set, attempt git push)
-- [ ] T054 [US5] Verify integration tests catch import errors (manual test: introduce wrong import in src/, attempt git push)
-- [ ] T055 [US5] Verify integration tests catch config schema errors (manual test: use invalid-schema.json fixture)
-- [ ] T056 [US5] Verify integration tests run in mock mode in CI (manual test: check CI logs for "Integration tests running in MOCK mode" message)
-- [ ] T056a [US5] Create comprehensive validation test verifying all three historical bug types caught: (1) import error test with explicit LRUCache import assertion, (2) config schema test with apiTokenEnvVar rejection, (3) env validation test with missing BUSINESSMAP_API_TOKEN assertion
-- [ ] T056b Update branch protection to add remaining required status checks: ["CI / Pre-commit Validation", "CI / Integration Tests (Mock)"] in scripts/setup-branch-protection.sh and re-execute
+- [x] T043 [US5] Create jest.integration.config.js with testEnvironment: 'node', testMatch: ['**/tests/integration/**/*.test.ts']
+- [x] T044 [US5] Create tests/integration/setup.ts with TEST_MODE detection logic (real if BUSINESSMAP_API_TOKEN_FIMANCIA present and not CI, else mock)
+- [x] T044a [US5] Add clear error message in tests/integration/setup.ts when BUSINESSMAP_API_TOKEN_FIMANCIA or BUSINESSMAP_API_TOKEN_KERKOW missing: "Integration tests require real credentials locally. See docs/ONBOARDING.md for setup instructions. CI runs in mock mode automatically."
+- [x] T045 [US5] Create tests/integration/fixtures/valid-multi-instance.json with fimancia and kerkow instances (apiTokenEnv field, not apiTokenEnvVar)
+- [x] T046 [P] [US5] Create tests/integration/fixtures/valid-single-instance.json with single instance configuration
+- [x] T047 [P] [US5] Create tests/integration/fixtures/invalid-schema.json with intentional schema error (apiTokenEnvVar instead of apiTokenEnv)
+- [x] T048 [US5] Create tests/integration/server-initialization.test.ts with dual-mode tests (real: require('../../src/index') and call listTools(); mock: load config JSON and validate structure only, no server initialization)
+- [x] T049 [P] [US5] Create tests/integration/config-validation.test.ts with dual-mode schema validation tests (real: full Zod schema validation + server load; mock: JSON.parse() and check instances array structure)
+- [x] T050 [P] [US5] Create tests/integration/env-validation.test.ts with dual-mode environment variable tests (real: actual callTool('list*workspaces') API connection; mock: typeof check and regex match /^BUSINESSMAP_API_TOKEN*/)
+- [x] T051 [US5] Create .husky/pre-push hook file running npm run test:integration with timing output (echo start time, run tests, echo elapsed time)
+- [x] T052 [US5] Make .husky/pre-push executable (chmod +x .husky/pre-push)
+- [x] T053 [US5] Verify pre-push hook runs integration tests in real mode locally (manual test: ensure BUSINESSMAP_API_TOKEN_FIMANCIA env var set, attempt git push)
+- [x] T054 [US5] Verify integration tests catch import errors (manual test: introduce wrong import in src/, attempt git push)
+- [x] T055 [US5] Verify integration tests catch config schema errors (manual test: use invalid-schema.json fixture)
+- [x] T056 [US5] Verify integration tests run in mock mode in CI (manual test: check CI logs for "Integration tests running in MOCK mode" message)
+- [x] T056a [US5] Create comprehensive validation test verifying all three historical bug types caught: (1) import error test with explicit LRUCache import assertion, (2) config schema test with apiTokenEnvVar rejection, (3) env validation test with missing BUSINESSMAP_API_TOKEN assertion
+- [x] T056b Update branch protection to add remaining required status checks: ["CI / Pre-commit Validation", "CI / Integration Tests (Mock)"] in scripts/setup-branch-protection.sh and re-execute
 
 **Checkpoint**: Integration tests catch all three historical bug types (import errors, config mismatches, env validation failures) before push
 
@@ -177,14 +177,14 @@
 
 **Purpose**: Documentation and validation across all user stories
 
-- [ ] T057 [P] Create docs/ONBOARDING.md documenting local credential setup (BUSINESSMAP_API_TOKEN_FIMANCIA, BUSINESSMAP_API_TOKEN_KERKOW) for pre-push integration tests
-- [ ] T058 [P] Update README.md with quality control system overview, five-layer architecture explanation, and recommendation to periodically verify branch protection active with scripts/setup-branch-protection.sh
-- [ ] T059 [P] Document hook bypass detection (git commit --no-verify caught by CI pre-commit-validation job, git push --no-verify caught by CI integration-tests-mock job)
-- [ ] T060 [P] Document dual-mode testing architecture (real mode local with credentials, mock mode CI without credentials)
-- [ ] T060a [P] Document NPM token rotation schedule in docs/ONBOARDING.md (recommend 90-day rotation, link to GitHub secrets page, suggest calendar reminder)
-- [ ] T061 Create PR with all changes and verify all five layers active (branch protection blocks merge until all CI checks pass)
-- [ ] T062 Test automated release workflow by merging PR with feat: commit and verifying npm publish within 5 minutes
-- [ ] T063 Verify quickstart.md instructions work for new developer onboarding (if quickstart.md exists)
+- [x] T057 [P] Create docs/ONBOARDING.md documenting local credential setup (BUSINESSMAP_API_TOKEN_FIMANCIA, BUSINESSMAP_API_TOKEN_KERKOW) for pre-push integration tests
+- [x] T058 [P] Update README.md with quality control system overview, five-layer architecture explanation, and recommendation to periodically verify branch protection active with scripts/setup-branch-protection.sh
+- [x] T059 [P] Document hook bypass detection (git commit --no-verify caught by CI pre-commit-validation job, git push --no-verify caught by CI integration-tests-mock job)
+- [x] T060 [P] Document dual-mode testing architecture (real mode local with credentials, mock mode CI without credentials)
+- [x] T060a [P] Document NPM token rotation schedule in docs/ONBOARDING.md (recommend 90-day rotation, link to GitHub secrets page, suggest calendar reminder)
+- [x] T061 Create PR with all changes and verify all five layers active (branch protection blocks merge until all CI checks pass)
+- [x] T062 Test automated release workflow by merging PR with feat: commit and verifying npm publish within 5 minutes
+- [x] T063 Verify quickstart.md instructions work for new developer onboarding (if quickstart.md exists)
 
 ---
 
