@@ -163,9 +163,9 @@ export class CardToolHandler implements BaseToolHandler {
       },
       async (params: any) => {
         try {
-          const { instance } = params;
+          const { instance, ...cardData } = params;
           const client = await getClientForInstance(clientOrFactory, instance);
-          const card = await client.createCard(restParams);
+          const card = await client.createCard(cardData);
           return createSuccessResponse(card, 'Card created successfully:');
         } catch (error) {
           return createErrorResponse(error, 'creating card');
@@ -210,9 +210,9 @@ export class CardToolHandler implements BaseToolHandler {
       },
       async (params: any) => {
         try {
-          const { instance } = params;
+          const { instance, ...cardData } = params;
           const client = await getClientForInstance(clientOrFactory, instance);
-          const card = await client.updateCard(restParams);
+          const card = await client.updateCard(cardData);
           return createSuccessResponse(card, 'Card updated successfully:');
         } catch (error) {
           return createErrorResponse(error, 'updating card');
