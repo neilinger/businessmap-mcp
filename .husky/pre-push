@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "⏱️  Running integration tests (may take 30+ seconds)..."
+
+START=$(date +%s)
+
+npm run test:integration
+EXIT_CODE=$?
+
+END=$(date +%s)
+ELAPSED=$((END - START))
+
+if [ $EXIT_CODE -eq 0 ]; then
+  echo "✅ Completed in ${ELAPSED}s"
+else
+  echo "❌ Failed in ${ELAPSED}s"
+fi
+
+exit $EXIT_CODE

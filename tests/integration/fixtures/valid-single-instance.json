@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "defaultInstance": "fimancia",
+  "instances": [
+    {
+      "name": "fimancia",
+      "apiUrl": "https://fimancia.kanbanize.com/api/v2",
+      "apiTokenEnv": "BUSINESSMAP_API_TOKEN_FIMANCIA",
+      "description": "Single instance configuration"
+    }
+  ]
+}
