@@ -1,0 +1,66 @@
+# GitHub Actions Workflow Schema (Excerpt)
+# Reference: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+
+name: CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  # Job 1: Re-validate pre-commit hooks (catch bypasses)
+  pre-commit-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Validate pre-commit hooks
+        run: npx lint-staged --no-stash
+
+  # Job 2: Run integration tests (baseline initialization)
+  integration-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Integration Tests
+        run: npm run test:integration
+        # NOTE: No env secrets (per spec line 144)
+
+  # Job 3: Existing build job (preserved)
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  # Job 4: Existing code quality job (preserved)
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run lint

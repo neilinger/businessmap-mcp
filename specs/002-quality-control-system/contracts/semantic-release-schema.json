@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "semantic-release Configuration",
+  "description": "Schema for .releaserc.json",
+  "type": "object",
+  "required": ["branches", "plugins"],
+  "properties": {
+    "branches": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Branches to release from"
+    },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": [
+              { "type": "string" },
+              { "type": "object" }
+            ]
+          }
+        ]
+      },
+      "description": "Plugins to execute in order"
+    }
+  },
+  "examples": [
+    {
+      "branches": ["main"],
+      "plugins": [
+        "@semantic-release/commit-analyzer",
+        "@semantic-release/release-notes-generator",
+        [
+          "@semantic-release/changelog",
+          {
+            "changelogFile": "CHANGELOG.md"
+          }
+        ],
+        "@semantic-release/npm",
+        [
+          "@semantic-release/git",
+          {
+            "assets": ["CHANGELOG.md", "package.json", "package-lock.json"],
+            "message": "chore(release): ${nextRelease.version} [skip ci]\\n\\n${nextRelease.notes}"
+          }
+        ],
+        "@semantic-release/github"
+      ]
+    }
+  ]
+}
