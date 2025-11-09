@@ -1,3 +1,8 @@
+import dotenv from 'dotenv';
+
+// Load .env file for integration tests
+dotenv.config();
+
 export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
