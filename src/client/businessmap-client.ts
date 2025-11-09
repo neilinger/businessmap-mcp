@@ -13,6 +13,40 @@ import {
   WorkspaceClient,
 } from './modules/index.js';
 
+/**
+ * BusinessMap API Client
+ *
+ * Main client class for interacting with the BusinessMap API v2.
+ * Provides a comprehensive interface for managing workspaces, boards, cards,
+ * users, custom fields, and workflows.
+ *
+ * Features:
+ * - Automatic retry with exponential backoff for rate limits (429 errors)
+ * - Rate limit monitoring and warnings at 80% quota usage
+ * - Modular architecture with specialized clients for each resource type
+ * - Built-in caching support across all module clients
+ * - Request timeout of 30 seconds
+ * - Comprehensive error transformation and handling
+ *
+ * @example
+ * ```typescript
+ * // Create and initialize client
+ * const config = {
+ *   apiUrl: 'https://mycompany.businessmap.io/api/v2',
+ *   apiToken: process.env.BUSINESSMAP_API_TOKEN,
+ * };
+ * const client = new BusinessMapClient(config);
+ * await client.initialize();
+ *
+ * // Use the client
+ * const workspaces = await client.getWorkspaces();
+ * const boards = await client.getBoards({ workspace_id: 1 });
+ * const cards = await client.getCards(boardId, { owner_user_ids: [userId] });
+ * ```
+ *
+ * @see {@link BusinessMapClientFactory} for multi-instance support
+ */
+
 export class BusinessMapClient {
   private http: AxiosInstance;
   private readonly config: BusinessMapConfig;
@@ -46,8 +80,7 @@ export class BusinessMapClient {
       retryCondition: (error) => {
         // Retry on rate limit (429) or network errors
         return (
-          axiosRetry.isNetworkOrIdempotentRequestError(error) ||
-          error.response?.status === 429
+          axiosRetry.isNetworkOrIdempotentRequestError(error) || error.response?.status === 429
         );
       },
       onRetry: (retryCount, error) => {
@@ -190,10 +223,7 @@ export class BusinessMapClient {
     return this.workspaceClient.archiveWorkspace(workspaceId);
   }
 
-  async bulkArchiveWorkspaces(
-    workspaceIds: number[],
-    options?: { maxConcurrent?: number }
-  ) {
+  async bulkArchiveWorkspaces(workspaceIds: number[], options?: { maxConcurrent?: number }) {
     return this.workspaceClient.bulkArchiveWorkspaces(workspaceIds, options);
   }
 
@@ -301,7 +331,11 @@ export class BusinessMapClient {
     return this.cardClient.getCardComment(cardId, commentId);
   }
 
-  async updateCardComment(cardId: number, commentId: number, params: Parameters<CardClient['updateCardComment']>[2]) {
+  async updateCardComment(
+    cardId: number,
+    commentId: number,
+    params: Parameters<CardClient['updateCardComment']>[2]
+  ) {
     return this.cardClient.updateCardComment(cardId, commentId, params);
   }
 
@@ -341,7 +375,11 @@ export class BusinessMapClient {
     return this.cardClient.createCardSubtask(cardId, params);
   }
 
-  async updateCardSubtask(cardId: number, subtaskId: number, params: Parameters<CardClient['updateCardSubtask']>[2]) {
+  async updateCardSubtask(
+    cardId: number,
+    subtaskId: number,
+    params: Parameters<CardClient['updateCardSubtask']>[2]
+  ) {
     return this.cardClient.updateCardSubtask(cardId, subtaskId, params);
   }
 

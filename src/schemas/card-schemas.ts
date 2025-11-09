@@ -6,16 +6,35 @@ import {
   idArrayFilters,
   paginationSchema,
 } from './common-schemas.js';
+import {
+  entityIdSchema,
+  titleSchema,
+  descriptionSchema,
+  optionalEntityId,
+  optionalTitle,
+  optionalDescription,
+  optionalComment,
+  optionalCustomId,
+  optionalEmail,
+  optionalUrl,
+  optionalColor,
+  optionalIsoDate,
+  optionalPriority,
+  optionalSize,
+  optionalPosition,
+  optionalBooleanFlag,
+  secureArray,
+  SECURITY_LIMITS,
+} from './security-validation.js';
 
 // List cards schema - extraído do card-tools.ts
 export const listCardsSchema = z.object({
-  board_id: z.number().describe('The ID of the board'),
+  board_id: entityIdSchema.describe('The ID of the board'),
 
   // Date and time filters usando o schema comum e estendendo para casos específicos
-  archived_from: z
-    .string()
-    .optional()
-    .describe('The first date and time of archived cards for which you want results'),
+  archived_from: optionalIsoDate.describe(
+    'The first date and time of archived cards for which you want results'
+  ),
   archived_from_date: z
     .string()
     .optional()
@@ -267,27 +286,27 @@ export const listCardsSchema = z.object({
 
 // Schema básico para get card
 export const getCardSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
   ...instanceParameterSchema,
 });
 
 // Schema para tamanho do card
 export const cardSizeSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
-  size: z.number().optional().describe('The new size/points for the card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
+  size: optionalSize.describe('The new size/points for the card'),
   ...instanceParameterSchema,
 });
 
 // Schema para comentários do card
 export const cardCommentsSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
   ...instanceParameterSchema,
 });
 
 // Schema para obter um comentário específico
 export const getCardCommentSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
-  comment_id: z.number().describe('The ID of the comment'),
+  card_id: entityIdSchema.describe('The ID of the card'),
+  comment_id: entityIdSchema.describe('The ID of the comment'),
   ...instanceParameterSchema,
 });
 
@@ -298,42 +317,42 @@ export const getCardTypesSchema = z.object({
 
 // Schema para buscar histórico do card
 export const getCardHistorySchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
-  outcome_id: z.number().describe('The ID of the outcome'),
+  card_id: entityIdSchema.describe('The ID of the card'),
+  outcome_id: entityIdSchema.describe('The ID of the outcome'),
   ...instanceParameterSchema,
 });
 
 // Schema para buscar outcomes do card
 export const getCardOutcomesSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
   ...instanceParameterSchema,
 });
 
 // Schema para buscar linked cards do card
 export const getCardLinkedCardsSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
   ...instanceParameterSchema,
 });
 
 // Schemas para subtasks
 export const getCardSubtasksSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
   ...instanceParameterSchema,
 });
 
 export const getCardSubtaskSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
-  subtask_id: z.number().describe('The ID of the subtask'),
+  card_id: entityIdSchema.describe('The ID of the card'),
+  subtask_id: entityIdSchema.describe('The ID of the subtask'),
   ...instanceParameterSchema,
 });
 
 export const createCardSubtaskSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
-  description: z.string().describe('The description of the subtask'),
-  owner_user_id: z.number().optional().describe('The owner user ID for the subtask'),
-  is_finished: z.number().optional().describe('Whether the subtask is finished (0 or 1)'),
-  deadline: z.string().optional().describe('The deadline for the subtask (ISO date string)'),
-  position: z.number().optional().describe('The position of the subtask'),
+  card_id: entityIdSchema.describe('The ID of the card'),
+  description: descriptionSchema.describe('The description of the subtask'),
+  owner_user_id: optionalEntityId.describe('The owner user ID for the subtask'),
+  is_finished: optionalBooleanFlag.describe('Whether the subtask is finished (0 or 1)'),
+  deadline: optionalIsoDate.describe('The deadline for the subtask (ISO date string)'),
+  position: optionalPosition.describe('The position of the subtask'),
   attachments_to_add: z
     .array(
       z.object({
@@ -445,109 +464,154 @@ export const columnChecklistItemSchema = z.object({
 
 // Schema principal para criação de cards
 export const createCardSchema = z.object({
-  title: z.string().describe('The title of the card'),
-  column_id: z.number().describe('The ID of the column'),
+  title: titleSchema.describe('The title of the card'),
+  column_id: entityIdSchema.describe('The ID of the column'),
 
   // Campos opcionais básicos
-  template_id: z.number().optional().describe('Optional template ID'),
-  lane_id: z.number().optional().describe('Optional lane ID'),
-  position: z.number().optional().describe('Optional position'),
-  track: z.number().optional().describe('Optional track'),
-  description: z.string().optional().describe('Optional description for the card'),
-  custom_id: z.string().optional().describe('Optional custom ID'),
-  owner_user_id: z.number().optional().describe('Optional owner user ID'),
-  type_id: z.number().optional().describe('Optional card type ID'),
-  size: z.number().optional().describe('Optional card size/points'),
-  priority: z.number().optional().describe('Optional priority level'),
-  color: z.string().optional().describe('Optional color'),
-  deadline: z.string().optional().describe('Optional deadline (ISO date string)'),
-  reference: z.string().optional().describe('Optional reference'),
+  template_id: optionalEntityId.describe('Optional template ID'),
+  lane_id: optionalEntityId.describe('Optional lane ID'),
+  position: optionalPosition.describe('Optional position'),
+  track: optionalEntityId.describe('Optional track'),
+  description: optionalDescription.describe('Optional description for the card'),
+  custom_id: optionalCustomId.describe('Optional custom ID'),
+  owner_user_id: optionalEntityId.describe('Optional owner user ID'),
+  type_id: optionalEntityId.describe('Optional card type ID'),
+  size: optionalSize.describe('Optional card size/points'),
+  priority: optionalPriority.describe('Optional priority level'),
+  color: optionalColor.describe('Optional color'),
+  deadline: optionalIsoDate.describe('Optional deadline (ISO date string)'),
+  reference: optionalCustomId.describe('Optional reference'),
 
   // Datas
-  planned_start_date_sync_type: z
-    .number()
-    .optional()
-    .describe('Optional planned start date sync type'),
-  planned_start_date: z.string().optional().describe('Optional planned start date'),
-  planned_end_date_sync_type: z.number().optional().describe('Optional planned end date sync type'),
-  planned_end_date: z.string().optional().describe('Optional planned end date'),
-  actual_start_time: z.string().optional().describe('Optional actual start time'),
-  actual_end_time: z.string().optional().describe('Optional actual end time'),
-  created_at: z.string().optional().describe('Optional creation date'),
-  archived_at: z.string().optional().describe('Optional archived date'),
-  discarded_at: z.string().optional().describe('Optional discarded date'),
+  planned_start_date_sync_type: optionalBooleanFlag.describe(
+    'Optional planned start date sync type'
+  ),
+  planned_start_date: optionalIsoDate.describe('Optional planned start date'),
+  planned_end_date_sync_type: optionalBooleanFlag.describe('Optional planned end date sync type'),
+  planned_end_date: optionalIsoDate.describe('Optional planned end date'),
+  actual_start_time: optionalIsoDate.describe('Optional actual start time'),
+  actual_end_time: optionalIsoDate.describe('Optional actual end time'),
+  created_at: optionalIsoDate.describe('Optional creation date'),
+  archived_at: optionalIsoDate.describe('Optional archived date'),
+  discarded_at: optionalIsoDate.describe('Optional discarded date'),
 
   // Status e flags
-  is_archived: z.number().optional().describe('Optional archived flag'),
-  is_discarded: z.number().optional().describe('Optional discarded flag'),
-  watch: z.number().optional().describe('Optional watch flag'),
-  version_id: z.number().optional().describe('Optional version ID'),
+  is_archived: optionalBooleanFlag.describe('Optional archived flag'),
+  is_discarded: optionalBooleanFlag.describe('Optional discarded flag'),
+  watch: optionalBooleanFlag.describe('Optional watch flag'),
+  version_id: optionalEntityId.describe('Optional version ID'),
 
   // Razões e comentários
   block_reason: blockReasonSchema.optional().describe('Optional block reason'),
-  discard_reason_id: z.number().optional().describe('Optional discard reason ID'),
-  discard_comment: z.string().optional().describe('Optional discard comment'),
-  exceeding_reason: z.string().optional().describe('Optional exceeding reason'),
+  discard_reason_id: optionalEntityId.describe('Optional discard reason ID'),
+  discard_comment: optionalComment.describe('Optional discard comment'),
+  exceeding_reason: optionalComment.describe('Optional exceeding reason'),
 
   // Reporter
-  reporter_user_id: z.number().optional().describe('Optional reporter user ID'),
-  reporter_email: z.string().optional().describe('Optional reporter email'),
+  reporter_user_id: optionalEntityId.describe('Optional reporter user ID'),
+  reporter_email: optionalEmail.describe('Optional reporter email'),
 
-  // Arrays de relacionamentos
-  card_properties_to_copy: z
-    .array(cardPropertyToCopySchema)
+  // Arrays de relacionamentos (with size limits)
+  card_properties_to_copy: secureArray(cardPropertyToCopySchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('Optional card properties to copy'),
-  custom_fields_to_copy: z
-    .array(customFieldToCopySchema)
+  custom_fields_to_copy: secureArray(customFieldToCopySchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('Optional custom fields to copy'),
-  co_owner_ids_to_add: z.array(z.number()).optional().describe('Optional co-owner IDs to add'),
-  co_owner_ids_to_remove: z
-    .array(z.number())
+  co_owner_ids_to_add: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_USER_IDS,
+  })
+    .optional()
+    .describe('Optional co-owner IDs to add'),
+  co_owner_ids_to_remove: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_USER_IDS,
+  })
     .optional()
     .describe('Optional co-owner IDs to remove'),
-  watcher_ids_to_add: z.array(z.number()).optional().describe('Optional watcher IDs to add'),
-  watcher_ids_to_remove: z.array(z.number()).optional().describe('Optional watcher IDs to remove'),
-  stickers_to_add: z.array(stickerSchema).optional().describe('Optional stickers to add'),
-  tag_ids_to_add: z.array(z.number()).optional().describe('Optional tag IDs to add'),
-  tag_ids_to_remove: z.array(z.number()).optional().describe('Optional tag IDs to remove'),
-  milestone_ids_to_add: z.array(z.number()).optional().describe('Optional milestone IDs to add'),
-  milestone_ids_to_remove: z
-    .array(z.number())
+  watcher_ids_to_add: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_USER_IDS,
+  })
+    .optional()
+    .describe('Optional watcher IDs to add'),
+  watcher_ids_to_remove: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_USER_IDS,
+  })
+    .optional()
+    .describe('Optional watcher IDs to remove'),
+  stickers_to_add: secureArray(stickerSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
+    .optional()
+    .describe('Optional stickers to add'),
+  tag_ids_to_add: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_TAG_IDS,
+  })
+    .optional()
+    .describe('Optional tag IDs to add'),
+  tag_ids_to_remove: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_TAG_IDS,
+  })
+    .optional()
+    .describe('Optional tag IDs to remove'),
+  milestone_ids_to_add: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
+    .optional()
+    .describe('Optional milestone IDs to add'),
+  milestone_ids_to_remove: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('Optional milestone IDs to remove'),
 
-  // Campos customizados e anexos
-  custom_fields_to_add_or_update: z
-    .array(customFieldSchema)
+  // Campos customizados e anexos (with size limits)
+  custom_fields_to_add_or_update: secureArray(customFieldSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('Optional custom fields to add or update'),
-  custom_field_ids_to_remove: z
-    .array(z.number())
+  custom_field_ids_to_remove: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('Optional custom field IDs to remove'),
-  attachments_to_add: z
-    .array(fileAttachmentSchema)
+  attachments_to_add: secureArray(fileAttachmentSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('Optional attachments to add'),
-  cover_image_link: z.string().optional().describe('Optional cover image link'),
+  cover_image_link: optionalUrl.describe('Optional cover image link'),
 
-  // Subtasks e checklists
-  subtasks_to_add: z.array(subtaskSchema).optional().describe('Optional subtasks to add'),
-  column_checklist_items_to_check_or_update: z
-    .array(columnChecklistItemSchema)
+  // Subtasks e checklists (with size limits)
+  subtasks_to_add: secureArray(subtaskSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
+    .optional()
+    .describe('Optional subtasks to add'),
+  column_checklist_items_to_check_or_update: secureArray(columnChecklistItemSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('Optional column checklist items to check or update'),
 
-  // Anotações e links
-  annotations_to_add: z.array(annotationSchema).optional().describe('Optional annotations to add'),
-  links_to_existing_cards_to_add_or_update: z
-    .array(cardLinkSchema)
+  // Anotações e links (with size limits)
+  annotations_to_add: secureArray(annotationSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
+    .optional()
+    .describe('Optional annotations to add'),
+  links_to_existing_cards_to_add_or_update: secureArray(cardLinkSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('Optional links to existing cards to add or update'),
-  links_to_new_cards_to_add: z
-    .array(newCardLinkSchema)
+  links_to_new_cards_to_add: secureArray(newCardLinkSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('Optional links to new cards to add'),
   ...instanceParameterSchema,
@@ -555,67 +619,67 @@ export const createCardSchema = z.object({
 
 // Schema para movimentação de cards
 export const moveCardSchema = z.object({
-  card_id: z.number().describe('The ID of the card to move'),
-  column_id: z.number().describe('The target column ID'),
-  lane_id: z.number().optional().describe('Optional target lane ID'),
-  position: z.number().optional().describe('Optional position in the column'),
+  card_id: entityIdSchema.describe('The ID of the card to move'),
+  column_id: entityIdSchema.describe('The target column ID'),
+  lane_id: optionalEntityId.describe('Optional target lane ID'),
+  position: optionalPosition.describe('Optional position in the column'),
   ...instanceParameterSchema,
 });
 
 // Schema para atualização de cards
 export const updateCardSchema = z.object({
-  card_id: z.number().describe('The ID of the card to update'),
-  id: z.number().optional().describe('Alternative ID field'),
-  title: z.string().optional().describe('New title for the card'),
-  description: z.string().optional().describe('New description for the card'),
-  column_id: z.number().optional().describe('New column ID'),
-  lane_id: z.number().optional().describe('New lane ID'),
-  position: z.number().optional().describe('New position'),
-  owner_user_id: z.number().optional().describe('New owner user ID'),
-  assignee_user_id: z.number().optional().describe('New assignee user ID'),
-  size: z.number().optional().describe('New card size/points'),
-  priority: z.string().optional().describe('New priority level'),
-  deadline: z.string().optional().describe('New deadline (ISO date string)'),
+  card_id: entityIdSchema.describe('The ID of the card to update'),
+  id: optionalEntityId.describe('Alternative ID field'),
+  title: optionalTitle.describe('New title for the card'),
+  description: optionalDescription.describe('New description for the card'),
+  column_id: optionalEntityId.describe('New column ID'),
+  lane_id: optionalEntityId.describe('New lane ID'),
+  position: optionalPosition.describe('New position'),
+  owner_user_id: optionalEntityId.describe('New owner user ID'),
+  assignee_user_id: optionalEntityId.describe('New assignee user ID'),
+  size: optionalSize.describe('New card size/points'),
+  priority: optionalPriority.describe('New priority level'),
+  deadline: optionalIsoDate.describe('New deadline (ISO date string)'),
   ...instanceParameterSchema,
 });
 
 // Schemas para parent cards
 export const getCardParentsSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
   ...instanceParameterSchema,
 });
 
 export const getCardParentSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
-  parent_card_id: z.number().describe('The ID of the parent card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
+  parent_card_id: entityIdSchema.describe('The ID of the parent card'),
   ...instanceParameterSchema,
 });
 
 export const addCardParentSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
-  parent_card_id: z.number().describe('The ID of the parent card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
+  parent_card_id: entityIdSchema.describe('The ID of the parent card'),
   ...instanceParameterSchema,
 });
 
 export const removeCardParentSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
-  parent_card_id: z.number().describe('The ID of the parent card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
+  parent_card_id: entityIdSchema.describe('The ID of the parent card'),
   ...instanceParameterSchema,
 });
 
 export const getCardParentGraphSchema = z.object({
-  card_id: z.number().describe('The ID of the card'),
+  card_id: entityIdSchema.describe('The ID of the card'),
   ...instanceParameterSchema,
 });
 
 export const getCardChildrenSchema = z.object({
-  card_id: z.number().describe('The ID of the parent card'),
+  card_id: entityIdSchema.describe('The ID of the parent card'),
   ...instanceParameterSchema,
 });
 
 // Schema para deleção de cards
 export const deleteCardSchema = z.object({
-  card_id: z.number().describe('The ID of the card to delete'),
+  card_id: entityIdSchema.describe('The ID of the card to delete'),
   archive_first: z
     .boolean()
     .optional()

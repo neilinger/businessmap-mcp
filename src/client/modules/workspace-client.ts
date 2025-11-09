@@ -3,6 +3,34 @@ import { ApiResponse, CreateWorkspaceParams, Workspace } from '../../types/index
 import { BULK_OPERATION_DEFAULTS } from '../constants.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
+/**
+ * Workspace Management Client
+ *
+ * Handles workspace operations including CRUD and bulk operations.
+ * Workspaces are the top-level organizational unit in BusinessMap,
+ * containing boards and their associated cards.
+ *
+ * Features:
+ * - Workspace lifecycle management (create, read, update, archive)
+ * - Bulk archive and update operations with concurrency control
+ * - Read-only mode enforcement
+ *
+ * @example
+ * ```typescript
+ * // Get all workspaces
+ * const workspaces = await workspaceClient.getWorkspaces();
+ *
+ * // Create new workspace
+ * const workspace = await workspaceClient.createWorkspace({
+ *   name: 'Engineering',
+ *   description: 'Engineering team workspace',
+ * });
+ *
+ * // Bulk archive old workspaces
+ * await workspaceClient.bulkArchiveWorkspaces([1, 2, 3]);
+ * ```
+ */
+
 export class WorkspaceClient extends BaseClientModuleImpl {
   /**
    * Get all workspaces
@@ -40,10 +68,10 @@ export class WorkspaceClient extends BaseClientModuleImpl {
   async createWorkspace(params: CreateWorkspaceParams): Promise<Workspace> {
     this.checkReadOnlyMode('create workspace');
     const response = await this.http.post<ApiResponse<Workspace>>('/workspaces', params);
-    
+
     // Invalidate workspaces list cache
     this.cache.invalidate(/^workspaces:/);
-    
+
     return response.data.data;
   }
 
@@ -59,11 +87,11 @@ export class WorkspaceClient extends BaseClientModuleImpl {
       `/workspaces/${workspaceId}`,
       params
     );
-    
+
     // Invalidate cache for this workspace and list
     this.cache.invalidate(/^workspaces:/);
     this.cache.invalidate(`workspace:${workspaceId}`);
-    
+
     return response.data.data;
   }
 
@@ -75,15 +103,14 @@ export class WorkspaceClient extends BaseClientModuleImpl {
   async archiveWorkspace(workspaceId: number): Promise<Workspace> {
     this.checkReadOnlyMode('archive workspace');
 
-    const response = await this.http.patch<ApiResponse<Workspace>>(
-      `/workspaces/${workspaceId}`,
-      { is_archived: 1 }
-    );
-    
+    const response = await this.http.patch<ApiResponse<Workspace>>(`/workspaces/${workspaceId}`, {
+      is_archived: 1,
+    });
+
     // Invalidate cache for this workspace and list
     this.cache.invalidate(/^workspaces:/);
     this.cache.invalidate(`workspace:${workspaceId}`);
-    
+
     return response.data.data;
   }
 

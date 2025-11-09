@@ -1,6 +1,30 @@
 import { ApiResponse, CurrentUser, User } from '../../types/index.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
+/**
+ * User Management Client
+ *
+ * Handles user-related operations for retrieving user information.
+ * Users are account members who can be assigned to cards and own resources.
+ *
+ * Features:
+ * - Get all users in the account
+ * - Get specific user by ID
+ * - Get current authenticated user
+ *
+ * @example
+ * ```typescript
+ * // Get current user
+ * const currentUser = await userClient.getCurrentUser();
+ *
+ * // Get all users for assignment
+ * const users = await userClient.getUsers();
+ *
+ * // Get specific user details
+ * const user = await userClient.getUser(userId);
+ * ```
+ */
+
 export class UserClient extends BaseClientModuleImpl {
   /**
    * Get all users (cached)

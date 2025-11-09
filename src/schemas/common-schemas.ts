@@ -1,76 +1,93 @@
 import { z } from 'zod';
+import {
+  optionalIsoDate,
+  optionalPageNumber,
+  optionalPageSize,
+  entityIdSchema,
+  entityNameSchema,
+  urlSchema,
+  positionSchema,
+  SECURITY_LIMITS,
+  secureString,
+  secureArray,
+} from './security-validation.js';
 
 // Common schemas that are reused across different modules
 
 // Instance parameter (for multi-instance support)
 export const instanceParameterSchema = {
-  instance: z
-    .string()
+  instance: secureString({
+    minLength: 1,
+    maxLength: 100,
+    trim: true,
+  })
     .optional()
     .describe(
       'Optional instance name to target a specific BusinessMap instance. If not provided, uses the default instance.'
     ),
 };
 
-// Date and time filters
+// Date and time filters with validation
 export const dateTimeFilterSchema = {
-  from: z.string().optional(),
-  from_date: z.string().optional(), 
-  to: z.string().optional(),
-  to_date: z.string().optional(),
+  from: optionalIsoDate.describe('Start date/time filter (ISO 8601 format)'),
+  from_date: optionalIsoDate.describe('Start date filter (ISO 8601 format)'),
+  to: optionalIsoDate.describe('End date/time filter (ISO 8601 format)'),
+  to_date: optionalIsoDate.describe('End date filter (ISO 8601 format)'),
 };
 
-// Pagination
+// Pagination with security limits
 export const paginationSchema = {
-  page: z
-    .number()
-    .optional()
-    .describe(
-      'Results are always paginated and returned in pages. This parameter controls which page is returned'
-    ),
-  per_page: z
-    .number()
-    .optional()
-    .describe(
-      'Controls how many results are returned per page. The default value is 200 and the maximum is 1000'
-    ),
+  page: optionalPageNumber.describe(
+    'Results are always paginated and returned in pages. This parameter controls which page is returned'
+  ),
+  per_page: optionalPageSize.describe(
+    `Controls how many results are returned per page. The default value is ${SECURITY_LIMITS.DEFAULT_PAGE_SIZE} and the maximum is ${SECURITY_LIMITS.MAX_PAGE_SIZE}`
+  ),
 };
 
-// ID array filters
+// ID array filters with size limits
 export const idArrayFilters = {
-  board_ids: z
-    .array(z.number())
+  board_ids: secureArray(entityIdSchema, {
+    minItems: 0,
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('A list of the board ids for which you want to get the results'),
-  column_ids: z
-    .array(z.number())
+  column_ids: secureArray(entityIdSchema, {
+    minItems: 0,
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe(
       'A list of the column ids for which you want to get the results. Applied only if state parameter is active'
     ),
-  lane_ids: z
-    .array(z.number())
+  lane_ids: secureArray(entityIdSchema, {
+    minItems: 0,
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe(
       'A list of the lane ids for which you want to get the results. Applied only if state parameter is active'
     ),
-  workflow_ids: z
-    .array(z.number())
+  workflow_ids: secureArray(entityIdSchema, {
+    minItems: 0,
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('A list of the workflows ids for which you want to get the results'),
 };
 
-// File attachment schema
+// File attachment schema with validation
 export const fileAttachmentSchema = z.object({
-  file_name: z.string(),
-  link: z.string(),
-  position: z.number(),
+  file_name: entityNameSchema.describe('The name of the file'),
+  link: urlSchema.describe('The URL to the file'),
+  position: positionSchema.describe('The position of the attachment'),
 });
 
 // File attachment with ID schema
 export const fileAttachmentWithIdSchema = z.object({
-  id: z.number(),
-  file_name: z.string(),
-  link: z.string(),
-  position: z.number(),
+  id: entityIdSchema.describe('The ID of the file attachment'),
+  file_name: entityNameSchema.describe('The name of the file'),
+  link: urlSchema.describe('The URL to the file'),
+  position: positionSchema.describe('The position of the attachment'),
 });

@@ -1,15 +1,28 @@
 import { z } from 'zod';
 import { instanceParameterSchema } from './common-schemas.js';
+import {
+  entityIdSchema,
+  entityNameSchema,
+  positionSchema,
+  colorSchema,
+  optionalEntityId,
+  optionalDescription,
+  optionalBooleanFlag,
+  secureArray,
+  SECURITY_LIMITS,
+} from './security-validation.js';
 
 // Schema para listagem de boards
 export const listBoardsSchema = z.object({
-  // ID filters (arrays)
-  board_ids: z
-    .array(z.number())
+  // ID filters (arrays) with size limits
+  board_ids: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('A list of the board ids that you want to get'),
-  workspace_ids: z
-    .array(z.number())
+  workspace_ids: secureArray(entityIdSchema, {
+    maxItems: SECURITY_LIMITS.MAX_ARRAY_ITEMS,
+  })
     .optional()
     .describe('A list of the workspace ids holding the boards that you want to get'),
 
@@ -30,95 +43,90 @@ export const listBoardsSchema = z.object({
     ),
 
   // Assignment filter
-  if_assigned: z
-    .number()
-    .optional()
-    .describe('When set to 1 you will only get boards to which you are assigned (0 or 1)'),
+  if_assigned: optionalBooleanFlag.describe(
+    'When set to 1 you will only get boards to which you are assigned (0 or 1)'
+  ),
 
   // Archive status
-  is_archived: z
-    .number()
-    .optional()
-    .describe(
-      'When set to 0 you will only get non-archived boards. When set to 1 you will only get archived boards (0 or 1)'
-    ),
+  is_archived: optionalBooleanFlag.describe(
+    'When set to 0 you will only get non-archived boards. When set to 1 you will only get archived boards (0 or 1)'
+  ),
 
   // Legacy compatibility
-  workspace_id: z
-    .number()
-    .optional()
-    .describe('Optional workspace ID to filter boards (legacy parameter)'),
+  workspace_id: optionalEntityId.describe(
+    'Optional workspace ID to filter boards (legacy parameter)'
+  ),
   ...instanceParameterSchema,
 });
 
 // Schema para busca de boards
 export const searchBoardSchema = z.object({
-  board_id: z.number().optional().describe('The ID of the board to search for'),
-  board_name: z.string().optional().describe('The name of the board to search for'),
-  workspace_id: z.number().optional().describe('Optional workspace ID to limit search scope'),
+  board_id: optionalEntityId.describe('The ID of the board to search for'),
+  board_name: entityNameSchema.optional().describe('The name of the board to search for'),
+  workspace_id: optionalEntityId.describe('Optional workspace ID to limit search scope'),
   ...instanceParameterSchema,
 });
 
 // Schema para obter detalhes de um board específico
 export const getBoardSchema = z.object({
-  board_id: z.number().describe('The ID of the board'),
+  board_id: entityIdSchema.describe('The ID of the board'),
   ...instanceParameterSchema,
 });
 
 // Schema para obter colunas de um board
 export const getColumnsSchema = z.object({
-  board_id: z.number().describe('The ID of the board'),
+  board_id: entityIdSchema.describe('The ID of the board'),
   ...instanceParameterSchema,
 });
 
 // Schema para obter lanes de um board
 export const getLanesSchema = z.object({
-  board_id: z.number().describe('The ID of the board'),
+  board_id: entityIdSchema.describe('The ID of the board'),
   ...instanceParameterSchema,
 });
 
 // Schema para obter detalhes de uma lane específica
 export const getLaneSchema = z.object({
-  lane_id: z.number().describe('The ID of the lane'),
+  lane_id: entityIdSchema.describe('The ID of the lane'),
   ...instanceParameterSchema,
 });
 
 // Schema para criação de boards
 export const createBoardSchema = z.object({
-  name: z.string().describe('The name of the board'),
-  description: z.string().optional().describe('Optional description for the board'),
-  project_id: z.number().optional().describe('Optional project ID for the board'),
-  workspace_id: z.number().optional().describe('The ID of the workspace'),
+  name: entityNameSchema.describe('The name of the board'),
+  description: optionalDescription.describe('Optional description for the board'),
+  project_id: optionalEntityId.describe('Optional project ID for the board'),
+  workspace_id: optionalEntityId.describe('The ID of the workspace'),
   ...instanceParameterSchema,
 });
 
 // Schema para criação de lanes
 export const createLaneSchema = z.object({
-  name: z.string().describe('The name of the lane'),
-  description: z.string().optional().describe('Optional description for the lane'),
-  workflow_id: z.number().describe('The workflow ID'),
-  position: z.number().describe('The position of the lane'),
-  color: z.string().describe('The color for the lane'),
+  name: entityNameSchema.describe('The name of the lane'),
+  description: optionalDescription.describe('Optional description for the lane'),
+  workflow_id: entityIdSchema.describe('The workflow ID'),
+  position: positionSchema.describe('The position of the lane'),
+  color: colorSchema.describe('The color for the lane'),
   ...instanceParameterSchema,
 });
 
 // Schema para obter estrutura atual do board
 export const getCurrentBoardStructureSchema = z.object({
-  board_id: z.number().describe('The ID of the board'),
+  board_id: entityIdSchema.describe('The ID of the board'),
   ...instanceParameterSchema,
 });
 
 // Schema para atualização de boards
 export const updateBoardSchema = z.object({
-  board_id: z.number().describe('The ID of the board to update'),
-  name: z.string().optional().describe('New name for the board'),
-  description: z.string().optional().describe('New description for the board'),
+  board_id: entityIdSchema.describe('The ID of the board to update'),
+  name: entityNameSchema.optional().describe('New name for the board'),
+  description: optionalDescription.describe('New description for the board'),
   ...instanceParameterSchema,
 });
 
 // Schema para deleção de boards
 export const deleteBoardSchema = z.object({
-  board_id: z.number().describe('The ID of the board to delete'),
+  board_id: entityIdSchema.describe('The ID of the board to delete'),
   archive_first: z
     .boolean()
     .optional()
