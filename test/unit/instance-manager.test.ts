@@ -5,6 +5,23 @@
  * and error handling for multi-instance configuration.
  */
 
+// Import jest globals explicitly for ESM compatibility
+import { jest } from '@jest/globals';
+
+// Create mock functions before mocking the module
+const mockReadFileSync = jest.fn();
+const mockExistsSync = jest.fn();
+const mockWriteFileSync = jest.fn();
+const mockMkdirSync = jest.fn();
+
+// Mock fs module BEFORE importing modules that use it
+jest.unstable_mockModule('fs', () => ({
+  readFileSync: mockReadFileSync,
+  existsSync: mockExistsSync,
+  writeFileSync: mockWriteFileSync,
+  mkdirSync: mockMkdirSync,
+}));
+
 import { InstanceConfigManager } from '../../src/config/instance-manager';
 import {
   InstanceConfigError,
@@ -13,14 +30,8 @@ import {
   MultiInstanceConfig,
   TokenLoadError,
 } from '../../src/types/instance-config';
-import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { tmpdir } from 'os';
-
-// Mock fs module
-jest.mock('fs');
-const mockReadFileSync = readFileSync as jest.MockedFunction<typeof readFileSync>;
-const mockExistsSync = existsSync as jest.MockedFunction<typeof existsSync>;
+import { homedir } from 'os';
 
 describe('InstanceConfigManager', () => {
   let manager: InstanceConfigManager;
@@ -167,7 +178,7 @@ describe('InstanceConfigManager', () => {
       });
 
       it('should use first existing default path', async () => {
-        const homePath = join(require('os').homedir(), '.businessmap-mcp', 'instances.json');
+        const homePath = join(homedir(), '.businessmap-mcp', 'instances.json');
         mockExistsSync.mockImplementation((path) => path === homePath);
         mockReadFileSync.mockReturnValue(JSON.stringify(validConfig));
 

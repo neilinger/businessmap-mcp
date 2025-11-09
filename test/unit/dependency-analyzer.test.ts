@@ -3,6 +3,9 @@
  * Tests Issue #7 fix: Eliminate read-after-delete API calls
  */
 
+// Import jest globals explicitly for ESM compatibility
+import { jest } from '@jest/globals';
+
 import { DependencyAnalyzer } from '../../src/services/dependency-analyzer';
 import { BusinessMapClient } from '../../src/client/businessmap-client';
 
@@ -29,7 +32,8 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should extract workspace names into nameMap', async () => {
       // Arrange
       const workspaceIds = [1, 2, 3];
-      mockClient.getWorkspace = jest.fn()
+      mockClient.getWorkspace = jest
+        .fn()
         .mockResolvedValueOnce({ workspace_id: 1, name: 'Workspace Alpha' })
         .mockResolvedValueOnce({ workspace_id: 2, name: 'Workspace Beta' })
         .mockResolvedValueOnce({ workspace_id: 3, name: 'Workspace Gamma' });
@@ -50,7 +54,8 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should handle missing workspaces with fallback names', async () => {
       // Arrange
       const workspaceIds = [1, 999];
-      mockClient.getWorkspace = jest.fn()
+      mockClient.getWorkspace = jest
+        .fn()
         .mockResolvedValueOnce({ workspace_id: 1, name: 'Valid Workspace' })
         .mockRejectedValueOnce(new Error('Workspace not found'));
 
@@ -82,7 +87,8 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should extract board names into nameMap', async () => {
       // Arrange
       const boardIds = [10, 20, 30];
-      mockClient.getBoard = jest.fn()
+      mockClient.getBoard = jest
+        .fn()
         .mockResolvedValueOnce({ board_id: 10, name: 'Board One' })
         .mockResolvedValueOnce({ board_id: 20, name: 'Board Two' })
         .mockResolvedValueOnce({ board_id: 30, name: 'Board Three' });
@@ -103,7 +109,8 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should handle 404 errors with fallback names', async () => {
       // Arrange
       const boardIds = [10, 404];
-      mockClient.getBoard = jest.fn()
+      mockClient.getBoard = jest
+        .fn()
         .mockResolvedValueOnce({ board_id: 10, name: 'Valid Board' })
         .mockRejectedValueOnce(new Error('404 Not Found'));
 
@@ -120,8 +127,7 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should extract names for boards with cards', async () => {
       // Arrange
       const boardIds = [10];
-      mockClient.getBoard = jest.fn()
-        .mockResolvedValueOnce({ board_id: 10, name: 'Active Board' });
+      mockClient.getBoard = jest.fn().mockResolvedValueOnce({ board_id: 10, name: 'Active Board' });
 
       mockClient.getCards = jest.fn().mockResolvedValue([
         { card_id: 1, title: 'Card 1' },
@@ -142,7 +148,8 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should extract card names (titles) into nameMap', async () => {
       // Arrange
       const cardIds = [100, 200, 300];
-      mockClient.getCard = jest.fn()
+      mockClient.getCard = jest
+        .fn()
         .mockResolvedValueOnce({ card_id: 100, title: 'Card Alpha' })
         .mockResolvedValueOnce({ card_id: 200, title: 'Card Beta' })
         .mockResolvedValueOnce({ card_id: 300, title: 'Card Gamma' });
@@ -165,7 +172,8 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should handle deleted cards with fallback names', async () => {
       // Arrange
       const cardIds = [100, 404];
-      mockClient.getCard = jest.fn()
+      mockClient.getCard = jest
+        .fn()
         .mockResolvedValueOnce({ card_id: 100, title: 'Valid Card' })
         .mockRejectedValueOnce(new Error('Card not found'));
 
@@ -184,8 +192,7 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should extract names for cards with children', async () => {
       // Arrange
       const cardIds = [100];
-      mockClient.getCard = jest.fn()
-        .mockResolvedValueOnce({ card_id: 100, title: 'Parent Card' });
+      mockClient.getCard = jest.fn().mockResolvedValueOnce({ card_id: 100, title: 'Parent Card' });
 
       mockClient.getCardChildren = jest.fn().mockResolvedValue([
         { card_id: 101, title: 'Child Card 1' },
@@ -208,7 +215,8 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should maintain nameMap consistency across mixed success/failure', async () => {
       // Arrange
       const boardIds = [1, 2, 3, 4, 5];
-      mockClient.getBoard = jest.fn()
+      mockClient.getBoard = jest
+        .fn()
         .mockResolvedValueOnce({ board_id: 1, name: 'Board 1' })
         .mockRejectedValueOnce(new Error('Failed'))
         .mockResolvedValueOnce({ board_id: 3, name: 'Board 3' })
@@ -232,7 +240,8 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should include all requested IDs in nameMap even with partial failures', async () => {
       // Arrange
       const cardIds = [10, 20, 30];
-      mockClient.getCard = jest.fn()
+      mockClient.getCard = jest
+        .fn()
         .mockResolvedValueOnce({ card_id: 10, title: 'Success' })
         .mockRejectedValueOnce(new Error('Network error'))
         .mockRejectedValueOnce(new Error('404'));
@@ -256,7 +265,8 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should handle undefined names gracefully', async () => {
       // Arrange
       const boardIds = [1];
-      mockClient.getBoard = jest.fn()
+      mockClient.getBoard = jest
+        .fn()
         .mockResolvedValueOnce({ board_id: 1, name: undefined as any });
 
       mockClient.getCards = jest.fn().mockResolvedValue([]);
@@ -272,10 +282,9 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
     it('should handle maximum bulk size (50 items)', async () => {
       // Arrange
       const cardIds = Array.from({ length: 50 }, (_, i) => i + 1);
-      mockClient.getCard = jest.fn()
-        .mockImplementation((id: number) =>
-          Promise.resolve({ card_id: id, title: `Card ${id}` })
-        );
+      mockClient.getCard = jest
+        .fn()
+        .mockImplementation((id: number) => Promise.resolve({ card_id: id, title: `Card ${id}` }));
 
       mockClient.getCardChildren = jest.fn().mockResolvedValue([]);
       mockClient.getCardComments = jest.fn().mockResolvedValue([]);
@@ -294,8 +303,7 @@ describe('DependencyAnalyzer - nameMap extraction', () => {
       // Arrange
       const boardIds = [1];
       const specialName = 'Board: "Test" & <Special> \\Chars\\';
-      mockClient.getBoard = jest.fn()
-        .mockResolvedValueOnce({ board_id: 1, name: specialName });
+      mockClient.getBoard = jest.fn().mockResolvedValueOnce({ board_id: 1, name: specialName });
 
       mockClient.getCards = jest.fn().mockResolvedValue([]);
 

@@ -11,6 +11,9 @@
  * - Validate nameMap correctness
  */
 
+// Import jest globals explicitly for ESM compatibility
+import { jest } from '@jest/globals';
+
 import { DependencyAnalyzer } from '../../src/services/dependency-analyzer';
 import { ConfirmationBuilder } from '../../src/services/confirmation-builder';
 import { BusinessMapClient } from '../../src/client/businessmap-client';
@@ -42,10 +45,9 @@ describe('Issue #7: API Call Reduction Integration Test', () => {
       const boardIds = [1, 2, 3, 4, 5];
 
       // Mock analysis phase (reads boards)
-      mockClient.getBoard = jest.fn()
-        .mockImplementation((id: number) =>
-          Promise.resolve({ board_id: id, name: `Board ${id}` })
-        );
+      mockClient.getBoard = jest
+        .fn()
+        .mockImplementation((id: number) => Promise.resolve({ board_id: id, name: `Board ${id}` }));
       mockClient.getCards = jest.fn().mockResolvedValue([]); // No cards
 
       // Act: Perform analysis (which now extracts names)
@@ -88,10 +90,9 @@ describe('Issue #7: API Call Reduction Integration Test', () => {
       // Arrange: 50 boards (maximum bulk size)
       const boardIds = Array.from({ length: 50 }, (_, i) => i + 1);
 
-      mockClient.getBoard = jest.fn()
-        .mockImplementation((id: number) =>
-          Promise.resolve({ board_id: id, name: `Board ${id}` })
-        );
+      mockClient.getBoard = jest
+        .fn()
+        .mockImplementation((id: number) => Promise.resolve({ board_id: id, name: `Board ${id}` }));
       mockClient.getCards = jest.fn().mockResolvedValue([]);
 
       // Act: Analysis phase
@@ -130,10 +131,9 @@ describe('Issue #7: API Call Reduction Integration Test', () => {
       // Arrange
       const cardIds = [10, 20, 30, 40, 50];
 
-      mockClient.getCard = jest.fn()
-        .mockImplementation((id: number) =>
-          Promise.resolve({ card_id: id, title: `Card ${id}` })
-        );
+      mockClient.getCard = jest
+        .fn()
+        .mockImplementation((id: number) => Promise.resolve({ card_id: id, title: `Card ${id}` }));
       mockClient.getCardChildren = jest.fn().mockResolvedValue([]);
       mockClient.getCardComments = jest.fn().mockResolvedValue([]);
       mockClient.getCardSubtasks = jest.fn().mockResolvedValue([]);
@@ -181,10 +181,9 @@ describe('Issue #7: API Call Reduction Integration Test', () => {
       // Arrange: Simulate boards that will be deleted
       const boardIds = [1, 2, 3];
 
-      mockClient.getBoard = jest.fn()
-        .mockImplementation((id: number) =>
-          Promise.resolve({ board_id: id, name: `Board ${id}` })
-        );
+      mockClient.getBoard = jest
+        .fn()
+        .mockImplementation((id: number) => Promise.resolve({ board_id: id, name: `Board ${id}` }));
       mockClient.getCards = jest.fn().mockResolvedValue([]);
 
       // Act: Analysis (before delete)
@@ -216,7 +215,8 @@ describe('Issue #7: API Call Reduction Integration Test', () => {
       // Arrange: Mix of valid and invalid boards
       const boardIds = [1, 999, 3];
 
-      mockClient.getBoard = jest.fn()
+      mockClient.getBoard = jest
+        .fn()
         .mockResolvedValueOnce({ board_id: 1, name: 'Valid Board 1' })
         .mockRejectedValueOnce(new Error('Board not found'))
         .mockResolvedValueOnce({ board_id: 3, name: 'Valid Board 3' });
@@ -251,10 +251,9 @@ describe('Issue #7: API Call Reduction Integration Test', () => {
       // Arrange
       const boardIds = Array.from({ length: 50 }, (_, i) => i + 1);
 
-      mockClient.getBoard = jest.fn()
-        .mockImplementation((id: number) =>
-          Promise.resolve({ board_id: id, name: `Board ${id}` })
-        );
+      mockClient.getBoard = jest
+        .fn()
+        .mockImplementation((id: number) => Promise.resolve({ board_id: id, name: `Board ${id}` }));
       mockClient.getCards = jest.fn().mockResolvedValue([]);
 
       // Act & Time

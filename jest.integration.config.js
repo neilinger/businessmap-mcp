@@ -21,6 +21,9 @@ export default {
       },
     ],
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(p-limit|yocto-queue))',
+  ],
   testMatch: ['**/tests/integration/**/*.test.ts'],
   setupFilesAfterEnv: ['<rootDir>/tests/integration/setup.ts'],
   collectCoverageFrom: ['src/**/*.ts'],

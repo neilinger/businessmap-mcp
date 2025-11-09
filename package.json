@@ -20,7 +20,7 @@
     "dev": "tsx src/index.ts",
     "watch": "tsx --watch src/index.ts",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "test:integration": "jest --config jest.integration.config.js",
+    "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.integration.config.js",
     "test:npx": "bash scripts/test-npx.sh",
     "publish:npm": "bash scripts/publish-npm.sh",
     "publish:github": "bash scripts/publish-github.sh",

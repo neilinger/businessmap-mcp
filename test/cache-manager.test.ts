@@ -1,3 +1,6 @@
+// Import jest globals explicitly for ESM compatibility
+import { jest } from '@jest/globals';
+
 import { CacheManager } from '../src/client/modules/base-client';
 
 describe('CacheManager', () => {
@@ -40,7 +43,7 @@ describe('CacheManager', () => {
       await cache.get('test-key', fetcher, 100); // 100ms TTL
 
       // Wait for expiry
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
       // Second call after expiry
       await cache.get('test-key', fetcher);
@@ -49,9 +52,11 @@ describe('CacheManager', () => {
     });
 
     it('should deduplicate concurrent requests', async () => {
-      const fetcher = jest.fn().mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve('test-data'), 50))
-      );
+      const fetcher = jest
+        .fn()
+        .mockImplementation(
+          () => new Promise((resolve) => setTimeout(() => resolve('test-data'), 50))
+        );
 
       // Make 3 concurrent requests for the same key
       const [result1, result2, result3] = await Promise.all([
@@ -150,7 +155,7 @@ describe('CacheManager', () => {
 
       expect(stats.hits).toBe(1);
       expect(stats.misses).toBe(2);
-      expect(stats.hitRate).toBe(1/3);
+      expect(stats.hitRate).toBe(1 / 3);
       expect(stats.size).toBe(2);
     });
 
@@ -180,9 +185,9 @@ describe('CacheManager', () => {
 
     it('should handle concurrent request failures correctly', async () => {
       const error = new Error('API error');
-      const fetcher = jest.fn().mockImplementation(() =>
-        new Promise((_, reject) => setTimeout(() => reject(error), 50))
-      );
+      const fetcher = jest
+        .fn()
+        .mockImplementation(() => new Promise((_, reject) => setTimeout(() => reject(error), 50)));
 
       // Make 3 concurrent requests that will fail
       const results = await Promise.allSettled([
@@ -192,7 +197,7 @@ describe('CacheManager', () => {
       ]);
 
       // All should have failed
-      expect(results.every(r => r.status === 'rejected')).toBe(true);
+      expect(results.every((r) => r.status === 'rejected')).toBe(true);
       expect(fetcher).toHaveBeenCalledTimes(1); // Only one actual fetch due to deduplication
 
       // Next call should retry (not return cached error)
@@ -213,7 +218,7 @@ describe('CacheManager', () => {
       expect(stats.size).toBe(2);
 
       // Wait for key1 to expire
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
       // Access key1 after expiry - should trigger lazy cleanup and refetch
       await cache.get('key1', fetcher1);
@@ -230,15 +235,17 @@ describe('CacheManager', () => {
     it('should prevent stale caching via generation counter', async () => {
       const cache = new CacheManager(true, 5000);
 
-      const slowFetcher = jest.fn().mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve('stale-data'), 200))
-      );
+      const slowFetcher = jest
+        .fn()
+        .mockImplementation(
+          () => new Promise((resolve) => setTimeout(() => resolve('stale-data'), 200))
+        );
 
       // Start slow request
       const promise = cache.get('test-key', slowFetcher);
 
       // Invalidate while in-flight
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       cache.invalidate('test-key');
 
       // Let request complete
@@ -266,7 +273,7 @@ describe('CacheManager', () => {
       await Promise.all([
         Promise.resolve(cache.invalidate('key1')),
         Promise.resolve(cache.invalidate('key2')),
-        Promise.resolve(cache.invalidate(/^key/))
+        Promise.resolve(cache.invalidate(/^key/)),
       ]);
 
       const stats = cache.getStats();

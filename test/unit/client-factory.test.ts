@@ -5,6 +5,9 @@
  * and instance isolation for multi-instance configuration.
  */
 
+// Import jest globals explicitly for ESM compatibility
+import { jest } from '@jest/globals';
+
 import { BusinessMapClientFactory } from '../../src/client/client-factory';
 import { BusinessMapClient } from '../../src/client/businessmap-client';
 import { InstanceConfigManager } from '../../src/config/instance-manager';
