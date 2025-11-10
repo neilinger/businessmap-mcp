@@ -1,4 +1,5 @@
 # PR#12 Testing Strategy Evaluation
+
 ## Fix: Parent links lost when moving cards between workflows
 
 **Evaluation Date**: 2025-11-01
@@ -13,6 +14,7 @@
 **Overall Test Quality Score**: 6.2/10 (BELOW ACCEPTABLE)
 
 ### Critical Findings:
+
 1. **TypeScript Compilation Failures** - Test suite fails to compile (16 TS errors)
 2. **Test Pyramid Violation** - 100% integration tests, 0% unit tests
 3. **Missing Race Condition Testing** - No concurrent update validation
@@ -22,6 +24,7 @@
 7. **No Test Isolation** - Integration tests depend on live API and cleanup order
 
 ### Test Coverage Estimates (Without Live API):
+
 - **Statements**: ~65% (only for path 1: preserve linked_cards)
 - **Branches**: ~45% (missing error paths and edge cases)
 - **Functions**: ~80% (main methods covered, helper methods untested)
@@ -51,10 +54,12 @@ error TS2339: Property 'columns' does not exist on type 'Workflow'
 **Lines Affected**: 144, 150-151, 161-162, 342-343, 345, 476, 496, 515
 
 **Examples**:
+
 ```typescript
 // Line 142-145: Expecting workflows to be array but it's not
 const workflows = boardStructure.workflows || [];
-if (workflows.length < 1) {  // TS2365: Cannot use < with Workflow
+if (workflows.length < 1) {
+  // TS2365: Cannot use < with Workflow
   throw new Error('Board must have at least one workflow for testing');
 }
 
@@ -74,12 +79,14 @@ const workflow2 = boardStructure.workflows?.find((w) => w.workflow_id === testWo
 **Severity**: HIGH - Tests depend on execution order and cleanup
 
 **Issues**:
+
 1. All tests use shared global variables (`testWorkspaceId`, `testBoardId`, etc.)
 2. Tests depend on successful resource cleanup after each suite
 3. Test resource tracking is append-only (createdResources array)
 4. If cleanup fails partially, subsequent tests get wrong resource IDs
 
 **Example**:
+
 ```typescript
 // Line 47: Resources appended but never cleaned between suites
 const createdResources: TestResource[] = [];
@@ -89,7 +96,7 @@ for (const resource of createdResources.reverse()) {
   try {
     // ... cleanup code ...
   } catch (error) {
-    console.warn(`Failed to cleanup...`);  // Silently continues!
+    console.warn(`Failed to cleanup...`); // Silently continues!
   }
 }
 ```
@@ -97,6 +104,7 @@ for (const resource of createdResources.reverse()) {
 **Risk**: If card deletion fails, the board deletion uses stale cardId state.
 
 **Impact**:
+
 - Orphaned resources accumulate on demo API
 - Test flakiness increases with repeated runs
 - Resource cleanup times accumulate (may exceed 60s timeout)
@@ -112,6 +120,7 @@ jest.setTimeout(60000); // 60s timeout for integration tests
 ```
 
 **Performance SLA in test**:
+
 ```typescript
 const performanceTarget = 500; // 500ms per operation target (REG-003)
 ```
@@ -119,6 +128,7 @@ const performanceTarget = 500; // 500ms per operation target (REG-003)
 **Issue**: Single operation taking 500ms + 60 operations = 30s before timeout. No buffer for actual problems.
 
 **Calculation**:
+
 - Test suite has ~15 test cases
 - Each test may make 2-3 API calls (GET + PATCH minimum)
 - Total expected calls: 45-50
@@ -195,23 +205,24 @@ Test Pyramid (Recommended):
 
 ### Covered Scenarios (Happy Path)
 
-| Test ID | Coverage | Notes |
-|---------|----------|-------|
-| UNIT-001 | Statement | Column move with existing links - preserves |
-| UNIT-002 | Statement | Explicit override - clears links |
-| UNIT-004 | Statement | Structure validation - basic checks |
-| INT-001 | Statement | Single column move - preserves |
-| INT-002 | Statement | Bidirectional check - uses separate methods |
-| INT-003 | Statement | Bulk move - sequential calls to updateCard |
-| INT-004 | Statement | Cross-workflow move - column change only |
-| REG-001 | Statement | Normal field updates - title/description |
-| REG-002 | Statement | Explicit link management - manual override |
-| REG-003 | Statement | Performance baseline - 5 sequential ops |
-| EDGE-001 | Statement | Empty links - no-op update |
-| EDGE-002 | Statement | Transient errors - logs and continues |
-| EDGE-003 | Type Check | Type safety - compile-time validation |
+| Test ID  | Coverage   | Notes                                       |
+| -------- | ---------- | ------------------------------------------- |
+| UNIT-001 | Statement  | Column move with existing links - preserves |
+| UNIT-002 | Statement  | Explicit override - clears links            |
+| UNIT-004 | Statement  | Structure validation - basic checks         |
+| INT-001  | Statement  | Single column move - preserves              |
+| INT-002  | Statement  | Bidirectional check - uses separate methods |
+| INT-003  | Statement  | Bulk move - sequential calls to updateCard  |
+| INT-004  | Statement  | Cross-workflow move - column change only    |
+| REG-001  | Statement  | Normal field updates - title/description    |
+| REG-002  | Statement  | Explicit link management - manual override  |
+| REG-003  | Statement  | Performance baseline - 5 sequential ops     |
+| EDGE-001 | Statement  | Empty links - no-op update                  |
+| EDGE-002 | Statement  | Transient errors - logs and continues       |
+| EDGE-003 | Type Check | Type safety - compile-time validation       |
 
 **Covered Statement %**: ~65% (estimated)
+
 - updateCard() lines 150-188 - ~85% (missing error edge cases)
 - moveCard() lines 204-239 - ~80% (missing error paths)
 - bulkUpdateCards() lines 457-478 - ~60% (missing failure scenarios)
@@ -234,12 +245,14 @@ Test Pyramid (Recommended):
 ```
 
 **Missing Tests**:
+
 1. Concurrent updateCard() on same card
 2. Concurrent moveCard() on same card
 3. Interleaved read-write between threads
 4. Last-write-wins vs. merge collision detection
 
 **Test Case Example (NOT IN SUITE)**:
+
 ```typescript
 it('[CONCURRENT-001] Race condition: Last write loses field updates', async () => {
   const promises = [
@@ -280,29 +293,30 @@ if (!cardId) {
 
 **Missing Tests**:
 
-| Scenario | Current | Recommended |
-|----------|---------|-------------|
-| Negative cardId | ❌ Not tested | Should reject |
-| Zero cardId | ❌ Not tested | Should reject |
-| String cardId | ❌ Compile error | Type system prevents |
-| Oversized linked_cards (1000+) | ❌ Not tested | Should throttle |
-| Circular reference (A→B→A) | ❌ Not tested | Should validate |
-| Null linked_cards item | ❌ Not tested | Should reject |
-| Invalid link_type | ❌ Not tested | Should validate against enum |
+| Scenario                       | Current          | Recommended                  |
+| ------------------------------ | ---------------- | ---------------------------- |
+| Negative cardId                | ❌ Not tested    | Should reject                |
+| Zero cardId                    | ❌ Not tested    | Should reject                |
+| String cardId                  | ❌ Compile error | Type system prevents         |
+| Oversized linked_cards (1000+) | ❌ Not tested    | Should throttle              |
+| Circular reference (A→B→A)     | ❌ Not tested    | Should validate              |
+| Null linked_cards item         | ❌ Not tested    | Should reject                |
+| Invalid link_type              | ❌ Not tested    | Should validate against enum |
 
 **Test Case Example (NOT IN SUITE)**:
+
 ```typescript
 it('[VALIDATION-001] Rejects negative cardId', async () => {
-  await expect(
-    client.updateCard({ card_id: -123, title: 'Test' })
-  ).rejects.toThrow(/card_id must be positive/);
+  await expect(client.updateCard({ card_id: -123, title: 'Test' })).rejects.toThrow(
+    /card_id must be positive/
+  );
 });
 
 it('[VALIDATION-002] Rejects oversized linked_cards', async () => {
   const hugeArray = Array(1001).fill({ card_id: 123, link_type: 'child' });
-  await expect(
-    client.updateCard({ card_id: 123, linked_cards: hugeArray })
-  ).rejects.toThrow(/maximum.*linked_cards/);
+  await expect(client.updateCard({ card_id: 123, linked_cards: hugeArray })).rejects.toThrow(
+    /maximum.*linked_cards/
+  );
 });
 ```
 
@@ -313,6 +327,7 @@ it('[VALIDATION-002] Rejects oversized linked_cards', async () => {
 #### Gap 3: Error Recovery Testing (INCOMPLETE)
 
 **Current Approach** (UNIT-003, EDGE-002):
+
 ```typescript
 it('[UNIT-003] updateCard handles getCard failure gracefully', async () => {
   // Test just calls updateCard on potentially failing card
@@ -325,21 +340,21 @@ it('[UNIT-003] updateCard handles getCard failure gracefully', async () => {
 **Problem**: Test doesn't verify the error handling logic actually executes.
 
 **Missing Test Coverage**:
+
 1. Mock getCard() to throw network error
 2. Verify updateCard() proceeds without linked_cards
 3. Verify warning is logged
 4. Verify final card is still updated
 
 **Test Case Example (NOT IN SUITE)**:
+
 ```typescript
 it('[ERROR-RECOVERY-001] updateCard succeeds when getCard fails', async () => {
-  const spy = jest.spyOn(client, 'getCard').mockRejectedValueOnce(
-    new Error('Network timeout')
-  );
+  const spy = jest.spyOn(client, 'getCard').mockRejectedValueOnce(new Error('Network timeout'));
 
   const result = await client.updateCard({
     card_id: 123,
-    title: 'Still Updated'
+    title: 'Still Updated',
   });
 
   expect(result.title).toBe('Still Updated');
@@ -355,13 +370,15 @@ it('[ERROR-RECOVERY-001] updateCard succeeds when getCard fails', async () => {
 #### Gap 4: Performance/Load Testing (INSUFFICIENT)
 
 **Current Test** (REG-003):
+
 ```typescript
-const operationCount = 5;  // Only 5 sequential operations
-const performanceTarget = 500;  // 500ms per operation
+const operationCount = 5; // Only 5 sequential operations
+const performanceTarget = 500; // 500ms per operation
 expect(maxDuration).toBeLessThan(500);
 ```
 
 **Issues**:
+
 1. Phase 2 noted: 35s for 100 cards at sequential rate = 350ms/card
 2. Test only validates 5 operations (not 100)
 3. Doesn't measure fetch-merge-update overhead
@@ -369,33 +386,34 @@ expect(maxDuration).toBeLessThan(500);
 
 **Missing Tests**:
 
-| Scenario | Current | Issue |
-|----------|---------|-------|
-| Single card update | ~350ms | ✓ Covered (below 500ms target) |
-| 100 card sequential | ❌ Not tested | Phase 2: 35 seconds observed |
-| 100 card parallel | ❌ Not tested | Would show race conditions |
-| Concurrent moves | ❌ Not tested | Stress test needed |
-| Under load (network latency) | ❌ Not tested | Retry mechanism untested |
+| Scenario                     | Current       | Issue                          |
+| ---------------------------- | ------------- | ------------------------------ |
+| Single card update           | ~350ms        | ✓ Covered (below 500ms target) |
+| 100 card sequential          | ❌ Not tested | Phase 2: 35 seconds observed   |
+| 100 card parallel            | ❌ Not tested | Would show race conditions     |
+| Concurrent moves             | ❌ Not tested | Stress test needed             |
+| Under load (network latency) | ❌ Not tested | Retry mechanism untested       |
 
 **Test Case Example (NOT IN SUITE)**:
+
 ```typescript
 it('[PERF-001] Bulk move 100 cards completes within SLA', async () => {
-  const cardIds = Array(100).fill(0).map((_, i) => baseCardId + i);
+  const cardIds = Array(100)
+    .fill(0)
+    .map((_, i) => baseCardId + i);
 
   const startTime = Date.now();
   const results = await client.bulkUpdateCards(cardIds, {
-    column_id: targetColumn
+    column_id: targetColumn,
   });
   const duration = Date.now() - startTime;
 
-  expect(results.every(r => r.success)).toBe(true);
-  expect(duration).toBeLessThan(35000);  // Phase 2 SLA
+  expect(results.every((r) => r.success)).toBe(true);
+  expect(duration).toBeLessThan(35000); // Phase 2 SLA
 });
 
-it('[PERF-002] Concurrent moves don\'t lose updates', async () => {
-  const promises = cardIds.map(id =>
-    client.moveCard(id, column1)
-  );
+it("[PERF-002] Concurrent moves don't lose updates", async () => {
+  const promises = cardIds.map((id) => client.moveCard(id, column1));
 
   await Promise.all(promises);
 
@@ -415,27 +433,27 @@ it('[PERF-002] Concurrent moves don\'t lose updates', async () => {
 
 ```typescript
 // Vulnerable sequence (lines 164-186):
-const currentCard = await this.getCard(cardId);           // Read
-updateData.linked_cards = currentCard.linked_cards;      // Merge
+const currentCard = await this.getCard(cardId); // Read
+updateData.linked_cards = currentCard.linked_cards; // Merge
 const response = await this.http.patch(`/cards/${cardId}`, updateData); // Write
 
 // Between Read and Write, another request could modify the card
 ```
 
 **Missing Test**:
+
 ```typescript
 it('[SECURITY-001] TOCTOU: Concurrent updates handled correctly', async () => {
   // Mock getCard to return cards with different states
   // Verify no linked_cards are lost
-  const spy = jest.spyOn(client, 'getCard')
-    .mockResolvedValueOnce({
-      ...cardState,
-      linked_cards: [{ card_id: 100, link_type: 'child' }]
-    });
+  const spy = jest.spyOn(client, 'getCard').mockResolvedValueOnce({
+    ...cardState,
+    linked_cards: [{ card_id: 100, link_type: 'child' }],
+  });
 
   const result = await client.updateCard({
     card_id: 123,
-    title: 'Updated'
+    title: 'Updated',
   });
 
   expect(result.linked_cards).toContainEqual({ card_id: 100, link_type: 'child' });
@@ -455,18 +473,19 @@ it('[SECURITY-001] TOCTOU: Concurrent updates handled correctly', async () => {
 const gigantic = Array(100000).fill({ card_id: 1, link_type: 'child' });
 await client.updateCard({
   card_id: 123,
-  linked_cards: gigantic  // No size validation!
+  linked_cards: gigantic, // No size validation!
 });
 ```
 
 **Missing Test**:
+
 ```typescript
 it('[SECURITY-002] Rejects oversized linked_cards array', async () => {
   const huge = Array(10001).fill({ card_id: 1, link_type: 'child' });
 
-  await expect(
-    client.updateCard({ card_id: 123, linked_cards: huge })
-  ).rejects.toThrow(/exceeds maximum/);
+  await expect(client.updateCard({ card_id: 123, linked_cards: huge })).rejects.toThrow(
+    /exceeds maximum/
+  );
 });
 ```
 
@@ -481,7 +500,7 @@ it('[SECURITY-002] Rejects oversized linked_cards array', async () => {
 ```typescript
 // Could create invalid state:
 await client.addCardParent(cardA, cardB);
-await client.addCardParent(cardB, cardA);  // Should fail!
+await client.addCardParent(cardB, cardA); // Should fail!
 ```
 
 **Missing Test**: N/A (out of scope for this PR but worth noting)
@@ -492,27 +511,28 @@ await client.addCardParent(cardB, cardA);  // Should fail!
 
 ### 5.1 Assertion Density
 
-| Test Case | Assertions | Type | Quality |
-|-----------|-----------|------|---------|
-| UNIT-001 | 3 | Basic | Low - Just checks preservation |
-| UNIT-002 | 2 | Basic | Low - Only validates count |
-| UNIT-004 | 3 | Type check | Medium - Validates structure |
-| INT-001 | 3 | State check | Medium - Verifies column change |
-| INT-002 | 3 | Relationship | Medium - Bidirectional checks |
-| INT-003 | 3 | Bulk | Low - Only checks count |
-| INT-004 | 2 | Cross-system | Low - Minimal validation |
-| REG-001 | 3 | Regression | Medium - Field updates |
-| REG-002 | 1 | Explicit | Low - Just count check |
-| REG-003 | 1 | Performance | Low - Only checks threshold |
-| EDGE-001 | 3 | Empty state | Medium - Multiple checks |
-| EDGE-002 | 1 | Error | Low - Only checks success |
-| EDGE-003 | 2 | Type safety | Low - Compile-time check |
+| Test Case | Assertions | Type         | Quality                         |
+| --------- | ---------- | ------------ | ------------------------------- |
+| UNIT-001  | 3          | Basic        | Low - Just checks preservation  |
+| UNIT-002  | 2          | Basic        | Low - Only validates count      |
+| UNIT-004  | 3          | Type check   | Medium - Validates structure    |
+| INT-001   | 3          | State check  | Medium - Verifies column change |
+| INT-002   | 3          | Relationship | Medium - Bidirectional checks   |
+| INT-003   | 3          | Bulk         | Low - Only checks count         |
+| INT-004   | 2          | Cross-system | Low - Minimal validation        |
+| REG-001   | 3          | Regression   | Medium - Field updates          |
+| REG-002   | 1          | Explicit     | Low - Just count check          |
+| REG-003   | 1          | Performance  | Low - Only checks threshold     |
+| EDGE-001  | 3          | Empty state  | Medium - Multiple checks        |
+| EDGE-002  | 1          | Error        | Low - Only checks success       |
+| EDGE-003  | 2          | Type safety  | Low - Compile-time check        |
 
 **Average Assertion Density**: 2.3 assertions/test (LOW)
 **Recommended Minimum**: 4-5 assertions/test
 **Gap**: Tests validate single conditions instead of comprehensive behavior
 
 **Example of Low-Quality Assertion**:
+
 ```typescript
 // INT-001 line 405-407: Only 3 assertions
 expect(finalLinks.length).toBe(initialLinks.length);
@@ -531,22 +551,22 @@ expect(afterMove.column_id).toBe(testColumn2Id);
 
 ### 5.2 Test Naming and Intent
 
-| Test | Intent Clear? | Issues |
-|------|---------------|--------|
-| UNIT-001 | ✓ Yes | Clear purpose: preserve on column move |
-| UNIT-002 | ✓ Yes | Clear: explicit override respected |
-| UNIT-003 | ❌ Ambiguous | "getCard failure" - doesn't actually fail |
-| UNIT-004 | ✓ Yes | Clear: validate structure |
-| INT-001 | ✓ Yes | Clear: single move scenario |
-| INT-002 | ✓ Yes | Clear: bidirectional check |
-| INT-003 | ❌ Incomplete | "Bulk move" - doesn't test parallel |
-| INT-004 | ❌ Conditional | Skips if only one workflow |
-| REG-001 | ✓ Yes | Clear: normal updates work |
-| REG-002 | ✓ Yes | Clear: explicit links work |
-| REG-003 | ✓ Yes | Clear: performance bounds |
-| EDGE-001 | ✓ Yes | Clear: empty links |
-| EDGE-002 | ❌ False | "Transient errors" - doesn't test them |
-| EDGE-003 | ✓ Yes | Clear: type safety |
+| Test     | Intent Clear?  | Issues                                    |
+| -------- | -------------- | ----------------------------------------- |
+| UNIT-001 | ✓ Yes          | Clear purpose: preserve on column move    |
+| UNIT-002 | ✓ Yes          | Clear: explicit override respected        |
+| UNIT-003 | ❌ Ambiguous   | "getCard failure" - doesn't actually fail |
+| UNIT-004 | ✓ Yes          | Clear: validate structure                 |
+| INT-001  | ✓ Yes          | Clear: single move scenario               |
+| INT-002  | ✓ Yes          | Clear: bidirectional check                |
+| INT-003  | ❌ Incomplete  | "Bulk move" - doesn't test parallel       |
+| INT-004  | ❌ Conditional | Skips if only one workflow                |
+| REG-001  | ✓ Yes          | Clear: normal updates work                |
+| REG-002  | ✓ Yes          | Clear: explicit links work                |
+| REG-003  | ✓ Yes          | Clear: performance bounds                 |
+| EDGE-001 | ✓ Yes          | Clear: empty links                        |
+| EDGE-002 | ❌ False       | "Transient errors" - doesn't test them    |
+| EDGE-003 | ✓ Yes          | Clear: type safety                        |
 
 **Score**: 9/13 clear intent (69%)
 
@@ -554,16 +574,17 @@ expect(afterMove.column_id).toBe(testColumn2Id);
 
 ### 5.3 Test Execution Time Analysis
 
-| Suite | Expected Duration | Notes |
-|-------|-------------------|-------|
-| Unit Tests | N/A | 0 tests |
-| Integration | 45-60 seconds | All require API calls |
-| Regression | 10-15 seconds | Performance baseline |
-| Edge Cases | 10-15 seconds | Simple operations |
-| Cleanup | 5-10 seconds | Resource deletion |
-| **TOTAL** | **60 seconds (timeout)** | At limit - no margin |
+| Suite       | Expected Duration        | Notes                 |
+| ----------- | ------------------------ | --------------------- |
+| Unit Tests  | N/A                      | 0 tests               |
+| Integration | 45-60 seconds            | All require API calls |
+| Regression  | 10-15 seconds            | Performance baseline  |
+| Edge Cases  | 10-15 seconds            | Simple operations     |
+| Cleanup     | 5-10 seconds             | Resource deletion     |
+| **TOTAL**   | **60 seconds (timeout)** | At limit - no margin  |
 
 **Risk Assessment**:
+
 - Any API latency > 100ms will exceed timeout
 - Network jitter causes random failures
 - Cleanup delays accumulate
@@ -645,6 +666,7 @@ expect(afterMove.column_id).toBe(testColumn2Id);
 
 1. Create `card-client.test.ts` with mocked HTTP client
 2. Test updateCard() in isolation:
+
    ```typescript
    describe('CardClient.updateCard()', () => {
      let client: CardClient;
@@ -657,16 +679,18 @@ expect(afterMove.column_id).toBe(testColumn2Id);
 
      it('preserves linked_cards when not provided', async () => {
        httpMock
-         .onGet('/cards/123').reply(200, {
-           data: { card_id: 123, linked_cards: [{ card_id: 456, link_type: 'child' }] }
+         .onGet('/cards/123')
+         .reply(200, {
+           data: { card_id: 123, linked_cards: [{ card_id: 456, link_type: 'child' }] },
          })
-         .onPatch('/cards/123').reply(200, {
-           data: { card_id: 123, linked_cards: [{ card_id: 456, link_type: 'child' }] }
+         .onPatch('/cards/123')
+         .reply(200, {
+           data: { card_id: 123, linked_cards: [{ card_id: 456, link_type: 'child' }] },
          });
 
        const result = await client.updateCard({
          card_id: 123,
-         title: 'Updated'
+         title: 'Updated',
        });
 
        expect(httpMock.history.patch[0].data).toContain('linked_cards');
@@ -675,6 +699,7 @@ expect(afterMove.column_id).toBe(testColumn2Id);
    ```
 
 3. Test error handling:
+
    ```typescript
    it('logs warning when getCard fails', async () => {
      const warnSpy = jest.spyOn(console, 'warn');
@@ -685,9 +710,7 @@ expect(afterMove.column_id).toBe(testColumn2Id);
 
      await client.updateCard({ card_id: 123, title: 'Test' });
 
-     expect(warnSpy).toHaveBeenCalledWith(
-       expect.stringContaining('Failed to fetch card')
-     );
+     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to fetch card'));
    });
    ```
 
@@ -702,12 +725,13 @@ expect(afterMove.column_id).toBe(testColumn2Id);
 **Action Items**:
 
 1. Create concurrent test scenario:
+
    ```typescript
    describe('CardClient Race Conditions', () => {
      it('handles concurrent updateCard on same card', async () => {
        const promises = [
          client.updateCard({ card_id: 123, title: 'A' }),
-         client.updateCard({ card_id: 123, description: 'B' })
+         client.updateCard({ card_id: 123, description: 'B' }),
        ];
 
        const [result1, result2] = await Promise.all(promises);
@@ -719,13 +743,11 @@ expect(afterMove.column_id).toBe(testColumn2Id);
      });
 
      it('concurrent moves on different cards succeed', async () => {
-       const movePromises = cardIds.map(id =>
-         client.moveCard(id, newColumn)
-       );
+       const movePromises = cardIds.map((id) => client.moveCard(id, newColumn));
 
        const results = await Promise.all(movePromises);
 
-       expect(results.every(r => r.column_id === newColumn)).toBe(true);
+       expect(results.every((r) => r.column_id === newColumn)).toBe(true);
      });
    });
    ```
@@ -739,16 +761,19 @@ expect(afterMove.column_id).toBe(testColumn2Id);
 **Impact**: Unblocks test execution
 
 **Root Cause Analysis**:
+
 - Line 142: `boardStructure.workflows` is not an array in type definition
 - Line 515: `.find()` called on wrong type
 
 **Fix Strategy**:
+
 1. Check `BoardStructure` type definition in `src/types/board.ts`
 2. Verify `workflows` is typed as array
 3. Add proper null/undefined checks
 4. Update test to match actual types
 
 **Example Fix**:
+
 ```typescript
 // Before (fails)
 const workflows = boardStructure.workflows || [];
@@ -770,26 +795,27 @@ if (!Array.isArray(workflows) || workflows.length < 1) { ... }
 **Action Items**:
 
 1. Add validation test suite:
+
    ```typescript
    describe('CardClient Input Validation', () => {
      it('rejects negative cardId', async () => {
-       await expect(
-         client.updateCard({ card_id: -123, title: 'Test' })
-       ).rejects.toThrow(/positive|valid/i);
+       await expect(client.updateCard({ card_id: -123, title: 'Test' })).rejects.toThrow(
+         /positive|valid/i
+       );
      });
 
      it('rejects oversized linked_cards', async () => {
        const huge = Array(10001).fill({ card_id: 1, link_type: 'child' });
-       await expect(
-         client.updateCard({ card_id: 123, linked_cards: huge })
-       ).rejects.toThrow(/maximum|limit/i);
+       await expect(client.updateCard({ card_id: 123, linked_cards: huge })).rejects.toThrow(
+         /maximum|limit/i
+       );
      });
 
      it('rejects invalid link_type', async () => {
        await expect(
          client.updateCard({
            card_id: 123,
-           linked_cards: [{ card_id: 456, link_type: 'invalid_type' }]
+           linked_cards: [{ card_id: 456, link_type: 'invalid_type' }],
          })
        ).rejects.toThrow(/link_type/i);
      });
@@ -810,6 +836,7 @@ if (!Array.isArray(workflows) || workflows.length < 1) { ... }
 **Action Items**:
 
 1. Expand performance test to 100 cards:
+
    ```typescript
    describe('Performance: Bulk Operations', () => {
      it('processes 100 cards within SLA (35s)', async () => {
@@ -817,12 +844,12 @@ if (!Array.isArray(workflows) || workflows.length < 1) { ... }
 
        const startTime = Date.now();
        const results = await client.bulkUpdateCards(cardIds, {
-         column_id: newColumn
+         column_id: newColumn,
        });
        const duration = Date.now() - startTime;
 
-       expect(results.filter(r => r.success).length).toBe(100);
-       expect(duration).toBeLessThan(35000);  // Phase 2 SLA
+       expect(results.filter((r) => r.success).length).toBe(100);
+       expect(duration).toBeLessThan(35000); // Phase 2 SLA
      });
 
      it('parallel moves are faster than sequential', async () => {
@@ -837,12 +864,10 @@ if (!Array.isArray(workflows) || workflows.length < 1) { ... }
 
        // Parallel
        const parStart = Date.now();
-       await Promise.all(cardIds.map(id =>
-         client.moveCard(id, newColumn)
-       ));
+       await Promise.all(cardIds.map((id) => client.moveCard(id, newColumn)));
        const parTime = Date.now() - parStart;
 
-       expect(parTime).toBeLessThan(seqTime * 0.8);  // At least 20% faster
+       expect(parTime).toBeLessThan(seqTime * 0.8); // At least 20% faster
      });
    });
    ```
@@ -856,6 +881,7 @@ if (!Array.isArray(workflows) || workflows.length < 1) { ... }
 **Impact**: Faster failure detection
 
 **Change**:
+
 ```typescript
 // Before
 jest.setTimeout(60000);
@@ -865,6 +891,7 @@ jest.setTimeout(45000);
 ```
 
 **Rationale**:
+
 - Current tests take ~30s
 - 45s provides 50% margin
 - Detects timeout issues faster
@@ -875,6 +902,7 @@ jest.setTimeout(45000);
 ## SECTION 8: COVERAGE ROADMAP
 
 ### Phase 1: Blockers (Week 1)
+
 - [ ] Fix TypeScript compilation errors
 - [ ] Add mock-based unit tests (updateCard, moveCard)
 - [ ] Add race condition tests
@@ -883,6 +911,7 @@ jest.setTimeout(45000);
 **Expected Coverage Improvement**: 62% → 78%
 
 ### Phase 2: Security & Performance (Week 2)
+
 - [ ] Add error recovery tests
 - [ ] Expand performance tests to 100 cards
 - [ ] Add DoS prevention tests
@@ -891,6 +920,7 @@ jest.setTimeout(45000);
 **Expected Coverage Improvement**: 78% → 85%
 
 ### Phase 3: Robustness (Week 3)
+
 - [ ] Improve test isolation
 - [ ] Add pre-condition validation
 - [ ] Optimize execution time
@@ -904,11 +934,11 @@ jest.setTimeout(45000);
 
 ### Phase 1 Finding: Code Quality (90% Duplication)
 
-| Finding | Test Coverage | Status |
-|---------|---------------|--------|
-| Duplication between updateCard/moveCard | ❌ Not tested | Tests don't detect refactoring issues |
-| Both use fetch-merge-update pattern | ✓ Tested | UNIT-001, INT-001 validate preservation |
-| Error handling identical | ❌ Not tested | Error paths not covered |
+| Finding                                 | Test Coverage | Status                                  |
+| --------------------------------------- | ------------- | --------------------------------------- |
+| Duplication between updateCard/moveCard | ❌ Not tested | Tests don't detect refactoring issues   |
+| Both use fetch-merge-update pattern     | ✓ Tested      | UNIT-001, INT-001 validate preservation |
+| Error handling identical                | ❌ Not tested | Error paths not covered                 |
 
 **Verdict**: INSUFFICIENT - Code duplication metrics not verified by tests
 
@@ -916,11 +946,11 @@ jest.setTimeout(45000);
 
 ### Phase 1 Finding: Architecture (Fetch-Merge-Update)
 
-| Finding | Test Coverage | Status |
-|---------|---------------|--------|
-| Pattern prevents data loss | ✓ Tested | UNIT-001 validates preservation |
-| Only addresses linked_cards | ✓ Tested | Not extensible, hardcoded |
-| Doesn't handle other fields | ✓ Known | REG-001 shows normal updates work |
+| Finding                     | Test Coverage | Status                            |
+| --------------------------- | ------------- | --------------------------------- |
+| Pattern prevents data loss  | ✓ Tested      | UNIT-001 validates preservation   |
+| Only addresses linked_cards | ✓ Tested      | Not extensible, hardcoded         |
+| Doesn't handle other fields | ✓ Known       | REG-001 shows normal updates work |
 
 **Verdict**: SUFFICIENT for linked_cards, but tests don't verify extensibility
 
@@ -928,11 +958,11 @@ jest.setTimeout(45000);
 
 ### Phase 2 Finding: Race Conditions
 
-| Finding | Test Coverage | Status |
-|---------|---------------|--------|
+| Finding                          | Test Coverage | Status       |
+| -------------------------------- | ------------- | ------------ |
 | TOCTOU between getCard and PATCH | ❌ Not tested | CRITICAL GAP |
-| Concurrent updates lose data | ❌ Not tested | CRITICAL GAP |
-| No merge conflict resolution | ❌ Not tested | CRITICAL GAP |
+| Concurrent updates lose data     | ❌ Not tested | CRITICAL GAP |
+| No merge conflict resolution     | ❌ Not tested | CRITICAL GAP |
 
 **Verdict**: **CRITICAL FAILURE** - Most important Phase 2 concern untested
 
@@ -940,12 +970,12 @@ jest.setTimeout(45000);
 
 ### Phase 2 Finding: Input Validation
 
-| Finding | Test Coverage | Status |
-|---------|---------------|--------|
-| Missing cardId validation | ❌ Not tested | Type system prevents some cases |
-| Missing linked_cards size check | ❌ Not tested | CRITICAL GAP |
-| No invalid link_type checking | ❌ Not tested | CRITICAL GAP |
-| No circular reference prevention | ❌ Not tested | Out of scope |
+| Finding                          | Test Coverage | Status                          |
+| -------------------------------- | ------------- | ------------------------------- |
+| Missing cardId validation        | ❌ Not tested | Type system prevents some cases |
+| Missing linked_cards size check  | ❌ Not tested | CRITICAL GAP                    |
+| No invalid link_type checking    | ❌ Not tested | CRITICAL GAP                    |
+| No circular reference prevention | ❌ Not tested | Out of scope                    |
 
 **Verdict**: CRITICAL GAPS - Security boundaries untested
 
@@ -953,12 +983,12 @@ jest.setTimeout(45000);
 
 ### Phase 2 Finding: Performance (35s for 100 cards)
 
-| Finding | Test Coverage | Status |
-|---------|---------------|--------|
-| Sequential performance measured | ❌ Not tested | Only 5 cards tested |
-| 100-card bulk operation untested | ❌ Not tested | CRITICAL GAP |
-| Parallel execution not benchmarked | ❌ Not tested | CRITICAL GAP |
-| Retry mechanism under load untested | ❌ Not tested | CRITICAL GAP |
+| Finding                             | Test Coverage | Status              |
+| ----------------------------------- | ------------- | ------------------- |
+| Sequential performance measured     | ❌ Not tested | Only 5 cards tested |
+| 100-card bulk operation untested    | ❌ Not tested | CRITICAL GAP        |
+| Parallel execution not benchmarked  | ❌ Not tested | CRITICAL GAP        |
+| Retry mechanism under load untested | ❌ Not tested | CRITICAL GAP        |
 
 **Verdict**: CRITICAL GAPS - Phase 2 performance concern not validated
 
@@ -966,12 +996,12 @@ jest.setTimeout(45000);
 
 ### Phase 2 Finding: Error Recovery
 
-| Finding | Test Coverage | Status |
-|---------|---------------|--------|
-| Transient fetch failures handled | ❌ Not tested properly | EDGE-002 name misleading |
-| Warning logged on failure | ❌ Not verified | No assertion on log output |
-| Update proceeds without preservation | ❌ Not tested | Happy path only |
-| Retry strategy untested | ❌ Not tested | CRITICAL GAP |
+| Finding                              | Test Coverage          | Status                     |
+| ------------------------------------ | ---------------------- | -------------------------- |
+| Transient fetch failures handled     | ❌ Not tested properly | EDGE-002 name misleading   |
+| Warning logged on failure            | ❌ Not verified        | No assertion on log output |
+| Update proceeds without preservation | ❌ Not tested          | Happy path only            |
+| Retry strategy untested              | ❌ Not tested          | CRITICAL GAP               |
 
 **Verdict**: INSUFFICIENT - Error paths exist but not validated
 
@@ -981,23 +1011,24 @@ jest.setTimeout(45000);
 
 ### Test Suite Scorecard
 
-| Metric | Score | Status |
-|--------|-------|--------|
-| Compilation | 0/10 | BLOCKER - Won't run |
-| Coverage (Statements) | 6/10 | 65% estimated |
-| Coverage (Branches) | 4/10 | 45% - Error paths missing |
-| Coverage (Functions) | 8/10 | 80% - Helpers untested |
-| Race Conditions | 0/10 | Not tested |
-| Input Validation | 1/10 | Type checking only |
-| Error Recovery | 3/10 | Incomplete tests |
-| Performance | 4/10 | Only 5 cards tested |
-| Security | 2/10 | No TOCTOU tests |
-| Test Isolation | 5/10 | Global state dependency |
-| **OVERALL** | **3.3/10** | **UNACCEPTABLE** |
+| Metric                | Score      | Status                    |
+| --------------------- | ---------- | ------------------------- |
+| Compilation           | 0/10       | BLOCKER - Won't run       |
+| Coverage (Statements) | 6/10       | 65% estimated             |
+| Coverage (Branches)   | 4/10       | 45% - Error paths missing |
+| Coverage (Functions)  | 8/10       | 80% - Helpers untested    |
+| Race Conditions       | 0/10       | Not tested                |
+| Input Validation      | 1/10       | Type checking only        |
+| Error Recovery        | 3/10       | Incomplete tests          |
+| Performance           | 4/10       | Only 5 cards tested       |
+| Security              | 2/10       | No TOCTOU tests           |
+| Test Isolation        | 5/10       | Global state dependency   |
+| **OVERALL**           | **3.3/10** | **UNACCEPTABLE**          |
 
 ### Risk Assessment
 
 **Critical Risks NOT COVERED**:
+
 1. Race condition causing data loss (TOCTOU)
 2. Input validation allowing DoS
 3. Error recovery code untested
@@ -1034,6 +1065,7 @@ jest.setTimeout(45000);
 ### Staged Rollout Strategy
 
 **Phase 1 (Pre-Merge)**:
+
 - Merge when all Priority 1 items complete
 - Must have 0 TypeScript errors
 - Must have race condition tests
@@ -1041,11 +1073,13 @@ jest.setTimeout(45000);
 - Target: 85% statement coverage
 
 **Phase 2 (Post-Merge)**:
+
 - Add performance tests for 100-card scenario
 - Optimize execution time
 - Target: 90% coverage
 
 **Phase 3 (Release)**:
+
 - Performance benchmarking
 - Load testing
 - CI/CD integration verification
@@ -1116,12 +1150,14 @@ describe('CardClient: updateCard() - Unit Tests', () => {
     it('[UNIT-005] Fetches current linked_cards before update', async () => {
       const mockCard = {
         card_id: 123,
-        linked_cards: [{ card_id: 456, link_type: 'child' }]
+        linked_cards: [{ card_id: 456, link_type: 'child' }],
       };
 
       httpMock
-        .onGet('/cards/123').reply(200, { data: mockCard })
-        .onPatch('/cards/123').reply(200, { data: { ...mockCard, title: 'Updated' } });
+        .onGet('/cards/123')
+        .reply(200, { data: mockCard })
+        .onPatch('/cards/123')
+        .reply(200, { data: { ...mockCard, title: 'Updated' } });
 
       await client.updateCard({ card_id: 123, title: 'Updated' });
 
@@ -1136,8 +1172,10 @@ describe('CardClient: updateCard() - Unit Tests', () => {
       const warnSpy = jest.spyOn(console, 'warn');
 
       httpMock
-        .onGet('/cards/123').reply(500, { error: 'Server error' })
-        .onPatch('/cards/123').reply(200, { data: { card_id: 123, title: 'Updated' } });
+        .onGet('/cards/123')
+        .reply(500, { error: 'Server error' })
+        .onPatch('/cards/123')
+        .reply(200, { data: { card_id: 123, title: 'Updated' } });
 
       const result = await client.updateCard({ card_id: 123, title: 'Updated' });
 
@@ -1157,15 +1195,15 @@ describe('CardClient: updateCard() - Unit Tests', () => {
 
 ## APPENDIX C: Phase 1-2 Traceability Matrix
 
-| Phase 1-2 Finding | Test ID | Coverage | Notes |
-|------------------|---------|----------|-------|
-| Code Duplication (90%) | None | 0% | Tests don't measure duplication |
-| Fetch-Merge-Update Pattern | UNIT-001, INT-001 | 70% | Happy path only |
-| Race Condition (TOCTOU) | None | 0% | CRITICAL - Not tested |
-| Input Validation Gaps | None | 0% | CRITICAL - No validation tests |
-| Performance (35s/100) | REG-003 | 20% | Only 5 cards tested |
-| Error Recovery | EDGE-002 | 30% | Incomplete - no error injection |
-| API Field Reset Issue | UNIT-001 | 100% | Well tested - fix validated |
+| Phase 1-2 Finding          | Test ID           | Coverage | Notes                           |
+| -------------------------- | ----------------- | -------- | ------------------------------- |
+| Code Duplication (90%)     | None              | 0%       | Tests don't measure duplication |
+| Fetch-Merge-Update Pattern | UNIT-001, INT-001 | 70%      | Happy path only                 |
+| Race Condition (TOCTOU)    | None              | 0%       | CRITICAL - Not tested           |
+| Input Validation Gaps      | None              | 0%       | CRITICAL - No validation tests  |
+| Performance (35s/100)      | REG-003           | 20%      | Only 5 cards tested             |
+| Error Recovery             | EDGE-002          | 30%      | Incomplete - no error injection |
+| API Field Reset Issue      | UNIT-001          | 100%     | Well tested - fix validated     |
 
 **Overall Traceability**: 31% (Low - most findings not tested)
 

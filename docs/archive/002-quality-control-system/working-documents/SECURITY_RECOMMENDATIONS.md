@@ -11,6 +11,7 @@
 The multi-instance configuration implementation is **secure for production use** with 4 Medium priority and 3 Low priority recommendations. No Critical or High severity issues identified.
 
 **Quick Stats:**
+
 - 0 Critical Issues
 - 0 High Priority Issues
 - 4 Medium Priority Issues (~6-10 hours to fix)
@@ -25,6 +26,7 @@ The multi-instance configuration implementation is **secure for production use**
 **File:** `src/client/client-factory.ts:300-308`
 
 **Current (Insecure):**
+
 ```typescript
 private hashToken(token: string): string {
   let hash = 0;
@@ -38,6 +40,7 @@ private hashToken(token: string): string {
 ```
 
 **Recommended (Secure):**
+
 ```typescript
 import { createHash } from 'crypto';
 
@@ -53,14 +56,17 @@ private hashToken(token: string): string {
 ### 2. Remove Token Logging (30 minutes) 🔐
 
 **Files:**
+
 - `test/integration/phase9-validation.test.ts:170`
 
 **Current (Insecure):**
+
 ```typescript
 console.log(`🔑 API Token: ${API_TOKEN?.substring(0, 10)}...`);
 ```
 
 **Recommended (Secure):**
+
 ```typescript
 console.log(`🔑 API Token: ${API_TOKEN ? '[CONFIGURED]' : '[MISSING]'}`);
 ```
@@ -74,6 +80,7 @@ console.log(`🔑 API Token: ${API_TOKEN ? '[CONFIGURED]' : '[MISSING]'}`);
 **File:** `src/client/client-factory.ts:260-273`
 
 **Current (Risk):**
+
 ```typescript
 {
   instanceName: resolution.instance.name,
@@ -83,6 +90,7 @@ console.log(`🔑 API Token: ${API_TOKEN ? '[CONFIGURED]' : '[MISSING]'}`);
 ```
 
 **Recommended (Secure):**
+
 ```typescript
 {
   instanceName: resolution.instance.name,
@@ -104,6 +112,7 @@ console.log(`🔑 API Token: ${API_TOKEN ? '[CONFIGURED]' : '[MISSING]'}`);
 **File:** `src/server/mcp-server.ts:59-88`
 
 **Add New Module:** `src/utils/secure-logger.ts`
+
 ```typescript
 export enum LogLevel {
   DEBUG = 0,
@@ -112,8 +121,7 @@ export enum LogLevel {
   ERROR = 3,
 }
 
-const currentLevel = process.env.BUSINESSMAP_LOG_LEVEL === 'debug' ?
-  LogLevel.DEBUG : LogLevel.INFO;
+const currentLevel = process.env.BUSINESSMAP_LOG_LEVEL === 'debug' ? LogLevel.DEBUG : LogLevel.INFO;
 
 export function secureLog(level: LogLevel, message: string, redact = false) {
   if (level < currentLevel) return;
@@ -145,13 +153,16 @@ secureLog(LogLevel.INFO, `API URL: ${config.apiUrl}`, true);
 **File:** `src/config/instance-manager.ts`
 
 **Add Validation Function:**
+
 ```typescript
 const BLOCKED_HOSTS = [
-  'localhost', '127.0.0.1', '0.0.0.0',
+  'localhost',
+  '127.0.0.1',
+  '0.0.0.0',
   /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,
   /^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/,
   /^192\.168\.\d{1,3}\.\d{1,3}$/,
-  /^169\.254\.\d{1,3}\.\d{1,3}$/,  // AWS metadata
+  /^169\.254\.\d{1,3}\.\d{1,3}$/, // AWS metadata
 ];
 
 function validateApiUrl(url: string): void {
@@ -159,26 +170,17 @@ function validateApiUrl(url: string): void {
 
   // Enforce HTTPS only
   if (parsed.protocol !== 'https:') {
-    throw new InstanceConfigError(
-      'API URL must use HTTPS protocol',
-      'INVALID_PROTOCOL'
-    );
+    throw new InstanceConfigError('API URL must use HTTPS protocol', 'INVALID_PROTOCOL');
   }
 
   // Block internal/private hosts
   for (const pattern of BLOCKED_HOSTS) {
     if (typeof pattern === 'string') {
       if (parsed.hostname === pattern) {
-        throw new InstanceConfigError(
-          'API URL must be a public endpoint',
-          'SSRF_BLOCKED'
-        );
+        throw new InstanceConfigError('API URL must be a public endpoint', 'SSRF_BLOCKED');
       }
     } else if (pattern.test(parsed.hostname)) {
-      throw new InstanceConfigError(
-        'API URL must be a public endpoint',
-        'SSRF_BLOCKED'
-      );
+      throw new InstanceConfigError('API URL must be a public endpoint', 'SSRF_BLOCKED');
     }
   }
 }
@@ -196,6 +198,7 @@ validateApiUrl(instance.apiUrl);
 **File:** `src/config/instance-manager.ts:191-233`
 
 **Add Permission Check:**
+
 ```typescript
 import { statSync } from 'fs';
 
@@ -235,11 +238,13 @@ private loadFromFile(path: string, validate: boolean): void {
 **File:** `src/config/instance-manager.ts:33`
 
 **Current:**
+
 ```typescript
 name: z.string().min(1, 'Instance name cannot be empty'),
 ```
 
 **Recommended:**
+
 ```typescript
 name: z.string()
   .min(1, 'Instance name cannot be empty')
@@ -314,18 +319,21 @@ describe('Security Tests', () => {
 ## Implementation Priority
 
 ### Phase 1: Critical for Production (Total: ~8 hours)
+
 1. ✅ Fix token hashing (2 hours)
 2. ✅ Remove token logging (30 minutes)
 3. ✅ Sanitize error metadata (2 hours)
 4. ✅ Implement secure logging (4 hours)
 
 ### Phase 2: Security Hardening (Total: ~13 hours)
+
 5. 🔄 Add SSRF protection (4 hours)
 6. 🔄 Enforce file permissions (2 hours)
 7. 🔄 Add length limits (30 minutes)
 8. 🔄 Security test suite (6 hours)
 
 ### Phase 3: Compliance & Monitoring (Ongoing)
+
 9. 📋 Dependency scanning (npm audit automation)
 10. 📋 Security audit logging
 11. 📋 GDPR compliance documentation
@@ -392,23 +400,27 @@ Add security section:
 ## Security Best Practices
 
 ### Token Management
+
 - Store tokens in environment variables only
 - Never commit tokens to version control
 - Rotate tokens regularly (every 90 days)
 - Use read-only tokens for non-production instances
 
 ### Configuration Files
+
 - Set restrictive permissions: `chmod 600 .businessmap-instances.json`
 - Store in user home directory (`~/.config/businessmap-mcp/`)
 - Use separate tokens per environment
 
 ### Production Deployment
+
 - Enable secure logging: `BUSINESSMAP_LOG_LEVEL=info`
 - Monitor for security events
 - Review API access logs regularly
 - Implement network egress filtering
 
 ### Reporting Security Issues
+
 - Email: security@[project-domain]
 - GitHub Security Advisory: [URL]
 - Response SLA: 48 hours
@@ -446,10 +458,12 @@ npm start  # Verify no sensitive logs
 ## Support & Questions
 
 **Security Questions:**
+
 - Review full audit report: `SECURITY_AUDIT_REPORT.md`
 - Contact: security@[project-domain]
 
 **Implementation Help:**
+
 - GitHub Issues: Tag with `security` label
 - Code review: Request security-focused review
 

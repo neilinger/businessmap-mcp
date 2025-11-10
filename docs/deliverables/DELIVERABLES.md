@@ -13,6 +13,7 @@
 **Document**: [docs/architecture/multi-instance-config-design.md](./docs/architecture/multi-instance-config-design.md)
 
 **Contents**:
+
 - ✅ Current state analysis
 - ✅ Multi-instance configuration structure (JSON format)
 - ✅ Runtime instance selection mechanism (tool parameter + session context)
@@ -30,6 +31,7 @@
 **File**: [schemas/instances-config.schema.json](./schemas/instances-config.schema.json)
 
 **Features**:
+
 - ✅ JSON Schema Draft 07 compliant
 - ✅ Validation rules for all fields
 - ✅ Instance ID pattern validation (`^[a-zA-Z0-9_-]+$`)
@@ -43,6 +45,7 @@
 **Document**: [docs/architecture/IMPLEMENTATION_SUMMARY.md](./docs/architecture/IMPLEMENTATION_SUMMARY.md)
 
 **Contents**:
+
 - ✅ Quick overview (benefits, architecture at a glance)
 - ✅ Configuration examples (legacy, multi-instance)
 - ✅ Tool usage examples (default instance, explicit instance)
@@ -59,6 +62,7 @@
 ### 4. File Modification List ✅ Complete
 
 **New Files (11)**:
+
 1. ✅ `src/config/instance-manager.ts` - Configuration manager singleton
 2. ✅ `src/client/client-factory.ts` - Client factory singleton
 3. ✅ `src/types/instance-config.ts` - Multi-instance type definitions
@@ -72,6 +76,7 @@
 11. ✅ `examples/environment-variables.template` - Environment template
 
 **Modified Files (14)**:
+
 1. ⏳ `src/types/base.ts` - Add multi-instance types
 2. ⏳ `src/config/environment.ts` - Integrate InstanceConfigManager
 3. ⏳ `src/server/mcp-server.ts` - Use factory pattern
@@ -88,6 +93,7 @@
 14. ⏳ `package.json` - Version bump (1.7.0)
 
 **Test Files (4)**:
+
 1. ⏳ `tests/unit/instance-manager.test.ts` - Config manager tests
 2. ⏳ `tests/unit/client-factory.test.ts` - Factory pattern tests
 3. ⏳ `tests/integration/multi-instance.test.ts` - Multi-instance tests
@@ -98,6 +104,7 @@
 ### 5. Testing Requirements ✅ Complete
 
 **Specifications**:
+
 - ✅ Unit tests defined (10 tests for InstanceConfigManager)
 - ✅ Unit tests defined (7 tests for BusinessMapClientFactory)
 - ✅ Integration tests defined (4 backward compatibility tests)
@@ -106,6 +113,7 @@
 - ✅ Performance tests defined (4 client caching tests)
 
 **Coverage Goals**:
+
 - ✅ Unit test coverage: 90%+
 - ✅ Integration test coverage: 80%+
 - ✅ Critical paths: 100%
@@ -117,6 +125,7 @@
 ### Multi-Instance Configuration Structure
 
 **JSON Format** (preferred for validation and tooling):
+
 ```json
 {
   "version": "1.0",
@@ -133,6 +142,7 @@
 ```
 
 **Key Features**:
+
 - Tokens stored in environment variables (security)
 - Instance ID validation (alphanumeric + `-` + `_`)
 - Optional tags for filtering/grouping
@@ -141,24 +151,28 @@
 ### Runtime Instance Selection Mechanism
 
 **Priority Order**:
+
 1. **Explicit tool parameter**: `instance` parameter in tool call
 2. **Session context**: Instance set via session (future enhancement)
 3. **Default instance**: Defined in configuration
 4. **Fallback**: Single instance (backward compatibility)
 
 **Tool Parameter Pattern**:
+
 ```typescript
 // All 43 tools get optional `instance` parameter
-await client.listWorkspaces({ instance: "staging" });
+await client.listWorkspaces({ instance: 'staging' });
 ```
 
 **New Discovery Tools**:
+
 - `list_instances` - List all configured instances with health status
 - `get_instance_info` - Get detailed info about specific instance
 
 ### API Client Factory Pattern
 
 **Singleton Factory** with lazy initialization:
+
 ```typescript
 export class BusinessMapClientFactory {
   private clients: Map<string, BusinessMapClient> = new Map();
@@ -173,6 +187,7 @@ export class BusinessMapClientFactory {
 ```
 
 **Benefits**:
+
 - ✅ Lazy initialization (only create clients when needed)
 - ✅ Connection pooling per instance
 - ✅ Memory efficiency (cache reuse)
@@ -185,12 +200,14 @@ export class BusinessMapClientFactory {
 ### Current State (Multi-Server)
 
 **3 instances × 3 servers**:
+
 - 43 tools × ~42 tokens = 1,800 tokens per server
 - 3 servers = **5,400 tokens total**
 
 ### After Implementation (Single Server)
 
 **1 server for all instances**:
+
 - 43 tools × ~45 tokens = 1,935 tokens (one-time registration)
 - Single server = **1,935 tokens total**
 
@@ -209,9 +226,10 @@ export class BusinessMapClientFactory {
 **Decision**: Tokens in environment variables, NOT in config files
 
 **Implementation**:
+
 ```json
 {
-  "api_token_env": "BUSINESSMAP_API_TOKEN_PROD"  // ← Env var name only
+  "api_token_env": "BUSINESSMAP_API_TOKEN_PROD" // ← Env var name only
 }
 ```
 
@@ -220,6 +238,7 @@ export BUSINESSMAP_API_TOKEN_PROD=ace_actual_token_here  # ← Actual token
 ```
 
 **Benefits**:
+
 - ✅ Prevents token exposure in version control
 - ✅ Follows 12-factor app principles
 - ✅ Compatible with secret management tools (Vault, AWS Secrets Manager)
@@ -228,6 +247,7 @@ export BUSINESSMAP_API_TOKEN_PROD=ace_actual_token_here  # ← Actual token
 ### Multi-Tenancy Isolation
 
 **Guarantees**:
+
 1. ✅ HTTP Client Isolation - Separate Axios instance per instance
 2. ✅ Configuration Isolation - Each instance config immutable
 3. ✅ Cache Isolation - Rate limit headers tracked per instance
@@ -242,6 +262,7 @@ export BUSINESSMAP_API_TOKEN_PROD=ace_actual_token_here  # ← Actual token
 **Guarantee**: 100% backward compatible with existing single-instance configurations
 
 **No Breaking Changes**:
+
 - ✅ Existing env vars work unchanged (`BUSINESSMAP_API_URL`, `BUSINESSMAP_API_TOKEN`)
 - ✅ All 43 tools work without modification (instance parameter optional)
 - ✅ No changes to response formats
@@ -265,12 +286,14 @@ export BUSINESSMAP_API_TOKEN_PROD=ace_actual_token_here  # ← Actual token
 **Objective**: Implement multi-instance configuration management
 
 **Tasks**:
+
 - Create `src/config/instance-manager.ts` (configuration loading)
 - Create `src/client/client-factory.ts` (client factory)
 - Add type definitions (`src/types/instance-config.ts`)
 - Write unit tests
 
 **Deliverables**:
+
 - ✓ InstanceConfigManager (singleton)
 - ✓ BusinessMapClientFactory (singleton)
 - ✓ Configuration validation
@@ -281,22 +304,24 @@ export BUSINESSMAP_API_TOKEN_PROD=ace_actual_token_here  # ← Actual token
 **Objective**: Modify tool handlers to support optional `instance` parameter
 
 **Tasks**:
+
 - Modify 7 tool handlers (43 tools total)
 - Add instance discovery tools (2 new tools)
 - Update tool handler base class
 
 **Pattern** (per tool):
+
 ```typescript
 // Before
 async (params) => {
   const result = await client.operation(params);
-}
+};
 
 // After
 async ({ instance, ...params }) => {
   const client = this.clientFactory.getClient(instance);
   const result = await client.operation(params);
-}
+};
 ```
 
 ### Phase 3: MCP Server Integration ✅ Designed, ⏳ Implementation Pending
@@ -304,6 +329,7 @@ async ({ instance, ...params }) => {
 **Objective**: Wire factory into MCP server initialization
 
 **Tasks**:
+
 - Modify `src/server/mcp-server.ts` constructor
 - Replace single client injection with factory pattern
 - Add multi-instance initialization
@@ -313,6 +339,7 @@ async ({ instance, ...params }) => {
 **Objective**: Document multi-instance setup and migration
 
 **Tasks**:
+
 - Update `README.md` with multi-instance setup
 - Create migration guide
 - Create configuration examples
@@ -327,6 +354,7 @@ async ({ instance, ...params }) => {
 **File**: `examples/multi-instance-config.json`
 
 3 instances: production, staging, development
+
 - Production: Full access
 - Staging: Full access (for testing)
 - Development: Read-only (prevent accidents)
@@ -336,6 +364,7 @@ async ({ instance, ...params }) => {
 **File**: `examples/multi-region-config.json`
 
 4 instances: US East, US West, EU West, APAC South
+
 - Regional tags (us, eu, apac)
 - Geography-based routing
 
@@ -344,6 +373,7 @@ async ({ instance, ...params }) => {
 **File**: `examples/environment-variables.template`
 
 Complete environment variable reference:
+
 - Config file path
 - Instance-specific tokens
 - Optional overrides
@@ -364,22 +394,26 @@ Complete environment variable reference:
 ### Implementation Order
 
 **Phase 1** (Week 1-2):
+
 - Implement InstanceConfigManager
 - Implement BusinessMapClientFactory
 - Write unit tests
 - Validate backward compatibility
 
 **Phase 2** (Week 2-3):
+
 - Modify 7 tool handlers (43 tools)
 - Add instance discovery tools
 - Write integration tests
 
 **Phase 3** (Week 3):
+
 - Integrate factory into MCP server
 - End-to-end testing
 - Performance validation
 
 **Phase 4** (Week 4):
+
 - Write migration guide
 - Update documentation
 - Create configuration examples

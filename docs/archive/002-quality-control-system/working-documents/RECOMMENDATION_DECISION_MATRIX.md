@@ -4,13 +4,13 @@ Quick reference for prioritizing BusinessMap MCP improvements.
 
 ## Recommendations at a Glance
 
-| # | Recommendation | Impact | Effort | Priority | ROI |
-|---|----------------|--------|--------|----------|-----|
-| 1 | Extract Skills → Docs | 🟢 High | 4-6h | HIGH | 🟢 Excellent |
-| 2 | Add `get_help` Tool | 🟢 High | 8-10h | HIGH | 🟢 Excellent |
-| 3 | Add `setup` Tool | 🟡 Medium | 6-8h | MEDIUM | 🟡 Good |
-| 4 | Enhance README | 🟡 Medium | 3-4h | MEDIUM | 🟡 Good |
-| 5 | Compatibility Matrix | 🔵 Low | 2-3h | LOW | 🔵 Nice-to-have |
+| #   | Recommendation        | Impact    | Effort | Priority | ROI             |
+| --- | --------------------- | --------- | ------ | -------- | --------------- |
+| 1   | Extract Skills → Docs | 🟢 High   | 4-6h   | HIGH     | 🟢 Excellent    |
+| 2   | Add `get_help` Tool   | 🟢 High   | 8-10h  | HIGH     | 🟢 Excellent    |
+| 3   | Add `setup` Tool      | 🟡 Medium | 6-8h   | MEDIUM   | 🟡 Good         |
+| 4   | Enhance README        | 🟡 Medium | 3-4h   | MEDIUM   | 🟡 Good         |
+| 5   | Compatibility Matrix  | 🔵 Low    | 2-3h   | LOW      | 🔵 Nice-to-have |
 
 **Total Effort**: 23-31 hours (3-4 days)
 
@@ -19,39 +19,42 @@ Quick reference for prioritizing BusinessMap MCP improvements.
 ### By User Impact
 
 **Closes DX Gap** (High Impact):
+
 - #1: Extract Skills → Docs (makes 1538 lines accessible)
 - #2: Add `get_help` Tool (enables in-session help)
 
 **Improves Onboarding** (Medium Impact):
+
 - #3: Add `setup` Tool (validates configuration)
 - #4: Enhance README (guided learning)
 
 **Increases Transparency** (Low Impact):
+
 - #5: Compatibility Matrix (manages expectations)
 
 ### By Effort
 
 **Quick Wins** (<5 hours):
+
 - #5: Compatibility Matrix (2-3h)
 - #4: Enhance README (3-4h)
 - #1: Extract Skills → Docs (4-6h)
 
 **Moderate Effort** (5-10 hours):
+
 - #3: Add `setup` Tool (6-8h)
 - #2: Add `get_help` Tool (8-10h)
 
 ### By ROI (Impact/Effort)
 
 **Highest ROI**:
+
 1. #1: Extract Skills → Docs (High impact / 4-6h)
 2. #2: Add `get_help` Tool (High impact / 8-10h)
 
-**Good ROI**:
-3. #4: Enhance README (Medium impact / 3-4h)
-4. #3: Add `setup` Tool (Medium impact / 6-8h)
+**Good ROI**: 3. #4: Enhance README (Medium impact / 3-4h) 4. #3: Add `setup` Tool (Medium impact / 6-8h)
 
-**Nice-to-have**:
-5. #5: Compatibility Matrix (Low impact / 2-3h)
+**Nice-to-have**: 5. #5: Compatibility Matrix (Low impact / 2-3h)
 
 ## Implementation Strategies
 
@@ -118,15 +121,18 @@ graph TD
 ### #1: Extract Skills → Docs
 
 **Files Created**:
+
 - `docs/guides/troubleshooting.md` (from businessmap-troubleshooting/SKILL.md)
 - `docs/guides/best-practices.md` (from businessmap-best-practices/SKILL.md)
 - `docs/guides/workflows-and-patterns.md` (from businessmap-consultant/SKILL.md)
 
 **Changes**:
+
 - Update README with links
 - Update skills to reference docs (avoid duplication)
 
 **Testing**:
+
 - All links resolve
 - Code examples runnable
 - Cross-references accurate
@@ -134,6 +140,7 @@ graph TD
 ### #2: Add `get_help` Tool
 
 **Implementation**:
+
 ```typescript
 interface GetHelpInput {
   topic?: 'workflows' | 'troubleshooting' | 'best-practices' | 'error-codes';
@@ -143,6 +150,7 @@ interface GetHelpInput {
 ```
 
 **Testing**:
+
 - Claude Desktop: ✅
 - Cursor: ✅
 - Claude Code: ✅
@@ -153,6 +161,7 @@ interface GetHelpInput {
 ### #3: Add `setup` Tool
 
 **Implementation**:
+
 ```typescript
 interface SetupToolInput {
   action: 'validate' | 'diagnose' | 'quickstart';
@@ -160,6 +169,7 @@ interface SetupToolInput {
 ```
 
 **Testing**:
+
 - Connection validation works
 - Diagnostics return accurate info
 - Quickstart provides actionable steps
@@ -169,12 +179,14 @@ interface SetupToolInput {
 ### #4: Enhance README
 
 **Changes**:
+
 - Add learning paths section
 - Progressive disclosure structure
 - Common use case examples
 - Links to new guides
 
 **Testing**:
+
 - README length reasonable (<700 lines)
 - Links to guides work
 - Examples copy-pasteable
@@ -184,12 +196,14 @@ interface SetupToolInput {
 **File**: `docs/COMPATIBILITY.md`
 
 **Content**:
+
 - Client support table
 - Feature availability
 - Version history
 - Migration guide
 
 **Testing**:
+
 - Matrix accurate for all clients
 - Version history complete
 
@@ -232,6 +246,7 @@ Before implementing:
 ## Conclusion
 
 **Recommended Starting Point**: Strategy A (Maximum Impact)
+
 - Implement #1 + #2 in 2 days
 - Closes knowledge gap for all users
 - Enables in-session help universally
@@ -241,5 +256,6 @@ Before implementing:
 ---
 
 **Related Documents**:
+
 - [Full Analysis](/Users/neil/src/solo/businessmap-mcp/docs/DX_RECOMMENDATIONS_NON_CLAUDE_CODE.md)
 - [Executive Summary](/Users/neil/src/solo/businessmap-mcp/DX_SUMMARY.md)

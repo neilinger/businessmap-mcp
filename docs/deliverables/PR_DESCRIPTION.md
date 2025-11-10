@@ -5,6 +5,7 @@
 This PR introduces multi-instance configuration support, enabling a single MCP server to manage multiple BusinessMap instances. This eliminates the need for duplicate MCP servers and delivers **~64% token reduction** (3,465 tokens saved) for users managing 3+ instances.
 
 **Key Metrics:**
+
 - **Files Changed**: 14 modified, 11 new, 4 test files
 - **Token Efficiency**: 5,400 → 1,935 tokens (64% reduction)
 - **Backward Compatibility**: 100% (zero breaking changes)
@@ -97,6 +98,7 @@ This PR introduces a **client factory pattern** with **JSON-based configuration*
 #### 1. JSON Configuration with Schema Validation
 
 **Configuration File** (`~/.config/businessmap-mcp/instances.json`):
+
 ```json
 {
   "version": "1.0",
@@ -119,6 +121,7 @@ This PR introduces a **client factory pattern** with **JSON-based configuration*
 ```
 
 **JSON Schema** (`schemas/instances-config.schema.json`):
+
 - Validates instance ID patterns (`^[a-zA-Z0-9_-]+$`)
 - Validates API URL formats (URI format)
 - Validates environment variable naming (`^[A-Z_][A-Z0-9_]*$`)
@@ -127,6 +130,7 @@ This PR introduces a **client factory pattern** with **JSON-based configuration*
 #### 2. Runtime Instance Selection
 
 **Priority Order:**
+
 1. **Explicit tool parameter**: `instance` parameter in tool call
 2. **Session context**: Instance set via session (future enhancement)
 3. **Default instance**: Defined in configuration
@@ -139,11 +143,11 @@ This PR introduces a **client factory pattern** with **JSON-based configuration*
 await client.listWorkspaces();
 
 // Explicit instance selection
-await client.listWorkspaces({ instance: "staging" });
+await client.listWorkspaces({ instance: 'staging' });
 await client.createCard({
   board_id: 123,
-  title: "Test Card",
-  instance: "development"
+  title: 'Test Card',
+  instance: 'development',
 });
 ```
 
@@ -160,6 +164,7 @@ BUSINESSMAP_READ_ONLY_MODE=false
 ```
 
 **No breaking changes:**
+
 - ✅ All 43 tools work without modification
 - ✅ `instance` parameter is optional
 - ✅ Response formats unchanged
@@ -172,7 +177,7 @@ BUSINESSMAP_READ_ONLY_MODE=false
 ```json
 // Config file (version controlled, no secrets)
 {
-  "api_token_env": "BUSINESSMAP_API_TOKEN_PROD"  // ← Env var name only
+  "api_token_env": "BUSINESSMAP_API_TOKEN_PROD" // ← Env var name only
 }
 ```
 
@@ -182,6 +187,7 @@ export BUSINESSMAP_API_TOKEN_PROD=ace_actual_token_here
 ```
 
 **Security Guarantees:**
+
 - ✅ Tokens never stored in configuration files
 - ✅ Follows 12-factor app principles
 - ✅ Compatible with secret management tools (Vault, AWS Secrets Manager)
@@ -196,26 +202,31 @@ export BUSINESSMAP_API_TOKEN_PROD=ace_actual_token_here
 **Comprehensive visual documentation** with 10 Mermaid diagrams:
 
 ### 1. Multi-Instance Architecture Overview
+
 - Component relationships
 - Data flow
 - Client isolation
 
 ### 2. Configuration Loading Sequence
+
 - File resolution
 - Environment variable fallback
 - Legacy compatibility
 
 ### 3. Client Factory Pattern
+
 - Lazy initialization
 - Client caching
 - Instance resolution
 
 ### 4. Tool Handler Flow
+
 - Instance parameter extraction
 - Client selection
 - Operation execution
 
 ### 5-10. Additional Diagrams
+
 - Request processing flow
 - Error handling
 - Security boundaries
@@ -255,6 +266,7 @@ export class InstanceConfigManager {
 ```
 
 **Responsibilities:**
+
 - Load configuration from file, environment, or legacy sources
 - Validate against JSON schema
 - Resolve instance selection with fallback logic
@@ -282,6 +294,7 @@ export class BusinessMapClientFactory {
 ```
 
 **Responsibilities:**
+
 - Create HTTP clients on-demand (lazy initialization)
 - Cache clients per instance (memory efficiency)
 - Manage client lifecycle
@@ -322,17 +335,18 @@ export class BusinessMapClientFactory {
 async (params) => {
   const result = await this.client.operation(params);
   return createSuccessResponse(result);
-}
+};
 
 // AFTER: Factory-based client selection
 async ({ instance, ...params }) => {
   const client = this.clientFactory.getClient(instance);
   const result = await client.operation(params);
   return createSuccessResponse(result);
-}
+};
 ```
 
 **Modified tool handlers:**
+
 1. `workspace-tools.ts` - 8 tools (list, get, create, update, archive, bulk operations)
 2. `board-tools.ts` - 12 tools (list, search, CRUD, structure, bulk operations)
 3. `card-tools.ts` - 18 tools (list, CRUD, move, subtasks, relationships, bulk operations)
@@ -389,11 +403,13 @@ export interface MultiInstanceConfig {
 ### Calculation Methodology
 
 **Tool Registration Overhead:**
+
 - Each tool registers with MCP server at startup
 - Tool description includes: name, description, input schema, output schema
 - Average tool metadata: ~42 tokens per tool (current), ~45 tokens (with instance param)
 
 **Current State (Multi-Server):**
+
 ```
 Server 1 (Production):  43 tools × 42 tokens = 1,800 tokens
 Server 2 (Staging):     43 tools × 42 tokens = 1,800 tokens
@@ -403,6 +419,7 @@ Total:                                        5,400 tokens
 ```
 
 **After Implementation (Single Server):**
+
 ```
 Single Server:          43 tools × 45 tokens = 1,935 tokens
 ─────────────────────────────────────────────────────────
@@ -411,36 +428,38 @@ Total:                                        1,935 tokens
 
 ### Token Savings Breakdown
 
-| Metric | Before | After | Savings |
-|--------|--------|-------|---------|
-| **Tool registration overhead** | 5,400 tokens | 1,935 tokens | 3,465 tokens (64%) |
-| **Per-tool overhead** | 42 tokens | 45 tokens | +3 tokens (+7%) |
-| **Per-request overhead** | 0 tokens | +2 tokens | +2 tokens (only with explicit instance) |
-| **Net benefit (3 instances)** | 5,400 tokens | 1,935 tokens | **3,465 tokens saved** |
+| Metric                         | Before       | After        | Savings                                 |
+| ------------------------------ | ------------ | ------------ | --------------------------------------- |
+| **Tool registration overhead** | 5,400 tokens | 1,935 tokens | 3,465 tokens (64%)                      |
+| **Per-tool overhead**          | 42 tokens    | 45 tokens    | +3 tokens (+7%)                         |
+| **Per-request overhead**       | 0 tokens     | +2 tokens    | +2 tokens (only with explicit instance) |
+| **Net benefit (3 instances)**  | 5,400 tokens | 1,935 tokens | **3,465 tokens saved**                  |
 
 ### Per-Request Impact
 
 **Without explicit instance parameter:**
+
 ```typescript
 await client.listWorkspaces(); // Uses default instance
 // Token overhead: 0 additional tokens
 ```
 
 **With explicit instance parameter:**
+
 ```typescript
-await client.listWorkspaces({ instance: "staging" });
+await client.listWorkspaces({ instance: 'staging' });
 // Token overhead: +2 tokens (parameter name + value)
 ```
 
 ### Break-Even Analysis
 
 | Instances | Current | After | Savings | Reduction |
-|-----------|---------|-------|---------|-----------|
-| 1 | 1,800 | 1,935 | -135 | -7.5% |
-| 2 | 3,600 | 1,935 | 1,665 | 46.3% |
-| 3 | 5,400 | 1,935 | 3,465 | **64.2%** |
-| 5 | 9,000 | 1,935 | 7,065 | 78.5% |
-| 10 | 18,000 | 1,935 | 16,065 | 89.3% |
+| --------- | ------- | ----- | ------- | --------- |
+| 1         | 1,800   | 1,935 | -135    | -7.5%     |
+| 2         | 3,600   | 1,935 | 1,665   | 46.3%     |
+| 3         | 5,400   | 1,935 | 3,465   | **64.2%** |
+| 5         | 9,000   | 1,935 | 7,065   | 78.5%     |
+| 10        | 18,000  | 1,935 | 16,065  | 89.3%     |
 
 **Recommendation**: Multi-instance configuration provides massive token savings for users with 2+ instances.
 
@@ -486,6 +505,7 @@ await client.listWorkspaces({ instance: "staging" });
 ```
 
 **Environment Variables:**
+
 ```bash
 export BUSINESSMAP_CONFIG_FILE=~/.config/businessmap-mcp/instances.json
 export BUSINESSMAP_API_TOKEN_PROD=ace_production_token_here
@@ -543,6 +563,7 @@ export BUSINESSMAP_API_TOKEN_DEV=ace_development_token_here
 When ready to manage multiple instances:
 
 **Step 1: Create Configuration File**
+
 ```bash
 mkdir -p ~/.config/businessmap-mcp
 cat > ~/.config/businessmap-mcp/instances.json << 'EOF'
@@ -562,12 +583,14 @@ chmod 600 ~/.config/businessmap-mcp/instances.json
 ```
 
 **Step 2: Set Environment Variables**
+
 ```bash
 export BUSINESSMAP_CONFIG_FILE=~/.config/businessmap-mcp/instances.json
 export BUSINESSMAP_API_TOKEN_PROD=your-production-token
 ```
 
 **Step 3: Restart MCP Server**
+
 ```bash
 # Stop existing server
 pkill -f businessmap-mcp
@@ -577,12 +600,13 @@ businessmap-mcp
 ```
 
 **Step 4: Verify Configuration**
+
 ```typescript
 // Test instance discovery
 await client.listInstances({ include_health: true });
 
 // Test tool with explicit instance
-await client.listWorkspaces({ instance: "production" });
+await client.listWorkspaces({ instance: 'production' });
 ```
 
 ### Rollback Strategy
@@ -611,6 +635,7 @@ businessmap-mcp
 #### InstanceConfigManager Tests (`tests/unit/instance-manager.test.ts`)
 
 **Test Suite (10 tests):**
+
 1. ✅ Load configuration from JSON file
 2. ✅ Load configuration from environment variables
 3. ✅ Fallback to legacy environment variables
@@ -625,6 +650,7 @@ businessmap-mcp
 #### BusinessMapClientFactory Tests (`tests/unit/client-factory.test.ts`)
 
 **Test Suite (7 tests):**
+
 1. ✅ Create client on first access (lazy initialization)
 2. ✅ Return cached client on subsequent access
 3. ✅ Create separate clients for different instances
@@ -638,6 +664,7 @@ businessmap-mcp
 #### Backward Compatibility Tests (`tests/integration/backward-compatibility.test.ts`)
 
 **Test Suite (4 tests):**
+
 1. ✅ Single-instance configuration via legacy env vars
 2. ✅ All 43 tools work without instance parameter
 3. ✅ Response formats unchanged
@@ -646,6 +673,7 @@ businessmap-mcp
 #### Multi-Instance Operation Tests (`tests/integration/multi-instance.test.ts`)
 
 **Test Suite (6 tests):**
+
 1. ✅ Switch between instances in single session
 2. ✅ Parallel operations across multiple instances
 3. ✅ Default instance behavior (no parameter specified)
@@ -658,6 +686,7 @@ businessmap-mcp
 #### Full Workflow Tests (`tests/e2e/multi-instance-workflow.test.ts`)
 
 **Test Suite (7 tests):**
+
 1. ✅ Complete workflow: Production instance
 2. ✅ Complete workflow: Staging instance
 3. ✅ Complete workflow: Development instance (read-only)
@@ -669,6 +698,7 @@ businessmap-mcp
 ### Performance Tests
 
 **Client Caching Tests (4 tests):**
+
 1. ✅ First client creation latency
 2. ✅ Cached client retrieval latency (< 1ms)
 3. ✅ Memory usage with multiple cached clients
@@ -685,6 +715,7 @@ businessmap-mcp
 **Timeline**: Week 1-2
 
 **Tasks**:
+
 - [ ] Create `src/config/instance-manager.ts`
   - [ ] Configuration loading logic (file, env, legacy)
   - [ ] Instance resolution with fallback
@@ -702,6 +733,7 @@ businessmap-mcp
   - [ ] 7 tests for BusinessMapClientFactory
 
 **Deliverables**:
+
 - ✓ InstanceConfigManager (singleton)
 - ✓ BusinessMapClientFactory (singleton)
 - ✓ Configuration validation
@@ -715,6 +747,7 @@ businessmap-mcp
 **Timeline**: Week 2-3
 
 **Tasks**:
+
 - [ ] Modify `src/server/tools/base-tool.ts`
   - [ ] Update handler interface signature
   - [ ] Add instance parameter extraction
@@ -734,22 +767,24 @@ businessmap-mcp
   - [ ] 6 multi-instance operation tests
 
 **Pattern Applied** (43 times):
+
 ```typescript
 // Before
 async (params) => {
   const result = await this.client.operation(params);
   return createSuccessResponse(result);
-}
+};
 
 // After
 async ({ instance, ...params }) => {
   const client = this.clientFactory.getClient(instance);
   const result = await client.operation(params);
   return createSuccessResponse(result);
-}
+};
 ```
 
 **Deliverables**:
+
 - ✓ 43 tools with optional instance parameter
 - ✓ 2 new instance discovery tools
 - ✓ 10 integration tests (80%+ coverage)
@@ -761,6 +796,7 @@ async ({ instance, ...params }) => {
 **Timeline**: Week 3
 
 **Tasks**:
+
 - [ ] Modify `src/server/mcp-server.ts`
   - [ ] Replace single client injection with factory
   - [ ] Update constructor
@@ -773,6 +809,7 @@ async ({ instance, ...params }) => {
   - [ ] 4 performance tests
 
 **Deliverables**:
+
 - ✓ Factory-based MCP server
 - ✓ Multi-instance initialization
 - ✓ 11 end-to-end tests (100% critical path coverage)
@@ -784,6 +821,7 @@ async ({ instance, ...params }) => {
 **Timeline**: Week 4
 
 **Tasks**:
+
 - [ ] Create `docs/migration/multi-instance-migration.md`
   - [ ] Step-by-step migration guide
   - [ ] Configuration examples
@@ -805,6 +843,7 @@ async ({ instance, ...params }) => {
   - [ ] Security review
 
 **Deliverables**:
+
 - ✓ Migration guide
 - ✓ Updated README
 - ✓ Configuration examples
@@ -883,6 +922,7 @@ async ({ instance, ...params }) => {
 **Decision**: Tokens stored in environment variables, NOT in configuration files
 
 **Implementation**:
+
 ```json
 // Config file (safe to version control)
 {
@@ -896,6 +936,7 @@ export BUSINESSMAP_API_TOKEN_PROD=ace_actual_token_here
 ```
 
 **Benefits**:
+
 - ✅ Prevents accidental token exposure in version control
 - ✅ Follows 12-factor app methodology
 - ✅ Compatible with secret management tools (Vault, AWS Secrets Manager, etc.)
@@ -929,6 +970,7 @@ export BUSINESSMAP_API_TOKEN_PROD=ace_actual_token_here
 ### Configuration File Security
 
 **Recommended Permissions**:
+
 ```bash
 # Configuration directory
 chmod 700 ~/.config/businessmap-mcp/
@@ -938,6 +980,7 @@ chmod 600 ~/.config/businessmap-mcp/instances.json
 ```
 
 **Security Checklist**:
+
 - [ ] Config file readable only by owner (chmod 600)
 - [ ] Config directory not world-readable (chmod 700)
 - [ ] No tokens in configuration file (only env var names)
@@ -953,6 +996,7 @@ chmod 600 ~/.config/businessmap-mcp/instances.json
 **No breaking changes:**
 
 1. **Environment Variables**: All existing env vars continue to work
+
    ```bash
    BUSINESSMAP_API_URL=https://fimancia.kanbanize.com/api/v2
    BUSINESSMAP_API_TOKEN=your-token-here
@@ -961,10 +1005,11 @@ chmod 600 ~/.config/businessmap-mcp/instances.json
    ```
 
 2. **Tool Signatures**: `instance` parameter is optional
+
    ```typescript
    // Both work identically
-   await client.listWorkspaces();  // Uses single/default instance
-   await client.listWorkspaces({ instance: "production" });  // Explicit instance
+   await client.listWorkspaces(); // Uses single/default instance
+   await client.listWorkspaces({ instance: 'production' }); // Explicit instance
    ```
 
 3. **Response Formats**: No changes to tool responses
@@ -980,11 +1025,13 @@ chmod 600 ~/.config/businessmap-mcp/instances.json
 ### Migration Path
 
 **For single-instance users:**
+
 - ✅ No action required
 - ✅ Existing configuration works unchanged
 - ✅ Zero downtime migration available
 
 **For multi-instance users:**
+
 - ✅ Opt-in feature via configuration file
 - ✅ Gradual migration supported
 - ✅ Instant rollback available
@@ -994,11 +1041,13 @@ chmod 600 ~/.config/businessmap-mcp/instances.json
 **If issues arise:**
 
 1. **Stop MCP server**
+
    ```bash
    pkill -f businessmap-mcp
    ```
 
 2. **Remove multi-instance configuration**
+
    ```bash
    unset BUSINESSMAP_CONFIG_FILE
    ```
@@ -1042,57 +1091,41 @@ chmod 600 ~/.config/businessmap-mcp/instances.json
 ### New Files (11)
 
 **Core Implementation**:
+
 1. `src/config/instance-manager.ts` - Configuration manager singleton (InstanceConfigManager)
 2. `src/client/client-factory.ts` - Client factory singleton (BusinessMapClientFactory)
 3. `src/types/instance-config.ts` - Multi-instance type definitions
 
-**Tool Implementation**:
-4. `src/server/tools/instance-tools.ts` - Instance discovery tools (list_instances, get_instance_info)
+**Tool Implementation**: 4. `src/server/tools/instance-tools.ts` - Instance discovery tools (list_instances, get_instance_info)
 
-**Documentation**:
-5. `docs/architecture/multi-instance-config-design.md` - Architecture design (22,000 words)
-6. `docs/architecture/IMPLEMENTATION_SUMMARY.md` - Implementation summary
-7. `docs/architecture/architecture-diagrams.md` - Visual diagrams (10 Mermaid diagrams, 511 lines)
-8. `docs/migration/multi-instance-migration.md` - Migration guide (TBD - Phase 4)
+**Documentation**: 5. `docs/architecture/multi-instance-config-design.md` - Architecture design (22,000 words) 6. `docs/architecture/IMPLEMENTATION_SUMMARY.md` - Implementation summary 7. `docs/architecture/architecture-diagrams.md` - Visual diagrams (10 Mermaid diagrams, 511 lines) 8. `docs/migration/multi-instance-migration.md` - Migration guide (TBD - Phase 4)
 
-**Configuration**:
-9. `schemas/instances-config.schema.json` - JSON Schema validation
-10. `examples/multi-instance-config.json` - Dev/Staging/Prod example
-11. `examples/multi-region-config.json` - Multi-region example
+**Configuration**: 9. `schemas/instances-config.schema.json` - JSON Schema validation 10. `examples/multi-instance-config.json` - Dev/Staging/Prod example 11. `examples/multi-region-config.json` - Multi-region example
 
 ### Modified Files (14)
 
 **Core Infrastructure**:
+
 1. `src/types/base.ts` - Add multi-instance type exports
 2. `src/config/environment.ts` - Integrate InstanceConfigManager
 3. `src/server/mcp-server.ts` - Replace single client with factory pattern
 4. `src/server/tools/base-tool.ts` - Update handler interface (add instance parameter)
 
-**Tool Handlers** (7 files, 43 tools):
-5. `src/server/tools/workspace-tools.ts` - Add instance parameter (8 tools)
-6. `src/server/tools/board-tools.ts` - Add instance parameter (12 tools)
-7. `src/server/tools/card-tools.ts` - Add instance parameter (18 tools)
-8. `src/server/tools/custom-field-tools.ts` - Add instance parameter (5 tools)
-9. `src/server/tools/user-tools.ts` - Add instance parameter (3 tools)
-10. `src/server/tools/utility-tools.ts` - Add instance parameter (2 tools)
-11. `src/server/tools/workflow-tools.ts` - Add instance parameter (2 tools)
+**Tool Handlers** (7 files, 43 tools): 5. `src/server/tools/workspace-tools.ts` - Add instance parameter (8 tools) 6. `src/server/tools/board-tools.ts` - Add instance parameter (12 tools) 7. `src/server/tools/card-tools.ts` - Add instance parameter (18 tools) 8. `src/server/tools/custom-field-tools.ts` - Add instance parameter (5 tools) 9. `src/server/tools/user-tools.ts` - Add instance parameter (3 tools) 10. `src/server/tools/utility-tools.ts` - Add instance parameter (2 tools) 11. `src/server/tools/workflow-tools.ts` - Add instance parameter (2 tools)
 
-**Exports & Documentation**:
-12. `src/server/tools/index.ts` - Export instance discovery tools
-13. `README.md` - Add multi-instance setup instructions
-14. `package.json` - Version bump (1.6.1 → 1.7.0)
+**Exports & Documentation**: 12. `src/server/tools/index.ts` - Export instance discovery tools 13. `README.md` - Add multi-instance setup instructions 14. `package.json` - Version bump (1.6.1 → 1.7.0)
 
 ### Test Files (4)
 
 **Unit Tests**:
+
 1. `tests/unit/instance-manager.test.ts` - InstanceConfigManager tests (10 tests)
 2. `tests/unit/client-factory.test.ts` - BusinessMapClientFactory tests (7 tests)
 
-**Integration Tests**:
-3. `tests/integration/multi-instance.test.ts` - Multi-instance operations (6 tests)
-4. `tests/integration/backward-compatibility.test.ts` - Legacy config compatibility (4 tests)
+**Integration Tests**: 3. `tests/integration/multi-instance.test.ts` - Multi-instance operations (6 tests) 4. `tests/integration/backward-compatibility.test.ts` - Legacy config compatibility (4 tests)
 
 **Test Coverage**:
+
 - **Total Tests**: 27 unit/integration + 11 e2e = **38 tests**
 - **Unit Test Coverage**: 90%+ target
 - **Integration Test Coverage**: 80%+ target

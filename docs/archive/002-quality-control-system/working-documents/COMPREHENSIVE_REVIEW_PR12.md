@@ -1,4 +1,5 @@
 # Comprehensive Multi-Dimensional Code Review: PR#12
+
 ## Fix: Parent links lost when moving cards between workflows (#4)
 
 **Repository**: neilinger/businessmap-mcp
@@ -14,27 +15,29 @@
 
 **Overall Quality Score: 5.3/10** (MODERATE - Requires Significant Improvements)
 
-| Dimension | Score | Status | Blocker |
-|-----------|-------|--------|---------|
-| **Code Quality** | 7.4/10 | ⚠️ MODERATE | No (Tech debt) |
-| **Architecture** | 6.8/10 | ⚠️ MODERATE | No (Tactical approach) |
-| **Security** | 4.6/10 | 🔴 **HIGH RISK** | **YES** |
-| **Performance** | 6.5/10 | ⚠️ MODERATE | No (Optimization needed) |
-| **Testing** | 3.5/10 | 🔴 **CRITICAL** | **YES** |
-| **Documentation** | 3.2/10 | 🔴 **CRITICAL** | **YES** |
-| **TypeScript Practices** | 5.4/10 | ⚠️ MODERATE | No (Unused deps) |
-| **CI/CD Maturity** | 4.2/10 | 🔴 **HIGH RISK** | **YES** |
-| **OVERALL** | **5.3/10** | 🔴 **BLOCK** | **YES** |
+| Dimension                | Score      | Status           | Blocker                  |
+| ------------------------ | ---------- | ---------------- | ------------------------ |
+| **Code Quality**         | 7.4/10     | ⚠️ MODERATE      | No (Tech debt)           |
+| **Architecture**         | 6.8/10     | ⚠️ MODERATE      | No (Tactical approach)   |
+| **Security**             | 4.6/10     | 🔴 **HIGH RISK** | **YES**                  |
+| **Performance**          | 6.5/10     | ⚠️ MODERATE      | No (Optimization needed) |
+| **Testing**              | 3.5/10     | 🔴 **CRITICAL**  | **YES**                  |
+| **Documentation**        | 3.2/10     | 🔴 **CRITICAL**  | **YES**                  |
+| **TypeScript Practices** | 5.4/10     | ⚠️ MODERATE      | No (Unused deps)         |
+| **CI/CD Maturity**       | 4.2/10     | 🔴 **HIGH RISK** | **YES**                  |
+| **OVERALL**              | **5.3/10** | 🔴 **BLOCK**     | **YES**                  |
 
 ### Critical Assessment
 
 **What PR Claims:**
+
 - ✅ Build Status: PASSED
 - ✅ Security: 8.5/10 (Multi-agent review)
 - ✅ Overall: 8.2/10
 - ✅ PRODUCTION READY
 
 **What Comprehensive Review Found:**
+
 - ❌ Tests: TypeScript compilation errors (16 failures) - **tests cannot execute**
 - ❌ Security: 4.6/10 - Race conditions, input validation gaps - **NOT PRODUCTION READY**
 - ❌ Documentation: 3.2/10 - Critically misleading claims
@@ -52,6 +55,7 @@
 ## 🔴 Critical Issues (P0 - Must Fix Immediately)
 
 ### P0-1: Test Suite Cannot Execute (BLOCKING)
+
 **Severity**: CRITICAL | **Impact**: HIGH | **Effort**: 2-3 hours
 
 **Finding**: TypeScript compilation errors prevent test execution
@@ -59,6 +63,7 @@
 **Lines**: 144, 150-151, 161-162, 342-345, 476, 496, 515
 
 **Evidence**:
+
 ```
 16 TypeScript compilation errors block test suite execution
 - Type mismatches in UpdateCardParams
@@ -67,6 +72,7 @@
 ```
 
 **Impact**:
+
 - ✅ PR claims: "Build Status: PASSED"
 - ❌ Reality: Tests never executed
 - ❌ Zero validation of parent link preservation
@@ -75,6 +81,7 @@
 **Risk**: Fix deployed without ANY test validation = **data loss in production**
 
 **Remediation**:
+
 1. Fix all TypeScript compilation errors
 2. Verify tests execute successfully
 3. Re-run full test suite
@@ -85,6 +92,7 @@
 ---
 
 ### P0-2: Race Condition (TOCTOU) - Data Corruption Risk (BLOCKING)
+
 **Severity**: CRITICAL | **Impact**: HIGH | **Effort**: 6-8 hours
 
 **Finding**: Fetch-merge-update pattern has 100-200ms race window
@@ -92,6 +100,7 @@
 **Security Score**: 9/12 (Critical)
 
 **Attack Scenario**:
+
 ```
 Time    Thread A                    Thread B
 ────────────────────────────────────────────────
@@ -102,24 +111,28 @@ T+250ms                             PATCH card/123 (OVERWRITES A's changes!)
 ```
 
 **Impact**:
+
 - Silent data corruption (last write wins)
 - Parent links lost despite "fix"
 - Business logic bypass (deleted links resurrected)
 - Zero error indication (HTTP 200 OK)
 
 **Evidence from Security Audit**:
+
 - Risk Score: 9/12 (Critical)
 - OWASP Category: A08 - Data Integrity Failures
 - Production Risk: HIGH
 - Zero tests validate concurrent scenarios
 
 **Remediation**:
+
 1. Implement optimistic locking using `revision` field
 2. Add retry on 409 Conflict
 3. Add concurrency tests (Phase 3 recommendation)
 4. Document race condition risk in JSDoc
 
 **Example Fix**:
+
 ```typescript
 async updateCard(params: UpdateCardParams): Promise<Card> {
   const maxRetries = 3;
@@ -148,6 +161,7 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
 ---
 
 ### P0-3: Input Validation Bypass - Injection & DoS Vectors (BLOCKING)
+
 **Severity**: CRITICAL | **Impact**: MEDIUM-HIGH | **Effort**: 7-11 hours
 
 **Finding**: Zero input validation despite zod dependency installed
@@ -157,18 +171,20 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
 **Vulnerabilities**:
 
 1. **cardId Validation Missing**:
+
    ```typescript
    // Current (vulnerable):
    if (!cardId) throw new Error('card_id is required');
 
    // Missing checks:
-   cardId = -1          // ❌ Accepted (negative)
-   cardId = 0           // ❌ Accepted (zero)
-   cardId = 2147483648  // ❌ Accepted (overflow)
-   cardId = NaN         // ❌ Accepted (type coercion)
+   cardId = -1; // ❌ Accepted (negative)
+   cardId = 0; // ❌ Accepted (zero)
+   cardId = 2147483648; // ❌ Accepted (overflow)
+   cardId = NaN; // ❌ Accepted (type coercion)
    ```
 
 2. **linked_cards[] Validation Missing**:
+
    ```typescript
    // No checks for:
    - Array length (DoS: 1M linked_cards = API overload)
@@ -183,16 +199,19 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
    - Dead code = wasted dependency
 
 **Impact**:
+
 - DoS amplification (1M linked_cards × 200 API calls = 200M requests)
 - Injection vectors (malicious link_type values)
 - Zombie link persistence (circular references)
 
 **Evidence from Security Audit**:
+
 - Risk Score: 9/12 (Critical)
 - OWASP Category: A03 - Injection
 - Zero tests validate input boundaries
 
 **Remediation**:
+
 ```typescript
 import { z } from 'zod';
 
@@ -218,6 +237,7 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
 ---
 
 ### P0-4: Documentation Critically Misleading (BLOCKING)
+
 **Severity**: CRITICAL | **Impact**: HIGH | **Effort**: 3-4 hours
 
 **Finding**: PR description claims contradict comprehensive audit findings
@@ -226,21 +246,23 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
 
 **Misleading Claims vs Reality**:
 
-| PR Claims | Comprehensive Audit | Discrepancy |
-|-----------|---------------------|-------------|
-| Security: 8.5/10 | Security: 4.6/10 | **-3.9 points** |
-| Overall: 8.2/10 | Overall: 5.3/10 | **-2.9 points** |
-| PRODUCTION READY | NOT PRODUCTION READY | **Status mismatch** |
-| Build Status: ✅ PASSED | Tests: Compilation errors | **False positive** |
-| 0 critical issues | 4 P0 critical blockers | **4 undisclosed risks** |
+| PR Claims               | Comprehensive Audit       | Discrepancy             |
+| ----------------------- | ------------------------- | ----------------------- |
+| Security: 8.5/10        | Security: 4.6/10          | **-3.9 points**         |
+| Overall: 8.2/10         | Overall: 5.3/10           | **-2.9 points**         |
+| PRODUCTION READY        | NOT PRODUCTION READY      | **Status mismatch**     |
+| Build Status: ✅ PASSED | Tests: Compilation errors | **False positive**      |
+| 0 critical issues       | 4 P0 critical blockers    | **4 undisclosed risks** |
 
 **Impact**:
+
 - Unsafe production deployment
 - Risk acceptance without proper disclosure
 - Engineering team unaware of technical debt
 - Stakeholders misled on readiness status
 
 **Missing Documentation**:
+
 1. Race condition risk disclosure
 2. Input validation gaps
 3. Test suite compilation failure
@@ -249,6 +271,7 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
 6. Deployment restrictions
 
 **Remediation**:
+
 1. Correct all scores in PR description (3.5 hours)
 2. Add "Known Security Issues" section
 3. Add "Production Deployment Restrictions" section
@@ -256,16 +279,19 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
 5. Obtain risk acceptance sign-off from product owner
 
 **Example Corrected Section**:
+
 ```markdown
 ## Production Readiness Assessment
 
 **Security Score: 4.6/10** (Medium-High Risk)
+
 - ✅ Zero dependency vulnerabilities
 - ❌ Race condition (TOCTOU) - data corruption risk
 - ❌ Input validation gaps - injection/DoS vectors
 - ❌ Error message disclosure
 
 **Deployment Approval:**
+
 - ✅ Internal tools (trusted users, with risk acceptance)
 - ✅ Development/staging environments
 - ❌ Public APIs
@@ -280,6 +306,7 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
 ---
 
 ### P0-5: CI/CD Pipeline False Positives (BLOCKING)
+
 **Severity**: CRITICAL | **Impact**: HIGH | **Effort**: 12 hours
 
 **Finding**: Build passes despite test compilation failures
@@ -310,12 +337,14 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
    - No deployment validation
 
 **Impact**:
+
 - False confidence (✅ PASSED but zero validation)
 - Regressions undetected
 - Security vulnerabilities unscanned
 - Performance regressions unmeasured
 
 **Evidence**:
+
 ```
 ✅ PR shows: "Build Status: PASSED"
 ❌ Reality:
@@ -327,6 +356,7 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
 ```
 
 **Remediation** (12 hours):
+
 1. Add TypeScript compilation check to CI
 2. Enforce test execution (fail on skip)
 3. Merge test files from worktree to main
@@ -345,6 +375,7 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
 ## 🟠 High Priority Issues (P1 - Fix Before Next Release)
 
 ### P1-1: Code Duplication (90% Similarity)
+
 **Severity**: HIGH | **Impact**: MEDIUM | **Effort**: 2 hours
 
 **Finding**: Preservation logic duplicated in updateCard() and moveCard()
@@ -352,12 +383,14 @@ async updateCard(params: UpdateCardParams): Promise<Card> {
 **Maintainability Impact**: HIGH
 
 **Metrics**:
+
 - Lines duplicated: 24 lines
 - Structural similarity: 90%
 - Semantic similarity: 100%
 - Variation: Only variable naming
 
 **Impact**:
+
 - Maintenance burden: HIGH
 - Risk of divergence: HIGH
 - Violates DRY principle
@@ -371,6 +404,7 @@ Extract to private method `preserveLinkedCards()` (see Phase 1 detailed recommen
 ---
 
 ### P1-2: Performance - 35 Seconds for 100 Cards (Unacceptable)
+
 **Severity**: HIGH | **Impact**: HIGH | **Effort**: 4-6 hours
 
 **Finding**: Sequential bulk operations cause 35-second delays
@@ -379,13 +413,14 @@ Extract to private method `preserveLinkedCards()` (see Phase 1 detailed recommen
 
 **Current vs Target**:
 
-| Cards | Current | Target | Gap |
-|-------|---------|--------|-----|
-| 10    | 3.5s    | <2s    | +1.5s (75% over) |
-| 100   | 35s     | <10s   | +25s (250% over) |
+| Cards | Current | Target | Gap               |
+| ----- | ------- | ------ | ----------------- |
+| 10    | 3.5s    | <2s    | +1.5s (75% over)  |
+| 100   | 35s     | <10s   | +25s (250% over)  |
 | 1000  | 350s    | <120s  | +230s (192% over) |
 
 **Root Cause**: Sequential execution (no parallelization)
+
 ```typescript
 // Current (SLOW):
 for (const id of cardIds) {
@@ -396,6 +431,7 @@ for (const id of cardIds) {
 **Optimization Potential**: **67% improvement** (35s → 11.5s)
 
 **Remediation**:
+
 1. Parallelize GET requests (53% improvement)
 2. Add connection pooling (14% improvement)
 3. Implement short-lived caching (50% reduction with hits)
@@ -407,6 +443,7 @@ for (const id of cardIds) {
 ---
 
 ### P1-3: Silent Failure in Error Handling
+
 **Severity**: HIGH | **Impact**: HIGH | **Effort**: 3 hours
 
 **Finding**: Catch blocks suppress errors, operation continues
@@ -414,6 +451,7 @@ for (const id of cardIds) {
 **Security Impact**: Data loss risk persists
 
 **Problem**:
+
 ```typescript
 try {
   const currentCard = await this.getCard(cardId);
@@ -427,17 +465,18 @@ try {
 
 **Failure Scenarios** (bug STILL occurs):
 
-| Scenario | Outcome | User Impact |
-|----------|---------|-------------|
-| Network timeout | linked_cards lost | HIGH |
-| API throttling (429) | linked_cards lost | HIGH |
-| Permission issues (403) | linked_cards lost | MEDIUM |
-| Card deleted (404) | linked_cards lost | LOW |
-| Server error (500) | linked_cards lost | HIGH |
+| Scenario                | Outcome           | User Impact |
+| ----------------------- | ----------------- | ----------- |
+| Network timeout         | linked_cards lost | HIGH        |
+| API throttling (429)    | linked_cards lost | HIGH        |
+| Permission issues (403) | linked_cards lost | MEDIUM      |
+| Card deleted (404)      | linked_cards lost | LOW         |
+| Server error (500)      | linked_cards lost | HIGH        |
 
 **Assessment**: Fix is NOT guaranteed to work 100% of the time!
 
 **Remediation**:
+
 1. Add retry mechanism for transient failures
 2. Differentiate error types (404 = skip, 503 = retry, 401 = fail)
 3. Add configuration for failure modes (fail-fast vs graceful)
@@ -448,6 +487,7 @@ try {
 ---
 
 ### P1-4: Missing Race Condition Tests
+
 **Severity**: HIGH | **Impact**: HIGH | **Effort**: 4-6 hours
 
 **Finding**: Zero tests validate concurrent update behavior
@@ -455,18 +495,20 @@ try {
 **Test Coverage**: Race conditions = 0/14 tests
 
 **Gap**: Phase 2 identified TOCTOU vulnerability (Risk: 9/12), but zero tests validate:
+
 - Concurrent updateCard() calls
 - Concurrent moveCard() calls
 - Mixed operations (update + move simultaneously)
 - Optimistic locking behavior (when implemented)
 
 **Recommended Tests**:
+
 ```typescript
 describe('Race Condition Protection', () => {
   it('should preserve links during concurrent updates', async () => {
     const promises = [
       client.updateCard({ card_id: 123, title: 'A' }),
-      client.updateCard({ card_id: 123, title: 'B' })
+      client.updateCard({ card_id: 123, title: 'B' }),
     ];
     const results = await Promise.allSettled(promises);
 
@@ -494,6 +536,7 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P1-5: Input Validation Tests Missing
+
 **Severity**: HIGH | **Impact**: MEDIUM | **Effort**: 7-11 hours
 
 **Finding**: Zero tests validate input boundaries
@@ -501,6 +544,7 @@ describe('Race Condition Protection', () => {
 **Coverage**: Input validation = 0/14 tests
 
 **Missing Test Scenarios**:
+
 1. cardId boundary checks (negative, zero, overflow, NaN)
 2. linked_cards size validation (empty, 1000+, 1M DoS scenario)
 3. link_type enum validation (invalid values, injection)
@@ -513,10 +557,12 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P1-6: Performance Monitoring Missing
+
 **Severity**: HIGH | **Impact**: MEDIUM | **Effort**: 8-12 hours
 
 **Finding**: No production observability for fetch-merge-update pattern
 **Metrics to Track**:
+
 - Operation latency (p50, p90, p99)
 - Preservation success rate
 - Cache hit rate (when implemented)
@@ -532,11 +578,13 @@ describe('Race Condition Protection', () => {
 ## ⚠️ Medium Priority Issues (P2 - Plan for Next Sprint)
 
 ### P2-1: Console Logging in Production
+
 **Severity**: MEDIUM | **Impact**: MEDIUM | **Effort**: 1 hour
 
 **Finding**: console.debug/warn used instead of proper logger
 **Location**: Multiple files
 **Issues**:
+
 - Pollutes stdout (MCP protocol violation)
 - No structured logging
 - No log levels
@@ -547,21 +595,25 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P2-2: Unused Dependencies
+
 **Severity**: MEDIUM | **Impact**: LOW | **Effort**: 4 hours
 
 **Finding**: Zod installed but never used
 **Impact**:
+
 - Wasted dependency (bundle size)
 - Security surface area
 - Maintenance burden
 
 **Options**:
+
 1. Adopt zod for input validation (RECOMMENDED)
 2. Remove dependency
 
 ---
 
 ### P2-3: No Retry Mechanism
+
 **Severity**: MEDIUM | **Impact**: MEDIUM | **Effort**: 3 hours
 
 **Finding**: Transient errors (network timeouts) not handled
@@ -570,6 +622,7 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P2-4: No Connection Pooling
+
 **Severity**: MEDIUM | **Impact**: MEDIUM | **Effort**: 2-3 hours
 
 **Finding**: Each request creates new TCP connection
@@ -579,6 +632,7 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P2-5: Shotgun Surgery Risk
+
 **Severity**: MEDIUM | **Impact**: MEDIUM | **Effort**: 4 hours
 
 **Finding**: Adding new preserved fields requires changing multiple methods
@@ -587,6 +641,7 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P2-6: No Caching Layer
+
 **Severity**: MEDIUM | **Impact**: HIGH | **Effort**: 6-8 hours
 
 **Finding**: Every getCard() hits API
@@ -596,6 +651,7 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P2-7: Outdated Dependencies
+
 **Severity**: MEDIUM | **Impact**: LOW | **Effort**: 1 hour
 
 **Finding**: axios ^1.12.0 is 6 months behind
@@ -605,6 +661,7 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P2-8: No Authorization Checks
+
 **Severity**: MEDIUM | **Impact**: MEDIUM | **Effort**: N/A (API responsibility)
 
 **Finding**: Client relies entirely on API for permission checks
@@ -615,6 +672,7 @@ describe('Race Condition Protection', () => {
 ## 🟢 Low Priority Issues (P3 - Track in Backlog)
 
 ### P3-1: Magic Strings
+
 **Severity**: LOW | **Impact**: LOW | **Effort**: 1 hour
 
 **Finding**: Hardcoded '[card-client]' namespace in logs
@@ -623,6 +681,7 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P3-2: Primitive Obsession
+
 **Severity**: LOW | **Impact**: LOW | **Effort**: N/A
 
 **Finding**: Using plain number for cardId
@@ -632,6 +691,7 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P3-3: Long Methods
+
 **Severity**: LOW | **Impact**: LOW | **Effort**: 2 hours (part of P1-1)
 
 **Finding**: updateCard (46 lines), moveCard (50 lines)
@@ -641,6 +701,7 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P3-4: Missing ADR
+
 **Severity**: LOW | **Impact**: MEDIUM | **Effort**: 2 hours
 
 **Finding**: No Architecture Decision Record for fetch-merge-update pattern
@@ -649,6 +710,7 @@ describe('Race Condition Protection', () => {
 ---
 
 ### P3-5: Test Pyramid Violation
+
 **Severity**: LOW | **Impact**: MEDIUM | **Effort**: 8-10 hours
 
 **Finding**: 100% integration tests, zero unit tests
@@ -662,6 +724,7 @@ describe('Race Condition Protection', () => {
 ### Merge Readiness Checklist
 
 **Critical (P0) - MUST complete before merge:**
+
 - [ ] Fix all TypeScript compilation errors (16 failures)
 - [ ] Implement optimistic locking (revision field) for race condition
 - [ ] Add input validation with zod (cardId, linked_cards)
@@ -673,14 +736,16 @@ describe('Race Condition Protection', () => {
 - [ ] Add input validation tests (8+ scenarios)
 
 **High Priority (P1) - Complete before next release:**
+
 - [ ] Extract preservation logic (eliminate 90% duplication)
 - [ ] Add retry mechanism for transient failures
 - [ ] Optimize bulk operations (67% improvement: 35s → 11.5s)
 - [ ] Add performance monitoring (Grafana dashboard)
-- [ ] Replace console.* with proper logger
+- [ ] Replace console.\* with proper logger
 - [ ] Add connection pooling (14% improvement)
 
 **Medium Priority (P2) - Plan for next sprint:**
+
 - [ ] Implement short-lived caching (5s TTL)
 - [ ] Update axios to 1.7.x
 - [ ] Add configuration for failure modes
@@ -690,11 +755,13 @@ describe('Race Condition Protection', () => {
 ### Production Deployment Approval
 
 **✅ APPROVED FOR:**
+
 - Internal tools (trusted users, after P0 fixes + risk acceptance)
 - Development/staging environments
 - Prototype/MVP systems
 
 **❌ NOT APPROVED FOR:**
+
 - Public APIs
 - Financial/healthcare systems (PCI-DSS, HIPAA)
 - SOC2/ISO27001 compliant environments
@@ -702,6 +769,7 @@ describe('Race Condition Protection', () => {
 - Critical production systems
 
 **UNTIL:**
+
 - All P0 issues resolved
 - P1 issues substantially addressed
 - Risk acceptance documented and signed
@@ -714,21 +782,25 @@ describe('Race Condition Protection', () => {
 ## Implementation Roadmap
 
 ### Week 1: Critical Blockers (P0)
+
 **Effort**: 38-47 hours
 **Team**: 2-3 engineers
 
 **Monday-Tuesday**:
+
 - [ ] Fix TypeScript compilation errors (2-3h)
 - [ ] Merge test files from worktree (1h)
 - [ ] Verify test execution (1h)
 - [ ] Implement optimistic locking (6-8h)
 
 **Wednesday-Thursday**:
+
 - [ ] Add zod input validation (7-11h)
 - [ ] Add race condition tests (4-6h)
 - [ ] Add input validation tests (7-11h)
 
 **Friday**:
+
 - [ ] Correct PR documentation (3-4h)
 - [ ] Fix CI/CD quality gates (12h)
 - [ ] Smoke test all changes
@@ -738,16 +810,19 @@ describe('Race Condition Protection', () => {
 ---
 
 ### Week 2: High Priority (P1)
+
 **Effort**: 28-36 hours
 **Team**: 2 engineers
 
 **Monday-Tuesday**:
+
 - [ ] Extract preservation logic (2h)
 - [ ] Add retry mechanism (3h)
 - [ ] Replace console logging (1h)
 - [ ] Add connection pooling (2-3h)
 
 **Wednesday-Friday**:
+
 - [ ] Optimize bulk operations (4-6h)
   - Parallel GET requests
   - Controlled concurrency
@@ -762,15 +837,18 @@ describe('Race Condition Protection', () => {
 ---
 
 ### Week 3: Medium Priority (P2)
+
 **Effort**: 20-26 hours
 **Team**: 1-2 engineers
 
 **Monday-Wednesday**:
+
 - [ ] Implement caching layer (6-8h)
 - [ ] Add cache invalidation (2h)
 - [ ] Add cache coherence tests (3h)
 
 **Thursday-Friday**:
+
 - [ ] Generalize preservation system (6h)
 - [ ] Update axios dependency (1h)
 - [ ] Add configuration options (2-3h)
@@ -781,22 +859,26 @@ describe('Race Condition Protection', () => {
 ---
 
 ### Week 4: Polish & Production Rollout
+
 **Effort**: 16-24 hours
 **Team**: 2 engineers + 1 SRE
 
 **Monday-Tuesday**:
+
 - [ ] Load testing (100, 1000, 10000 cards)
 - [ ] Security re-scan
 - [ ] Performance validation
 - [ ] Documentation review
 
 **Wednesday**:
+
 - [ ] Staging deployment
 - [ ] Smoke tests
 - [ ] Performance monitoring validation
 - [ ] Security monitoring validation
 
 **Thursday-Friday**:
+
 - [ ] Production deployment (with feature flag)
 - [ ] Gradual rollout (10% → 50% → 100%)
 - [ ] Real-time monitoring
@@ -810,14 +892,14 @@ describe('Race Condition Protection', () => {
 
 ### Deployment Risks (Current State)
 
-| Risk | Likelihood | Impact | Severity | Mitigation |
-|------|------------|--------|----------|------------|
-| Data loss (race condition) | HIGH | HIGH | **CRITICAL** | P0-2: Optimistic locking |
-| DoS (input validation) | MEDIUM | HIGH | **HIGH** | P0-3: Zod validation |
-| Silent test failures | HIGH | HIGH | **CRITICAL** | P0-1, P0-5: Fix CI/CD |
-| Performance degradation | HIGH | MEDIUM | **HIGH** | P1-2: Optimize bulk ops |
-| Security vulnerabilities | MEDIUM | HIGH | **HIGH** | P0-2, P0-3: Security fixes |
-| False confidence | HIGH | HIGH | **CRITICAL** | P0-4: Correct documentation |
+| Risk                       | Likelihood | Impact | Severity     | Mitigation                  |
+| -------------------------- | ---------- | ------ | ------------ | --------------------------- |
+| Data loss (race condition) | HIGH       | HIGH   | **CRITICAL** | P0-2: Optimistic locking    |
+| DoS (input validation)     | MEDIUM     | HIGH   | **HIGH**     | P0-3: Zod validation        |
+| Silent test failures       | HIGH       | HIGH   | **CRITICAL** | P0-1, P0-5: Fix CI/CD       |
+| Performance degradation    | HIGH       | MEDIUM | **HIGH**     | P1-2: Optimize bulk ops     |
+| Security vulnerabilities   | MEDIUM     | HIGH   | **HIGH**     | P0-2, P0-3: Security fixes  |
+| False confidence           | HIGH       | HIGH   | **CRITICAL** | P0-4: Correct documentation |
 
 ### Overall Risk Level: 🔴 **UNACCEPTABLE** (Current State)
 
@@ -831,38 +913,38 @@ describe('Race Condition Protection', () => {
 
 ### Quality Scorecard
 
-| Metric | Current | Target | Gap | Priority |
-|--------|---------|--------|-----|----------|
-| **Overall Score** | 5.3/10 | 8.0/10 | -2.7 | P0+P1 |
-| Code Quality | 7.4/10 | 8.5/10 | -1.1 | P1 |
-| Architecture | 6.8/10 | 8.0/10 | -1.2 | P2 |
-| Security | 4.6/10 | 7.0/10 | -2.4 | **P0** |
-| Performance | 6.5/10 | 8.0/10 | -1.5 | P1 |
-| Testing | 3.5/10 | 8.0/10 | -4.5 | **P0** |
-| Documentation | 3.2/10 | 7.0/10 | -3.8 | **P0** |
-| TypeScript | 5.4/10 | 8.0/10 | -2.6 | P1 |
-| CI/CD | 4.2/10 | 8.0/10 | -3.8 | **P0** |
+| Metric            | Current | Target | Gap  | Priority |
+| ----------------- | ------- | ------ | ---- | -------- |
+| **Overall Score** | 5.3/10  | 8.0/10 | -2.7 | P0+P1    |
+| Code Quality      | 7.4/10  | 8.5/10 | -1.1 | P1       |
+| Architecture      | 6.8/10  | 8.0/10 | -1.2 | P2       |
+| Security          | 4.6/10  | 7.0/10 | -2.4 | **P0**   |
+| Performance       | 6.5/10  | 8.0/10 | -1.5 | P1       |
+| Testing           | 3.5/10  | 8.0/10 | -4.5 | **P0**   |
+| Documentation     | 3.2/10  | 7.0/10 | -3.8 | **P0**   |
+| TypeScript        | 5.4/10  | 8.0/10 | -2.6 | P1       |
+| CI/CD             | 4.2/10  | 8.0/10 | -3.8 | **P0**   |
 
 ### Test Coverage
 
-| Category | Current | Target | Gap |
-|----------|---------|--------|-----|
-| Statement Coverage | ~65% | 85% | -20% |
-| Branch Coverage | ~45% | 75% | -30% |
-| Function Coverage | ~80% | 90% | -10% |
-| Race Conditions | 0/14 | 3/14 | -100% |
-| Input Validation | 0 tests | 8+ tests | Missing |
+| Category                | Current    | Target   | Gap     |
+| ----------------------- | ---------- | -------- | ------- |
+| Statement Coverage      | ~65%       | 85%      | -20%    |
+| Branch Coverage         | ~45%       | 75%      | -30%    |
+| Function Coverage       | ~80%       | 90%      | -10%    |
+| Race Conditions         | 0/14       | 3/14     | -100%   |
+| Input Validation        | 0 tests    | 8+ tests | Missing |
 | Performance (100 cards) | Not tested | <35s SLA | Missing |
 
 ### Technical Debt
 
-| Category | Hours | Priority |
-|----------|-------|----------|
-| **P0 Critical** | 38-47h | **This week** |
-| **P1 High** | 28-36h | **Next release** |
-| **P2 Medium** | 20-26h | **Next sprint** |
-| **P3 Low** | 12-16h | **Backlog** |
-| **TOTAL** | **98-125h** | **3-4 weeks** |
+| Category        | Hours       | Priority         |
+| --------------- | ----------- | ---------------- |
+| **P0 Critical** | 38-47h      | **This week**    |
+| **P1 High**     | 28-36h      | **Next release** |
+| **P2 Medium**   | 20-26h      | **Next sprint**  |
+| **P3 Low**      | 12-16h      | **Backlog**      |
+| **TOTAL**       | **98-125h** | **3-4 weeks**    |
 
 ---
 
@@ -875,12 +957,14 @@ PR#12 successfully identifies and attempts to fix a critical data loss bug where
 ### Key Takeaways
 
 **✅ What's Good:**
+
 - Identifies real problem (100% parent link data loss)
 - Fetch-merge-update pattern is architecturally sound
 - Comprehensive PR description (though misleading)
 - Zero dependency vulnerabilities
 
 **❌ What's Critical:**
+
 - Tests cannot execute (TypeScript errors)
 - Race condition (TOCTOU) causes data corruption
 - Input validation completely missing
@@ -888,6 +972,7 @@ PR#12 successfully identifies and attempts to fix a critical data loss bug where
 - CI/CD pipeline provides false confidence
 
 **⚠️ What Needs Work:**
+
 - 90% code duplication
 - 35-second bulk operations (unacceptable UX)
 - Silent failure in error handling
@@ -901,12 +986,14 @@ PR#12 successfully identifies and attempts to fix a critical data loss bug where
 **Estimated Time to Production Ready**: 3-4 weeks, ~110 hours engineering effort
 
 **Alternative Approach**:
+
 - Merge to `dev` branch for continued development
 - Create P0 blocker tickets
 - Address P0 issues systematically
 - Re-review before `main` merge
 
 **Risk Acceptance**: If deployed to internal tools only (trusted users, non-critical), obtain written risk acceptance from product owner acknowledging:
+
 - Race condition risk (data corruption)
 - Input validation gaps (DoS/injection)
 - Performance limitations (35s for 100 cards)

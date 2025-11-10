@@ -9,6 +9,7 @@ Implemented TTL-based caching layer with request deduplication to reduce redunda
 ### 1. Core Cache Manager (`src/client/modules/base-client.ts`)
 
 Created `CacheManager` class with:
+
 - **TTL-based expiration**: Configurable time-to-live for cache entries
 - **Request deduplication**: Concurrent identical requests share a single API call
 - **Pattern-based invalidation**: Regex-based cache invalidation for mutations
@@ -18,6 +19,7 @@ Created `CacheManager` class with:
 ### 2. Configuration (`src/types/base.ts`)
 
 Added cache configuration options to `BusinessMapConfig`:
+
 ```typescript
 cacheEnabled?: boolean;        // Default: true
 cacheTtl?: number;             // Default: 300000ms (5 minutes)
@@ -31,18 +33,22 @@ cacheWorkspacesTtl?: number;   // Default: 900000ms (15 minutes)
 Integrated caching into the following client methods:
 
 #### UserClient (`src/client/modules/user-client.ts`)
+
 - `getUsers()` - Cache key: `users:all`
 - `getUser(userId)` - Cache key: `user:{userId}`
 - `getCurrentUser()` - Cache key: `user:current`
 
 #### CardClient (`src/client/modules/card-client.ts`)
+
 - `getCardTypes()` - Cache key: `cardTypes:all`
 
 #### WorkspaceClient (`src/client/modules/workspace-client.ts`)
+
 - `getWorkspaces()` - Cache key: `workspaces:all`
 - `getWorkspace(workspaceId)` - Cache key: `workspace:{workspaceId}`
 
 #### CustomFieldClient (`src/client/modules/custom-field-client.ts`)
+
 - `listBoardCustomFields(boardId)` - Cache key: `customFields:board:{boardId}`
 - `getCustomField(customFieldId)` - Cache key: `customField:{customFieldId}`
 
@@ -51,11 +57,13 @@ Integrated caching into the following client methods:
 Implemented automatic cache invalidation on mutations:
 
 #### WorkspaceClient
+
 - `createWorkspace()` → Invalidate `/^workspaces:/`
 - `updateWorkspace()` → Invalidate `/^workspaces:/` + `workspace:{id}`
 - `archiveWorkspace()` → Invalidate `/^workspaces:/` + `workspace:{id}`
 
 #### CustomFieldClient
+
 - `createCustomField()` → Invalidate `customFields:board:{boardId}`
 - `updateCustomField()` → Invalidate `customField:{id}` + `/^customFields:board:/`
 - `deleteCustomField()` → Invalidate `customField:{id}` + `/^customFields:board:/`
@@ -63,6 +71,7 @@ Implemented automatic cache invalidation on mutations:
 ### 5. Monitoring API (`src/client/businessmap-client.ts`)
 
 Added cache management methods to `BusinessMapClient`:
+
 - `getCacheStats()` - Get hit/miss statistics for all client modules
 - `clearAllCaches()` - Clear all caches across all modules
 - `cleanupCaches()` - Remove expired entries from all caches
@@ -70,6 +79,7 @@ Added cache management methods to `BusinessMapClient`:
 ## Test Coverage
 
 ### Unit Tests (`test/cache-manager.test.ts`)
+
 - ✓ Cache hit/miss behavior
 - ✓ TTL expiration
 - ✓ Request deduplication
@@ -79,6 +89,7 @@ Added cache management methods to `BusinessMapClient`:
 - ✓ Disabled cache mode
 
 ### Integration Tests (`test/integration/cache-integration.test.ts`)
+
 - ✓ UserClient caching (getUsers, getCurrentUser)
 - ✓ CardClient caching (getCardTypes)
 - ✓ WorkspaceClient caching (getWorkspaces, getWorkspace)
@@ -110,6 +121,7 @@ Based on issue requirements:
 ### Measured Results (from tests)
 
 Request deduplication test demonstrates:
+
 - 5 concurrent `getUsers()` calls
 - Result: 1 API call, 4 cache hits (80% hit rate)
 - Confirms deduplication working as designed
@@ -124,11 +136,11 @@ const client = new BusinessMapClient({
   apiToken: process.env.BUSINESSMAP_API_TOKEN,
 
   // Cache configuration (all optional)
-  cacheEnabled: true,           // Enable caching (default: true)
-  cacheTtl: 300000,              // Default TTL: 5 minutes
-  cacheUsersTtl: 300000,         // User cache: 5 minutes
-  cacheCardTypesTtl: 300000,     // Card types: 5 minutes
-  cacheWorkspacesTtl: 900000,    // Workspaces: 15 minutes
+  cacheEnabled: true, // Enable caching (default: true)
+  cacheTtl: 300000, // Default TTL: 5 minutes
+  cacheUsersTtl: 300000, // User cache: 5 minutes
+  cacheCardTypesTtl: 300000, // Card types: 5 minutes
+  cacheWorkspacesTtl: 900000, // Workspaces: 15 minutes
 });
 
 await client.initialize();
@@ -162,6 +174,7 @@ client.cleanupCaches();
 ## Future Enhancements
 
 Potential improvements (not in scope for this PR):
+
 - [ ] Persistent cache layer (localStorage/file-based for CLI)
 - [ ] LRU eviction for memory-constrained environments
 - [ ] Cache warmup strategies
