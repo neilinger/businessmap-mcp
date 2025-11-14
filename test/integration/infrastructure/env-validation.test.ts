@@ -171,7 +171,6 @@ describe('Environment Variable Validation', () => {
           // Token might be invalid or expired
           const message = error instanceof Error ? error.message : 'Unknown error';
           // eslint-disable-next-line no-console
-          console.log('API call failed:', message);
         }
 
         // In REAL mode with valid credentials, this should succeed
@@ -203,7 +202,6 @@ describe('Environment Variable Validation', () => {
             } catch {
               // Log but don't fail - token might be test token without access
               // eslint-disable-next-line no-console
-              console.log(`API call for ${instanceName} failed (might be expected for test)`);
             }
 
             // At minimum, client should be created successfully

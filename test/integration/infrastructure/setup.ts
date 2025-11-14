@@ -12,7 +12,6 @@ export const TEST_MODE: 'real' | 'mock' =
     ? 'mock'
     : 'real';
 
-console.log(`\n🧪 Integration tests running in ${TEST_MODE.toUpperCase()} mode\n`);
 
 // Mode-specific setup
 if (TEST_MODE === 'real') {
@@ -33,12 +32,7 @@ if (TEST_MODE === 'real') {
     process.exit(1);
   }
 
-  console.log('✓ Real credentials detected');
-  console.log(`  - BUSINESSMAP_API_TOKEN_FIMANCIA: ${hasFimanciaToken ? 'present' : 'missing'}`);
-  console.log(`  - BUSINESSMAP_API_TOKEN_KERKOW: ${hasKerkowToken ? 'present' : 'missing'}`);
 } else {
   // Mock mode: No credentials required
-  console.log('✓ Running in CI mode (mock validation only, no API calls)');
 }
 
-console.log('');

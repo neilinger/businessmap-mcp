@@ -369,7 +369,6 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
         } catch (error) {
           // Log for debugging but don't fail - token might have limited permissions
           // eslint-disable-next-line no-console
-          console.log('API call status:', error instanceof Error ? error.message : 'Unknown');
         }
 
         // ASSERTION: API call succeeded with valid token
@@ -511,21 +510,15 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
 
       // Document coverage for reporting
       // eslint-disable-next-line no-console
-      console.log('\n🛡️  Quality Control Layer Coverage:');
       Object.entries(layerCoverage).forEach(([layer, info]) => {
         // eslint-disable-next-line no-console
-        console.log(`\n${layer}:`);
         // eslint-disable-next-line no-console
-        console.log(`  Description: ${info.description}`);
         // eslint-disable-next-line no-console
-        console.log(`  Catches: ${info.catches.join(', ')}`);
         if ('testedBy' in info) {
           // eslint-disable-next-line no-console
-          console.log(`  Tested by: ${info.testedBy}`);
         }
         if ('notTested' in info) {
           // eslint-disable-next-line no-console
-          console.log(`  Note: ${info.notTested}`);
         }
       });
     });

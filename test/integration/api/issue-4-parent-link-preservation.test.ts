@@ -58,26 +58,21 @@ const performanceMetrics: PerformanceMetric[] = [];
 
 // Cleanup helper
 async function cleanup() {
-  console.log(`\n🧹 Cleaning up ${createdResources.length} test resources...`);
 
   // Delete in reverse order (cards before boards before workspaces)
   for (const resource of createdResources.reverse()) {
     try {
-      console.log(`  Cleaning ${resource.type} ID:${resource.id}`);
 
       switch (resource.type) {
-        case 'card':
-          await client.deleteCard(resource.id, { archive_first: true });
-          console.log(`    ✅ Deleted card ${resource.id}`);
-          break;
-        case 'board':
-          await client.deleteBoard(resource.id, { archive_first: true });
-          console.log(`    ✅ Deleted board ${resource.id}`);
-          break;
-        case 'workspace':
-          await client.archiveWorkspace(resource.id);
-          console.log(`    ✅ Archived workspace ${resource.id}`);
-          break;
+      case 'card':
+        await client.deleteCard(resource.id, { archive_first: true });
+        break;
+      case 'board':
+        await client.deleteBoard(resource.id, { archive_first: true });
+        break;
+      case 'workspace':
+        await client.archiveWorkspace(resource.id);
+        break;
       }
     } catch (error) {
       console.warn(
@@ -87,7 +82,6 @@ async function cleanup() {
     }
   }
 
-  console.log('✅ Cleanup complete\n');
 }
 
 // Test data helpers
@@ -111,22 +105,17 @@ describe('Issue #4: Parent Link Preservation', () => {
   jest.setTimeout(60000); // 60s timeout for integration tests
 
   beforeAll(async () => {
-    console.log('\n🚀 Starting Issue #4 Integration Tests');
-    console.log(`📡 API URL: ${API_URL}`);
-    console.log(`🔑 API Token: ${API_TOKEN?.substring(0, 10)}...`);
 
     // Initialize client
     await client.initialize();
 
     // Create test workspace
-    console.log('\n📦 Setting up test environment...');
     const workspace = await client.createWorkspace({
       name: `Issue4-Test-WS-${Date.now()}`,
       description: 'Test workspace for Issue #4 parent link preservation',
     });
     testWorkspaceId = workspace.workspace_id!;
     trackResource('workspace', testWorkspaceId, workspace.name);
-    console.log(`  ✅ Created workspace ${testWorkspaceId}`);
 
     // Create test board
     const board = await client.createBoard({
@@ -135,7 +124,6 @@ describe('Issue #4: Parent Link Preservation', () => {
     });
     testBoardId = board.board_id!;
     trackResource('board', testBoardId, board.name);
-    console.log(`  ✅ Created board ${testBoardId}`);
 
     // Get board structure (columns and workflows)
     const boardStructure = await client.getCurrentBoardStructure(testBoardId);
@@ -162,9 +150,7 @@ describe('Issue #4: Parent Link Preservation', () => {
       testWorkflow2Id = workflows[1].workflow_id;
     }
 
-    console.log(`  ✅ Found workflow ${testWorkflow1Id} with columns ${testColumn1Id}, ${testColumn2Id}`);
     if (testWorkflow2Id) {
-      console.log(`  ✅ Found second workflow ${testWorkflow2Id} for cross-workflow testing`);
     }
   });
 
@@ -173,20 +159,17 @@ describe('Issue #4: Parent Link Preservation', () => {
 
     // Print performance summary
     if (performanceMetrics.length > 0) {
-      console.log('\n📊 Performance Summary:');
       const updateOps = performanceMetrics.filter((m) => m.operation.includes('update'));
       const moveOps = performanceMetrics.filter((m) => m.operation.includes('move'));
 
       if (updateOps.length > 0) {
         const avgUpdate = updateOps.reduce((sum, m) => sum + m.duration, 0) / updateOps.length;
         const maxUpdate = Math.max(...updateOps.map((m) => m.duration));
-        console.log(`  Update operations: avg=${avgUpdate.toFixed(0)}ms, max=${maxUpdate}ms`);
       }
 
       if (moveOps.length > 0) {
         const avgMove = moveOps.reduce((sum, m) => sum + m.duration, 0) / moveOps.length;
         const maxMove = Math.max(...moveOps.map((m) => m.duration));
-        console.log(`  Move operations: avg=${avgMove.toFixed(0)}ms, max=${maxMove}ms`);
       }
 
       // Check performance targets
@@ -195,11 +178,7 @@ describe('Issue #4: Parent Link Preservation', () => {
       const performanceTarget = 500; // 500ms per operation target
 
       if (maxDuration > performanceTarget) {
-        console.log(
-          `  ⚠️  Performance Warning: Max duration ${maxDuration}ms exceeds target ${performanceTarget}ms`
-        );
-      } else {
-        console.log(`  ✅ All operations within ${performanceTarget}ms target`);
+        // Performance warning: duration exceeds target
       }
     }
   });
@@ -227,16 +206,13 @@ describe('Issue #4: Parent Link Preservation', () => {
 
       // Establish parent-child relationship
       await client.addCardParent(childCardId, parentCardId);
-      console.log(`\n  ✅ Created parent-child relationship: ${parentCardId} -> ${childCardId}`);
     });
 
     it('[UNIT-001] updateCard preserves linked_cards when updating column_id', async () => {
-      console.log('\n[UNIT-001] Testing updateCard preservation during column move...');
 
       // Get initial linked_cards
       const beforeUpdate = await client.getCard(childCardId);
       const initialLinks = beforeUpdate.linked_cards || [];
-      console.log(`  Initial linked_cards count: ${initialLinks.length}`);
 
       expect(initialLinks.length).toBeGreaterThan(0);
 
@@ -254,9 +230,6 @@ describe('Issue #4: Parent Link Preservation', () => {
       const afterUpdate = await client.getCard(childCardId);
       const finalLinks = afterUpdate.linked_cards || [];
 
-      console.log(`  Final linked_cards count: ${finalLinks.length}`);
-      console.log(`  Preservation successful: ${finalLinks.length === initialLinks.length}`);
-      console.log(`  Duration: ${duration}ms`);
 
       expect(finalLinks.length).toBe(initialLinks.length);
       expect(finalLinks).toEqual(expect.arrayContaining(initialLinks));
@@ -264,11 +237,9 @@ describe('Issue #4: Parent Link Preservation', () => {
       // Verify column actually changed
       expect(afterUpdate.column_id).toBe(testColumn2Id);
 
-      console.log(`  ✅ UNIT-001 PASSED: linked_cards preserved during column update`);
     });
 
     it('[UNIT-002] updateCard respects explicit linked_cards override', async () => {
-      console.log('\n[UNIT-002] Testing explicit linked_cards override...');
 
       // Update card with explicit empty linked_cards
       const explicitEmptyLinks: LinkedCard[] = [];
@@ -286,16 +257,12 @@ describe('Issue #4: Parent Link Preservation', () => {
       const afterUpdate = await client.getCard(childCardId);
       const finalLinks = afterUpdate.linked_cards || [];
 
-      console.log(`  Final linked_cards count after explicit clear: ${finalLinks.length}`);
-      console.log(`  Duration: ${duration}ms`);
 
       expect(finalLinks.length).toBe(0);
 
-      console.log(`  ✅ UNIT-002 PASSED: Explicit linked_cards override respected`);
     });
 
     it('[UNIT-003] updateCard handles getCard failure gracefully', async () => {
-      console.log('\n[UNIT-003] Testing error handling when getCard fails...');
 
       // This test validates that updateCard proceeds even if getCard fails
       // We simulate this by updating a card that might have transient read issues
@@ -312,18 +279,13 @@ describe('Issue #4: Parent Link Preservation', () => {
 
         trackPerformance('updateCard_error_handling', duration, childCardId, 0);
 
-        console.log(`  Duration: ${duration}ms`);
-        console.log(
-          `  ✅ UNIT-003 PASSED: Update succeeded despite potential fetch issues`
-        );
+        // Test passed: Update succeeded despite potential fetch issues
       } catch (error) {
-        console.log(`  ⚠️  Update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         throw error;
       }
     });
 
     it('[UNIT-004] updateCard validates linked_cards array structure', async () => {
-      console.log('\n[UNIT-004] Testing linked_cards validation...');
 
       // Re-establish parent link for this test
       await client.addCardParent(childCardId, parentCardId);
@@ -332,7 +294,6 @@ describe('Issue #4: Parent Link Preservation', () => {
       const card = await client.getCard(childCardId);
       const links = card.linked_cards || [];
 
-      console.log(`  Current linked_cards count: ${links.length}`);
 
       // Verify linked_cards structure
       if (links.length > 0) {
@@ -342,10 +303,8 @@ describe('Issue #4: Parent Link Preservation', () => {
         expect(typeof firstLink.card_id).toBe('number');
         expect(typeof firstLink.link_type).toBe('string');
 
-        console.log(`  ✅ linked_cards structure valid: card_id=${firstLink.card_id}, link_type=${firstLink.link_type}`);
       }
 
-      console.log(`  ✅ UNIT-004 PASSED: linked_cards structure validated`);
     });
   });
 
@@ -371,19 +330,15 @@ describe('Issue #4: Parent Link Preservation', () => {
 
       // Establish parent-child relationship
       await client.addCardParent(childCardId, parentCardId);
-      console.log(`\n  ✅ Created move test cards: ${parentCardId} -> ${childCardId}`);
     });
 
     it('[INT-001] moveCard preserves parent link when moving between columns', async () => {
-      console.log('\n[INT-001] Testing moveCard preservation during column move...');
 
       // Get initial state
       const beforeMove = await client.getCard(childCardId);
       const initialLinks = beforeMove.linked_cards || [];
       const initialColumn = beforeMove.column_id;
 
-      console.log(`  Initial column: ${initialColumn}`);
-      console.log(`  Initial linked_cards count: ${initialLinks.length}`);
 
       expect(initialLinks.length).toBeGreaterThan(0);
 
@@ -398,30 +353,23 @@ describe('Issue #4: Parent Link Preservation', () => {
       const afterMove = await client.getCard(childCardId);
       const finalLinks = afterMove.linked_cards || [];
 
-      console.log(`  Final column: ${afterMove.column_id}`);
-      console.log(`  Final linked_cards count: ${finalLinks.length}`);
-      console.log(`  Duration: ${duration}ms`);
 
       expect(finalLinks.length).toBe(initialLinks.length);
       expect(finalLinks).toEqual(expect.arrayContaining(initialLinks));
       expect(afterMove.column_id).toBe(testColumn2Id);
 
-      console.log(`  ✅ INT-001 PASSED: Parent link preserved during column move`);
     });
 
     it('[INT-002] Bidirectional integrity: parent sees child, child sees parent', async () => {
-      console.log('\n[INT-002] Testing bidirectional parent-child integrity...');
 
       // Verify parent's perspective
       const parentChildren = await client.getCardChildren(parentCardId);
-      console.log(`  Parent's children count: ${parentChildren.length}`);
 
       const childFound = parentChildren.some((child) => child.card_id === childCardId);
       expect(childFound).toBe(true);
 
       // Verify child's perspective
       const childParents = await client.getCardParents(childCardId);
-      console.log(`  Child's parents count: ${childParents.length}`);
 
       const parentFound = childParents.some((parent) => parent.card_id === parentCardId);
       expect(parentFound).toBe(true);
@@ -430,16 +378,13 @@ describe('Issue #4: Parent Link Preservation', () => {
       const childCard = await client.getCard(childCardId);
       const linkedCards = childCard.linked_cards || [];
 
-      console.log(`  Child's linked_cards count: ${linkedCards.length}`);
 
       const parentInLinkedCards = linkedCards.some((link) => link.card_id === parentCardId);
       expect(parentInLinkedCards).toBe(true);
 
-      console.log(`  ✅ INT-002 PASSED: Bidirectional integrity verified`);
     });
 
     it('[INT-003] Bulk move preserves all parent links', async () => {
-      console.log('\n[INT-003] Testing bulk move operations...');
 
       // Create 3 child cards with parent links
       const childIds: number[] = [];
@@ -456,7 +401,6 @@ describe('Issue #4: Parent Link Preservation', () => {
         await client.addCardParent(card.card_id, parentCardId);
       }
 
-      console.log(`  Created ${childIds.length} child cards`);
 
       // Get initial linked_cards for all children
       const initialStates = await Promise.all(
@@ -475,7 +419,6 @@ describe('Issue #4: Parent Link Preservation', () => {
 
       trackPerformance('bulkUpdateCards_preserve_links', duration, childIds[0], childIds.length);
 
-      console.log(`  Bulk move duration: ${duration}ms`);
 
       // Verify all succeeded
       const successCount = results.filter((r) => r.success).length;
@@ -493,20 +436,16 @@ describe('Issue #4: Parent Link Preservation', () => {
         const initial = initialStates[i];
         const final = finalStates[i];
 
-        console.log(`  Card ${final.id}: links=${final.links.length}, column=${final.column}`);
 
         expect(final.links.length).toBe(initial.links.length);
         expect(final.column).toBe(testColumn2Id);
       }
 
-      console.log(`  ✅ INT-003 PASSED: All parent links preserved in bulk move`);
     });
 
     it('[INT-004] Cross-workflow move preserves all link types', async () => {
-      console.log('\n[INT-004] Testing cross-workflow move...');
 
       if (!testWorkflow2Id) {
-        console.log('  ⚠️  Skipping: Second workflow not available');
         return;
       }
 
@@ -515,7 +454,6 @@ describe('Issue #4: Parent Link Preservation', () => {
       const workflow2 = boardStructure.workflows?.find((w) => w.workflow_id === testWorkflow2Id);
 
       if (!workflow2 || !workflow2.columns || workflow2.columns.length === 0) {
-        console.log('  ⚠️  Skipping: Second workflow has no columns');
         return;
       }
 
@@ -536,8 +474,6 @@ describe('Issue #4: Parent Link Preservation', () => {
       const beforeMove = await client.getCard(cardId);
       const initialLinks = beforeMove.linked_cards || [];
 
-      console.log(`  Initial workflow: ${beforeMove.workflow_id}`);
-      console.log(`  Initial linked_cards: ${initialLinks.length}`);
 
       // Move to different workflow
       const startTime = Date.now();
@@ -550,14 +486,10 @@ describe('Issue #4: Parent Link Preservation', () => {
       const afterMove = await client.getCard(cardId);
       const finalLinks = afterMove.linked_cards || [];
 
-      console.log(`  Final workflow: ${afterMove.workflow_id}`);
-      console.log(`  Final linked_cards: ${finalLinks.length}`);
-      console.log(`  Duration: ${duration}ms`);
 
       expect(finalLinks.length).toBe(initialLinks.length);
       expect(afterMove.workflow_id).toBe(testWorkflow2Id);
 
-      console.log(`  ✅ INT-004 PASSED: Cross-workflow move preserved links`);
     });
   });
 
@@ -575,7 +507,6 @@ describe('Issue #4: Parent Link Preservation', () => {
     });
 
     it('[REG-001] Normal updates work unchanged (title, description, priority)', async () => {
-      console.log('\n[REG-001] Testing normal field updates...');
 
       const newTitle = `Updated-Title-${Date.now()}`;
       const newDescription = `Updated-Description-${Date.now()}`;
@@ -594,19 +525,13 @@ describe('Issue #4: Parent Link Preservation', () => {
       // Verify updates applied
       const card = await client.getCard(testCardId);
 
-      console.log(`  Title: ${card.title}`);
-      console.log(`  Description: ${card.description}`);
-      console.log(`  Priority: ${card.priority}`);
-      console.log(`  Duration: ${duration}ms`);
 
       expect(card.title).toBe(newTitle);
       expect(card.description).toBe(newDescription);
 
-      console.log(`  ✅ REG-001 PASSED: Normal updates work correctly`);
     });
 
     it('[REG-002] Explicit linked_cards updates still work', async () => {
-      console.log('\n[REG-002] Testing explicit linked_cards management...');
 
       // Create a card to link to
       const linkedCard = await client.createCard({
@@ -636,16 +561,12 @@ describe('Issue #4: Parent Link Preservation', () => {
       const card = await client.getCard(testCardId);
       const finalLinks = card.linked_cards || [];
 
-      console.log(`  Explicit linked_cards count: ${finalLinks.length}`);
-      console.log(`  Duration: ${duration}ms`);
 
       expect(finalLinks.length).toBeGreaterThanOrEqual(1);
 
-      console.log(`  ✅ REG-002 PASSED: Explicit linked_cards updates work`);
     });
 
     it('[REG-003] Performance impact is acceptable (<500ms per operation)', async () => {
-      console.log('\n[REG-003] Testing performance overhead...');
 
       const operationCount = 5;
       const durations: number[] = [];
@@ -666,21 +587,15 @@ describe('Issue #4: Parent Link Preservation', () => {
       const avgDuration = durations.reduce((sum, d) => sum + d, 0) / durations.length;
       const maxDuration = Math.max(...durations);
 
-      console.log(`  Operations: ${operationCount}`);
-      console.log(`  Average duration: ${avgDuration.toFixed(0)}ms`);
-      console.log(`  Max duration: ${maxDuration}ms`);
-      console.log(`  Target: <500ms per operation`);
 
       // Performance threshold: 500ms per operation (GET + PATCH combined)
       expect(maxDuration).toBeLessThan(500);
 
-      console.log(`  ✅ REG-003 PASSED: Performance within acceptable limits`);
     });
   });
 
   describe('Edge Cases: Error Handling', () => {
     it('[EDGE-001] Handles cards with no linked_cards gracefully', async () => {
-      console.log('\n[EDGE-001] Testing cards with empty linked_cards...');
 
       // Create card with no links
       const card = await client.createCard({
@@ -708,12 +623,9 @@ describe('Issue #4: Parent Link Preservation', () => {
       expect(final.title).toContain('Updated-NoLinks');
       expect((final.linked_cards || []).length).toBe(0);
 
-      console.log(`  Duration: ${duration}ms`);
-      console.log(`  ✅ EDGE-001 PASSED: Empty linked_cards handled gracefully`);
     });
 
     it('[EDGE-002] Handles API transient errors during preservation', async () => {
-      console.log('\n[EDGE-002] Testing transient error handling...');
 
       // Create test card
       const card = await client.createCard({
@@ -734,18 +646,14 @@ describe('Issue #4: Parent Link Preservation', () => {
 
         trackPerformance('updateCard_transient_error', duration, card.card_id, 0);
 
-        console.log(`  Duration: ${duration}ms`);
-        console.log(`  ✅ EDGE-002 PASSED: Transient errors handled gracefully`);
+        // Test passed: Transient errors handled gracefully
       } catch (error) {
-        console.log(
-          `  ⚠️  Update failed with non-transient error: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
+        // Update failed with non-transient error
         throw error;
       }
     });
 
     it('[EDGE-003] Validates type safety with invalid linked_cards', async () => {
-      console.log('\n[EDGE-003] Testing type safety with invalid links...');
 
       const card = await client.createCard({
         title: `TypeTest-Card-${Date.now()}`,
@@ -775,59 +683,24 @@ describe('Issue #4: Parent Link Preservation', () => {
       expect(validLinks[0].card_id).toBe(12345);
       expect(validLinks[0].link_type).toBe('child');
 
-      console.log(`  ✅ EDGE-003 PASSED: Type safety validated at compile time`);
     });
   });
 
   describe('Summary: Fix Validation', () => {
     it('[SUMMARY] Generates comprehensive test report', async () => {
-      console.log('\n\n═══════════════════════════════════════════════════════');
-      console.log('ISSUE #4 FIX VALIDATION SUMMARY');
-      console.log('═══════════════════════════════════════════════════════\n');
 
-      console.log('ROOT CAUSE:');
-      console.log('  BusinessMap API resets omitted fields to empty in PATCH requests');
-      console.log('  Location: src/client/modules/card-client.ts lines 141-164');
-      console.log('  Impact: 100% loss of parent-child relationships on ANY card update/move\n');
 
-      console.log('FIX IMPLEMENTATION:');
-      console.log('  Fetch-merge-update pattern in updateCard() and moveCard()');
-      console.log('  Automatically preserves linked_cards unless explicitly overridden');
-      console.log('  Graceful error handling for transient fetch failures\n');
 
-      console.log('TEST COVERAGE:');
-      console.log('  Unit Tests: 4 scenarios (preservation, override, error, validation)');
-      console.log('  Integration Tests: 4 scenarios (move, bidirectional, bulk, cross-workflow)');
-      console.log('  Regression Tests: 3 scenarios (normal updates, explicit links, performance)');
-      console.log('  Edge Cases: 3 scenarios (empty links, transient errors, type safety)\n');
 
-      console.log('PERFORMANCE METRICS:');
       if (performanceMetrics.length > 0) {
         const allDurations = performanceMetrics.map((m) => m.duration);
         const avgDuration = allDurations.reduce((sum, d) => sum + d, 0) / allDurations.length;
         const maxDuration = Math.max(...allDurations);
 
-        console.log(`  Total operations: ${performanceMetrics.length}`);
-        console.log(`  Average duration: ${avgDuration.toFixed(0)}ms`);
-        console.log(`  Maximum duration: ${maxDuration}ms`);
-        console.log(`  Target threshold: <500ms per operation`);
-        console.log(`  Status: ${maxDuration < 500 ? '✅ PASSED' : '⚠️  EXCEEDED'}\n`);
       }
 
-      console.log('BACKWARD COMPATIBILITY:');
-      console.log('  ✅ All existing tests pass (no regressions)');
-      console.log('  ✅ Normal field updates work unchanged');
-      console.log('  ✅ Explicit linked_cards updates still work');
-      console.log('  ✅ No breaking changes to public API\n');
 
-      console.log('OBSERVABILITY:');
-      console.log('  ✅ Debug logging for preservation operations');
-      console.log('  ✅ Warning logging for fetch failures');
-      console.log('  ✅ Performance tracking for all operations\n');
 
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('FIX STATUS: ✅ VALIDATED');
-      console.log('═══════════════════════════════════════════════════════\n');
 
       expect(true).toBe(true);
     });

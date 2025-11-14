@@ -24,7 +24,6 @@ describe('Cache Integration Tests', () => {
   describe('UserClient caching', () => {
     it('should cache getUsers() results', async () => {
       if (!process.env.BUSINESSMAP_API_TOKEN) {
-        console.log('Skipping integration test - no API token');
         return;
       }
 
@@ -46,7 +45,6 @@ describe('Cache Integration Tests', () => {
 
     it('should cache getCurrentUser() results', async () => {
       if (!process.env.BUSINESSMAP_API_TOKEN) {
-        console.log('Skipping integration test - no API token');
         return;
       }
 
@@ -68,7 +66,6 @@ describe('Cache Integration Tests', () => {
   describe('CardClient caching', () => {
     it('should cache getCardTypes() results', async () => {
       if (!process.env.BUSINESSMAP_API_TOKEN) {
-        console.log('Skipping integration test - no API token');
         return;
       }
 
@@ -90,7 +87,6 @@ describe('Cache Integration Tests', () => {
   describe('WorkspaceClient caching', () => {
     it('should cache getWorkspaces() results', async () => {
       if (!process.env.BUSINESSMAP_API_TOKEN) {
-        console.log('Skipping integration test - no API token');
         return;
       }
 
@@ -110,7 +106,6 @@ describe('Cache Integration Tests', () => {
 
     it('should invalidate cache after workspace update', async () => {
       if (!process.env.BUSINESSMAP_API_TOKEN || !process.env.BUSINESSMAP_DEFAULT_WORKSPACE_ID) {
-        console.log('Skipping integration test - no API token or workspace ID');
         return;
       }
 
@@ -122,11 +117,9 @@ describe('Cache Integration Tests', () => {
       try {
         const workspace = await client.getWorkspace(workspaceId);
         if (workspace.is_archived) {
-          console.log('Skipping test - workspace is archived');
           return;
         }
       } catch (error) {
-        console.log('Skipping test - workspace not accessible');
         return;
       }
 
@@ -148,7 +141,6 @@ describe('Cache Integration Tests', () => {
   describe('Cache statistics and monitoring', () => {
     it('should provide cache statistics across all modules', async () => {
       if (!process.env.BUSINESSMAP_API_TOKEN) {
-        console.log('Skipping integration test - no API token');
         return;
       }
 
@@ -171,7 +163,6 @@ describe('Cache Integration Tests', () => {
 
     it('should clear all caches', async () => {
       if (!process.env.BUSINESSMAP_API_TOKEN) {
-        console.log('Skipping integration test - no API token');
         return;
       }
 
@@ -196,7 +187,6 @@ describe('Cache Integration Tests', () => {
   describe('Request deduplication', () => {
     it('should deduplicate concurrent identical requests', async () => {
       if (!process.env.BUSINESSMAP_API_TOKEN) {
-        console.log('Skipping integration test - no API token');
         return;
       }
 
