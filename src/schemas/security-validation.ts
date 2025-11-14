@@ -110,6 +110,7 @@ export const secureString = (options: {
   }
 
   // Apply sanitization transforms
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let transformedSchema: any = schema.transform(sanitizeString);
 
   if (trim) {

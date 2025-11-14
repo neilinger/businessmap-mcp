@@ -23,11 +23,13 @@ if (skipTests) {
 }
 
 // Create BusinessMap client with archive_first support (only if token available)
-const client = API_TOKEN ? new BusinessMapClient({
-  apiUrl: API_URL,
-  apiToken: API_TOKEN,
-  readOnlyMode: false
-}) : null as any;
+const client = API_TOKEN
+  ? new BusinessMapClient({
+      apiUrl: API_URL,
+      apiToken: API_TOKEN,
+      readOnlyMode: false,
+    })
+  : (null as any);
 
 // Test helpers
 interface TestResource {
@@ -39,7 +41,6 @@ interface TestResource {
 const createdResources: TestResource[] = [];
 
 async function cleanup() {
-
   // Safety constraints
   const SAFE_WORKSPACE_MIN_ID = 8;
   const SAFE_BOARD_MIN_ID = 10;
@@ -51,41 +52,42 @@ async function cleanup() {
 
       // Safety check + cleanup with working archive methods
       switch (resource.type) {
-      case 'workspace':
-        if (resource.id <= SAFE_WORKSPACE_MIN_ID) {
-          console.error(`❌ SAFETY VIOLATION: workspace_id ${resource.id} <= ${SAFE_WORKSPACE_MIN_ID}`);
-          throw new Error(`Unsafe workspace archive: ${resource.id}`);
-        }
-        // Archive workspace (PATCH with is_archived=1 - verified working)
-        await client.archiveWorkspace(resource.id);
-        break;
-      case 'board':
-        if (resource.id <= SAFE_BOARD_MIN_ID) {
-          console.error(`❌ SAFETY VIOLATION: board_id ${resource.id} <= ${SAFE_BOARD_MIN_ID}`);
-          throw new Error(`Unsafe board delete: ${resource.id}`);
-        }
-        // Delete board with archive-first (verified working)
-        await client.deleteBoard(resource.id, { archive_first: true });
-        break;
-      case 'card':
-        // Delete card with archive-first (verified working)
-        await client.deleteCard(resource.id, { archive_first: true });
-        break;
-      case 'comment':
-        // Comments are cascade deleted with cards
-        break;
-      case 'subtask':
-        // Subtasks are cascade deleted with cards
-        break;
-      case 'custom_field':
-        // Custom fields deleted separately
-        break;
+        case 'workspace':
+          if (resource.id <= SAFE_WORKSPACE_MIN_ID) {
+            console.error(
+              `❌ SAFETY VIOLATION: workspace_id ${resource.id} <= ${SAFE_WORKSPACE_MIN_ID}`
+            );
+            throw new Error(`Unsafe workspace archive: ${resource.id}`);
+          }
+          // Archive workspace (PATCH with is_archived=1 - verified working)
+          await client.archiveWorkspace(resource.id);
+          break;
+        case 'board':
+          if (resource.id <= SAFE_BOARD_MIN_ID) {
+            console.error(`❌ SAFETY VIOLATION: board_id ${resource.id} <= ${SAFE_BOARD_MIN_ID}`);
+            throw new Error(`Unsafe board delete: ${resource.id}`);
+          }
+          // Delete board with archive-first (verified working)
+          await client.deleteBoard(resource.id, { archive_first: true });
+          break;
+        case 'card':
+          // Delete card with archive-first (verified working)
+          await client.deleteCard(resource.id, { archive_first: true });
+          break;
+        case 'comment':
+          // Comments are cascade deleted with cards
+          break;
+        case 'subtask':
+          // Subtasks are cascade deleted with cards
+          break;
+        case 'custom_field':
+          // Custom fields deleted separately
+          break;
       }
     } catch (error) {
       console.warn(`Failed to cleanup ${resource.type} ${resource.id}:`, error);
     }
   }
-
 }
 
 // Performance tracking
@@ -134,8 +136,13 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
   const fullResponse = JSON.stringify(errorData || {});
 
   // Check for cause (specific failure reason)
-  const hasCause = /not found|invalid|forbidden|unauthorized|exceeded|failed|missing|required|does not exist/i.test(message) ||
-                   /not found|invalid|forbidden|unauthorized|exceeded|failed|missing|required|does not exist/i.test(fullResponse);
+  const hasCause =
+    /not found|invalid|forbidden|unauthorized|exceeded|failed|missing|required|does not exist/i.test(
+      message
+    ) ||
+    /not found|invalid|forbidden|unauthorized|exceeded|failed|missing|required|does not exist/i.test(
+      fullResponse
+    );
 
   // Check for transient/permanent indicator
   const status = error?.response?.status || 0;
@@ -145,14 +152,15 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
     /retry|temporary|later|again/i.test(fullResponse);
 
   // Check for remediation steps
-  const hasRemediationSteps =
-    /check|verify|ensure|retry|wait|contact|provide|use|change/i.test(fullResponse);
+  const hasRemediationSteps = /check|verify|ensure|retry|wait|contact|provide|use|change/i.test(
+    fullResponse
+  );
 
   return {
     hasCause,
     hasTransientIndicator,
     hasRemediationSteps,
-    message
+    message,
   };
 }
 
@@ -161,7 +169,6 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
   jest.setTimeout(30000);
 
   beforeAll(async () => {
-
     // Initialize client
     if (API_TOKEN) {
       await client.initialize();
@@ -172,16 +179,15 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
     await cleanup();
 
     // Print performance summary
-    const updateOps = performanceMetrics.filter(m => m.operation.includes('update'));
-    const deleteOps = performanceMetrics.filter(m => m.operation.includes('delete'));
-    const bulkOps = performanceMetrics.filter(m => m.operation.includes('bulk'));
+    const updateOps = performanceMetrics.filter((m) => m.operation.includes('update'));
+    const bulkOps = performanceMetrics.filter((m) => m.operation.includes('bulk'));
 
     if (updateOps.length > 0) {
-      const updateP95 = calculateP95(updateOps.map(m => m.duration));
+      calculateP95(updateOps.map((m) => m.duration));
     }
 
     if (bulkOps.length > 0) {
-      const bulkP95 = calculateP95(bulkOps.map(m => m.duration));
+      calculateP95(bulkOps.map((m) => m.duration));
     }
   });
 
@@ -226,7 +232,6 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
     it('should handle rate limit errors gracefully (429)', async () => {
       // Note: This test may not trigger rate limit in normal operation
       // It serves as a placeholder for manual rate limit testing
-
     });
   });
 
@@ -262,7 +267,6 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
         return;
       }
 
-
       // Column delete not supported by client
       expect(true).toBe(true);
     });
@@ -270,13 +274,11 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
 
   describe('T076: Success Criteria Validation', () => {
     let testWorkspaceId: number;
-    let testBoardId: number;
-    let testCardId: number;
 
     beforeAll(async () => {
       // Create test workspace
       const workspace = await client.createWorkspace({
-        name: `Test-WS-${Date.now()}`
+        name: `Test-WS-${Date.now()}`,
       });
 
       testWorkspaceId = workspace.workspace_id!;
@@ -290,7 +292,7 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
 
       const start = Date.now();
       await client.updateWorkspace(testWorkspaceId, {
-        description: 'Updated description'
+        description: 'Updated description',
       });
       const duration = Date.now() - start;
 
@@ -302,7 +304,7 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
     it('SC-002: Archive unused resources without errors', async () => {
       // Create a temporary workspace to archive
       const workspace = await client.createWorkspace({
-        name: `Temp-WS-${Date.now()}`
+        name: `Temp-WS-${Date.now()}`,
       });
       const workspaceId = workspace.workspace_id!;
 
@@ -319,7 +321,6 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
       // Verify persistence by fetching again
       const afterArchive = await client.getWorkspace(workspaceId);
       expect(afterArchive.is_archived).toBe(1);
-
     });
 
     it('SC-003: 26 tools exposed via MCP', async () => {
@@ -344,7 +345,6 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
 
   describe('T077: Workflow/Column Write Operations', () => {
     it('should return clear error for unsupported workflow write ops', async () => {
-
       // Workflow write operations not supported
       expect(true).toBe(true);
     });
@@ -354,7 +354,7 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
     it('should cascade archive workspace with boards', async () => {
       // Create workspace
       const workspace = await client.createWorkspace({
-        name: `Cascade-Test-WS-${Date.now()}`
+        name: `Cascade-Test-WS-${Date.now()}`,
       });
       const workspaceId = workspace.workspace_id!;
       createdResources.push({ type: 'workspace', id: workspaceId });
@@ -362,11 +362,10 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
       // Create board in workspace
       const board = await client.createBoard({
         name: `Test-Board-${Date.now()}`,
-        workspace_id: workspaceId
+        workspace_id: workspaceId,
       });
       const boardId = board.board_id!;
       createdResources.push({ type: 'board', id: boardId });
-
 
       // Archive workspace using PATCH with is_archived=1 (verified working)
       const archivedWorkspace = await client.archiveWorkspace(workspaceId);
@@ -385,7 +384,7 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
     it('should archive and delete board successfully', async () => {
       // Create workspace
       const workspace = await client.createWorkspace({
-        name: `Board-Delete-Test-WS-${Date.now()}`
+        name: `Board-Delete-Test-WS-${Date.now()}`,
       });
       const workspaceId = workspace.workspace_id!;
       createdResources.push({ type: 'workspace', id: workspaceId });
@@ -393,14 +392,12 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
       // Create board
       const board = await client.createBoard({
         name: `Test-Board-${Date.now()}`,
-        workspace_id: workspaceId
+        workspace_id: workspaceId,
       });
       const boardId = board.board_id!;
 
-
       // Delete board with archive_first=true (verified working)
       await client.deleteBoard(boardId, { archive_first: true });
-
 
       // Verify board is deleted (should throw 404)
       let deletedConfirmed = false;
@@ -418,7 +415,7 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
     it('should verify archive implementation correctness', async () => {
       // Create workspace
       const workspace = await client.createWorkspace({
-        name: `Archive-Verify-${Date.now()}`
+        name: `Archive-Verify-${Date.now()}`,
       });
       const workspaceId = workspace.workspace_id!;
       createdResources.push({ type: 'workspace', id: workspaceId });
@@ -437,11 +434,10 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
 
       // Test 4: Verify listing with archive filter
       const allWorkspaces = await client.getWorkspaces();
-      const archivedWorkspace = allWorkspaces.find(w => w.workspace_id === workspaceId);
+      const archivedWorkspace = allWorkspaces.find((w) => w.workspace_id === workspaceId);
       if (archivedWorkspace) {
         expect(archivedWorkspace.is_archived).toBe(1);
       }
-
     });
   });
 
@@ -454,17 +450,12 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
       createdResources.push({ type: 'workspace', id: ws1.workspace_id! });
 
       // Try to create duplicate
-      let duplicateCreated = false;
-      let ws2Id: number | undefined;
       try {
         const ws2 = await client.createWorkspace({ name });
-        duplicateCreated = true;
-        ws2Id = ws2.workspace_id!;
         createdResources.push({ type: 'workspace', id: ws2.workspace_id! });
       } catch (error) {
         // Duplicate rejected
       }
-
 
       // BusinessMap may or may not enforce uniqueness
       expect(true).toBe(true);
@@ -473,18 +464,16 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
 
   describe('T080: Bulk Operations', () => {
     it('should handle bulk archive with verification', async () => {
-
       const workspaces: number[] = [];
 
       // Create 5 workspaces
       for (let i = 0; i < 5; i++) {
         const ws = await client.createWorkspace({
-          name: `Bulk-Archive-${Date.now()}-${i}`
+          name: `Bulk-Archive-${Date.now()}-${i}`,
         });
         workspaces.push(ws.workspace_id!);
         createdResources.push({ type: 'workspace', id: ws.workspace_id! });
       }
-
 
       // Verify all are not archived initially
       for (const id of workspaces) {
@@ -496,7 +485,7 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
       const results = await client.bulkArchiveWorkspaces(workspaces);
 
       // Verify all succeeded
-      const successCount = results.filter(r => r.success).length;
+      const successCount = results.filter((r) => r.success).length;
       expect(successCount).toBe(workspaces.length);
 
       // Verify all are archived
@@ -504,17 +493,15 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
         const ws = await client.getWorkspace(id);
         expect(ws.is_archived).toBe(1);
       }
-
     });
 
     it('should handle bulk archive with mixed dependencies', async () => {
-
       const workspaces: number[] = [];
 
       // Create 3 empty workspaces
       for (let i = 0; i < 3; i++) {
         const ws = await client.createWorkspace({
-          name: `Bulk-Empty-${Date.now()}-${i}`
+          name: `Bulk-Empty-${Date.now()}-${i}`,
         });
         workspaces.push(ws.workspace_id!);
         createdResources.push({ type: 'workspace', id: ws.workspace_id! });
@@ -523,7 +510,7 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
       // Create 2 workspaces with boards
       for (let i = 0; i < 2; i++) {
         const ws = await client.createWorkspace({
-          name: `Bulk-WithBoards-${Date.now()}-${i}`
+          name: `Bulk-WithBoards-${Date.now()}-${i}`,
         });
         workspaces.push(ws.workspace_id!);
         createdResources.push({ type: 'workspace', id: ws.workspace_id! });
@@ -531,24 +518,22 @@ function checkErrorQuality(error: any): ErrorQualityCheck {
         // Create board
         const board = await client.createBoard({
           name: `Bulk-Board-${i}`,
-          workspace_id: ws.workspace_id!
+          workspace_id: ws.workspace_id!,
         });
         createdResources.push({ type: 'board', id: board.board_id! });
       }
 
-
       // Bulk archive all workspaces
       const results = await client.bulkArchiveWorkspaces(workspaces);
 
-      // Verify results
-      const successCount = results.filter(r => r.success).length;
+      // Verify results - check successful operations
+      results.filter((r) => r.success).length;
 
       // Verify archived state for successful operations
-      for (const result of results.filter(r => r.success)) {
+      for (const result of results.filter((r) => r.success)) {
         const ws = await client.getWorkspace(result.id);
         expect(ws.is_archived).toBe(1);
       }
-
     });
   });
 });

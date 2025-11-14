@@ -27,6 +27,7 @@ describe('BoardToolHandler', () => {
       getBoards: jest.fn(),
       getBoard: jest.fn(),
       getBoardStructure: jest.fn(),
+      getCurrentBoardStructure: jest.fn(),
       createBoard: jest.fn(),
       updateBoard: jest.fn(),
       deleteBoard: jest.fn(),
@@ -173,7 +174,10 @@ describe('BoardToolHandler', () => {
 
       expect(result.isError).toBeUndefined();
 
-      const parsedContent = JSON.parse(result.content[0].text);
+      // Response has format: "All available boards:\n[...]"
+      const text = result.content[0].text;
+      const jsonStart = text.indexOf('\n') + 1;
+      const parsedContent = JSON.parse(text.substring(jsonStart));
       expect(Array.isArray(parsedContent)).toBe(true);
     });
 
@@ -224,7 +228,7 @@ describe('BoardToolHandler', () => {
       const result = await handler({ board_id: 999 });
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Error fetching columns');
+      expect(result.content[0].text).toContain('Error fetching board columns');
     });
   });
 
@@ -304,17 +308,19 @@ describe('BoardToolHandler', () => {
         ],
         lanes: [{ lane_id: 1, name: 'High Priority' }],
       };
-      mockClient.getBoardStructure.mockResolvedValue(mockStructure);
+      mockClient.getCurrentBoardStructure.mockResolvedValue(mockStructure);
 
       const result = await handler({ board_id: 1 });
 
       expect(result.isError).toBeUndefined();
+      expect(result.content[0].text).toContain('Board structure retrieved successfully');
 
-      const parsedContent = JSON.parse(result.content[0].text);
+      const lines = result.content[0].text.split('\n');
+      const parsedContent = JSON.parse(lines[1]);
       expect(parsedContent.board_id).toBe(1);
       expect(Array.isArray(parsedContent.columns)).toBe(true);
       expect(Array.isArray(parsedContent.lanes)).toBe(true);
-      expect(mockClient.getBoardStructure).toHaveBeenCalledWith(1);
+      expect(mockClient.getCurrentBoardStructure).toHaveBeenCalledWith(1);
     });
 
     it('should handle getBoardStructure error', async () => {
@@ -322,7 +328,7 @@ describe('BoardToolHandler', () => {
       const handler = registeredTools.get('get_current_board_structure');
 
       const error = new Error('Failed to fetch structure');
-      mockClient.getBoardStructure.mockRejectedValue(error);
+      mockClient.getCurrentBoardStructure.mockRejectedValue(error);
 
       const result = await handler({ board_id: 1 });
 
@@ -412,7 +418,14 @@ describe('BoardToolHandler', () => {
 
       const parsedContent = JSON.parse(result.content[0].text.split('\n')[1]);
       expect(parsedContent.lane_id).toBe(100);
-      expect(mockClient.createLane).toHaveBeenCalledWith(newLaneData);
+      expect(mockClient.createLane).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: newLaneData.name,
+          workflow_id: newLaneData.workflow_id,
+          position: newLaneData.position,
+          color: newLaneData.color,
+        })
+      );
     });
 
     it('should handle createLane error', async () => {
@@ -453,7 +466,10 @@ describe('BoardToolHandler', () => {
       expect(result.isError).toBeUndefined();
       expect(result.content[0].text).toContain('Board updated successfully');
 
-      expect(mockClient.updateBoard).toHaveBeenCalledWith(updateData);
+      expect(mockClient.updateBoard).toHaveBeenCalledWith(1, {
+        name: 'Updated Board',
+        description: 'Updated description',
+      });
     });
 
     it('should handle updateBoard error', async () => {

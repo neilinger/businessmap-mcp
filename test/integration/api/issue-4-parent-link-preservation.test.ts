@@ -20,7 +20,7 @@
  */
 
 import { BusinessMapClient } from '../../src/client/businessmap-client';
-import { Card, LinkedCard } from '../../src/types/index.js';
+import { LinkedCard } from '../../src/types/index.js';
 
 // Test configuration
 const API_URL = process.env.BUSINESSMAP_API_URL || 'https://demo.kanbanize.com/api/v2';
@@ -58,21 +58,19 @@ const performanceMetrics: PerformanceMetric[] = [];
 
 // Cleanup helper
 async function cleanup() {
-
   // Delete in reverse order (cards before boards before workspaces)
   for (const resource of createdResources.reverse()) {
     try {
-
       switch (resource.type) {
-      case 'card':
-        await client.deleteCard(resource.id, { archive_first: true });
-        break;
-      case 'board':
-        await client.deleteBoard(resource.id, { archive_first: true });
-        break;
-      case 'workspace':
-        await client.archiveWorkspace(resource.id);
-        break;
+        case 'card':
+          await client.deleteCard(resource.id, { archive_first: true });
+          break;
+        case 'board':
+          await client.deleteBoard(resource.id, { archive_first: true });
+          break;
+        case 'workspace':
+          await client.archiveWorkspace(resource.id);
+          break;
       }
     } catch (error) {
       console.warn(
@@ -81,7 +79,6 @@ async function cleanup() {
       );
     }
   }
-
 }
 
 // Test data helpers
@@ -98,14 +95,12 @@ let testWorkspaceId: number;
 let testBoardId: number;
 let testColumn1Id: number;
 let testColumn2Id: number;
-let testWorkflow1Id: number;
 let testWorkflow2Id: number;
 
 describe('Issue #4: Parent Link Preservation', () => {
   jest.setTimeout(60000); // 60s timeout for integration tests
 
   beforeAll(async () => {
-
     // Initialize client
     await client.initialize();
 
@@ -149,9 +144,6 @@ describe('Issue #4: Parent Link Preservation', () => {
     if (workflows.length > 1) {
       testWorkflow2Id = workflows[1].workflow_id;
     }
-
-    if (testWorkflow2Id) {
-    }
   });
 
   afterAll(async () => {
@@ -163,18 +155,18 @@ describe('Issue #4: Parent Link Preservation', () => {
       const moveOps = performanceMetrics.filter((m) => m.operation.includes('move'));
 
       if (updateOps.length > 0) {
-        const avgUpdate = updateOps.reduce((sum, m) => sum + m.duration, 0) / updateOps.length;
-        const maxUpdate = Math.max(...updateOps.map((m) => m.duration));
+        updateOps.reduce((sum, m) => sum + m.duration, 0) / updateOps.length;
+        Math.max(...updateOps.map((m) => m.duration));
       }
 
       if (moveOps.length > 0) {
-        const avgMove = moveOps.reduce((sum, m) => sum + m.duration, 0) / moveOps.length;
-        const maxMove = Math.max(...moveOps.map((m) => m.duration));
+        moveOps.reduce((sum, m) => sum + m.duration, 0) / moveOps.length;
+        Math.max(...moveOps.map((m) => m.duration));
       }
 
       // Check performance targets
       const allDurations = performanceMetrics.map((m) => m.duration);
-      const maxDuration = Math.max(...allDurations);
+      Math.max(...allDurations);
       const performanceTarget = 500; // 500ms per operation target
 
       if (maxDuration > performanceTarget) {
@@ -209,7 +201,6 @@ describe('Issue #4: Parent Link Preservation', () => {
     });
 
     it('[UNIT-001] updateCard preserves linked_cards when updating column_id', async () => {
-
       // Get initial linked_cards
       const beforeUpdate = await client.getCard(childCardId);
       const initialLinks = beforeUpdate.linked_cards || [];
@@ -218,7 +209,7 @@ describe('Issue #4: Parent Link Preservation', () => {
 
       // Update card (move to different column) WITHOUT specifying linked_cards
       const startTime = Date.now();
-      const updatedCard = await client.updateCard({
+      await client.updateCard({
         card_id: childCardId,
         column_id: testColumn2Id,
       });
@@ -230,17 +221,14 @@ describe('Issue #4: Parent Link Preservation', () => {
       const afterUpdate = await client.getCard(childCardId);
       const finalLinks = afterUpdate.linked_cards || [];
 
-
       expect(finalLinks.length).toBe(initialLinks.length);
       expect(finalLinks).toEqual(expect.arrayContaining(initialLinks));
 
       // Verify column actually changed
       expect(afterUpdate.column_id).toBe(testColumn2Id);
-
     });
 
     it('[UNIT-002] updateCard respects explicit linked_cards override', async () => {
-
       // Update card with explicit empty linked_cards
       const explicitEmptyLinks: LinkedCard[] = [];
       const startTime = Date.now();
@@ -257,43 +245,34 @@ describe('Issue #4: Parent Link Preservation', () => {
       const afterUpdate = await client.getCard(childCardId);
       const finalLinks = afterUpdate.linked_cards || [];
 
-
       expect(finalLinks.length).toBe(0);
-
     });
 
     it('[UNIT-003] updateCard handles getCard failure gracefully', async () => {
-
       // This test validates that updateCard proceeds even if getCard fails
       // We simulate this by updating a card that might have transient read issues
       // In production, updateCard should log a warning but still proceed
 
       const startTime = Date.now();
-      try {
-        // Update card - should succeed even if preservation fetch fails
-        await client.updateCard({
-          card_id: childCardId,
-          title: `ErrorTest-${Date.now()}`,
-        });
-        const duration = Date.now() - startTime;
+      // Update card - should succeed even if preservation fetch fails
+      await client.updateCard({
+        card_id: childCardId,
+        title: `ErrorTest-${Date.now()}`,
+      });
+      const duration = Date.now() - startTime;
 
-        trackPerformance('updateCard_error_handling', duration, childCardId, 0);
+      trackPerformance('updateCard_error_handling', duration, childCardId, 0);
 
-        // Test passed: Update succeeded despite potential fetch issues
-      } catch (error) {
-        throw error;
-      }
+      // Test passed: Update succeeded despite potential fetch issues
     });
 
     it('[UNIT-004] updateCard validates linked_cards array structure', async () => {
-
       // Re-establish parent link for this test
       await client.addCardParent(childCardId, parentCardId);
 
       // Get current linked_cards
       const card = await client.getCard(childCardId);
       const links = card.linked_cards || [];
-
 
       // Verify linked_cards structure
       if (links.length > 0) {
@@ -302,9 +281,7 @@ describe('Issue #4: Parent Link Preservation', () => {
         expect(firstLink).toHaveProperty('link_type');
         expect(typeof firstLink.card_id).toBe('number');
         expect(typeof firstLink.link_type).toBe('string');
-
       }
-
     });
   });
 
@@ -333,12 +310,9 @@ describe('Issue #4: Parent Link Preservation', () => {
     });
 
     it('[INT-001] moveCard preserves parent link when moving between columns', async () => {
-
       // Get initial state
       const beforeMove = await client.getCard(childCardId);
       const initialLinks = beforeMove.linked_cards || [];
-      const initialColumn = beforeMove.column_id;
-
 
       expect(initialLinks.length).toBeGreaterThan(0);
 
@@ -353,15 +327,12 @@ describe('Issue #4: Parent Link Preservation', () => {
       const afterMove = await client.getCard(childCardId);
       const finalLinks = afterMove.linked_cards || [];
 
-
       expect(finalLinks.length).toBe(initialLinks.length);
       expect(finalLinks).toEqual(expect.arrayContaining(initialLinks));
       expect(afterMove.column_id).toBe(testColumn2Id);
-
     });
 
     it('[INT-002] Bidirectional integrity: parent sees child, child sees parent', async () => {
-
       // Verify parent's perspective
       const parentChildren = await client.getCardChildren(parentCardId);
 
@@ -378,14 +349,11 @@ describe('Issue #4: Parent Link Preservation', () => {
       const childCard = await client.getCard(childCardId);
       const linkedCards = childCard.linked_cards || [];
 
-
       const parentInLinkedCards = linkedCards.some((link) => link.card_id === parentCardId);
       expect(parentInLinkedCards).toBe(true);
-
     });
 
     it('[INT-003] Bulk move preserves all parent links', async () => {
-
       // Create 3 child cards with parent links
       const childIds: number[] = [];
 
@@ -400,7 +368,6 @@ describe('Issue #4: Parent Link Preservation', () => {
         // Link to parent
         await client.addCardParent(card.card_id, parentCardId);
       }
-
 
       // Get initial linked_cards for all children
       const initialStates = await Promise.all(
@@ -419,7 +386,6 @@ describe('Issue #4: Parent Link Preservation', () => {
 
       trackPerformance('bulkUpdateCards_preserve_links', duration, childIds[0], childIds.length);
 
-
       // Verify all succeeded
       const successCount = results.filter((r) => r.success).length;
       expect(successCount).toBe(childIds.length);
@@ -436,15 +402,12 @@ describe('Issue #4: Parent Link Preservation', () => {
         const initial = initialStates[i];
         const final = finalStates[i];
 
-
         expect(final.links.length).toBe(initial.links.length);
         expect(final.column).toBe(testColumn2Id);
       }
-
     });
 
     it('[INT-004] Cross-workflow move preserves all link types', async () => {
-
       if (!testWorkflow2Id) {
         return;
       }
@@ -474,7 +437,6 @@ describe('Issue #4: Parent Link Preservation', () => {
       const beforeMove = await client.getCard(cardId);
       const initialLinks = beforeMove.linked_cards || [];
 
-
       // Move to different workflow
       const startTime = Date.now();
       await client.moveCard(cardId, targetColumn);
@@ -486,10 +448,8 @@ describe('Issue #4: Parent Link Preservation', () => {
       const afterMove = await client.getCard(cardId);
       const finalLinks = afterMove.linked_cards || [];
 
-
       expect(finalLinks.length).toBe(initialLinks.length);
       expect(afterMove.workflow_id).toBe(testWorkflow2Id);
-
     });
   });
 
@@ -507,7 +467,6 @@ describe('Issue #4: Parent Link Preservation', () => {
     });
 
     it('[REG-001] Normal updates work unchanged (title, description, priority)', async () => {
-
       const newTitle = `Updated-Title-${Date.now()}`;
       const newDescription = `Updated-Description-${Date.now()}`;
 
@@ -525,14 +484,11 @@ describe('Issue #4: Parent Link Preservation', () => {
       // Verify updates applied
       const card = await client.getCard(testCardId);
 
-
       expect(card.title).toBe(newTitle);
       expect(card.description).toBe(newDescription);
-
     });
 
     it('[REG-002] Explicit linked_cards updates still work', async () => {
-
       // Create a card to link to
       const linkedCard = await client.createCard({
         title: `Linked-Card-${Date.now()}`,
@@ -561,13 +517,10 @@ describe('Issue #4: Parent Link Preservation', () => {
       const card = await client.getCard(testCardId);
       const finalLinks = card.linked_cards || [];
 
-
       expect(finalLinks.length).toBeGreaterThanOrEqual(1);
-
     });
 
     it('[REG-003] Performance impact is acceptable (<500ms per operation)', async () => {
-
       const operationCount = 5;
       const durations: number[] = [];
 
@@ -584,19 +537,13 @@ describe('Issue #4: Parent Link Preservation', () => {
         trackPerformance('updateCard_performance_test', duration, testCardId, 0);
       }
 
-      const avgDuration = durations.reduce((sum, d) => sum + d, 0) / durations.length;
-      const maxDuration = Math.max(...durations);
-
-
       // Performance threshold: 500ms per operation (GET + PATCH combined)
       expect(maxDuration).toBeLessThan(500);
-
     });
   });
 
   describe('Edge Cases: Error Handling', () => {
     it('[EDGE-001] Handles cards with no linked_cards gracefully', async () => {
-
       // Create card with no links
       const card = await client.createCard({
         title: `NoLinks-Card-${Date.now()}`,
@@ -622,11 +569,9 @@ describe('Issue #4: Parent Link Preservation', () => {
       const final = await client.getCard(card.card_id);
       expect(final.title).toContain('Updated-NoLinks');
       expect((final.linked_cards || []).length).toBe(0);
-
     });
 
     it('[EDGE-002] Handles API transient errors during preservation', async () => {
-
       // Create test card
       const card = await client.createCard({
         title: `ErrorTest-Card-${Date.now()}`,
@@ -637,24 +582,18 @@ describe('Issue #4: Parent Link Preservation', () => {
       // Update should proceed even if getCard has transient issues
       // (tested implicitly - if getCard fails, console.warn is logged)
       const startTime = Date.now();
-      try {
-        await client.updateCard({
-          card_id: card.card_id,
-          title: `Updated-ErrorTest-${Date.now()}`,
-        });
-        const duration = Date.now() - startTime;
+      await client.updateCard({
+        card_id: card.card_id,
+        title: `Updated-ErrorTest-${Date.now()}`,
+      });
+      const duration = Date.now() - startTime;
 
-        trackPerformance('updateCard_transient_error', duration, card.card_id, 0);
+      trackPerformance('updateCard_transient_error', duration, card.card_id, 0);
 
-        // Test passed: Transient errors handled gracefully
-      } catch (error) {
-        // Update failed with non-transient error
-        throw error;
-      }
+      // Test passed: Transient errors handled gracefully
     });
 
     it('[EDGE-003] Validates type safety with invalid linked_cards', async () => {
-
       const card = await client.createCard({
         title: `TypeTest-Card-${Date.now()}`,
         column_id: testColumn1Id,
@@ -682,25 +621,12 @@ describe('Issue #4: Parent Link Preservation', () => {
 
       expect(validLinks[0].card_id).toBe(12345);
       expect(validLinks[0].link_type).toBe('child');
-
     });
   });
 
   describe('Summary: Fix Validation', () => {
     it('[SUMMARY] Generates comprehensive test report', async () => {
-
-
-
-
-      if (performanceMetrics.length > 0) {
-        const allDurations = performanceMetrics.map((m) => m.duration);
-        const avgDuration = allDurations.reduce((sum, d) => sum + d, 0) / allDurations.length;
-        const maxDuration = Math.max(...allDurations);
-
-      }
-
-
-
+      // Performance metrics tracked throughout test execution
 
       expect(true).toBe(true);
     });

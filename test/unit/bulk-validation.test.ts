@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import MockAdapter from 'axios-mock-adapter';
-import { BusinessMapClient } from '../src/client/businessmap-client.js';
+import { BusinessMapClient } from '../../src/client/businessmap-client.js';
 
 describe('Bulk Operation Validation', () => {
   let client: BusinessMapClient;

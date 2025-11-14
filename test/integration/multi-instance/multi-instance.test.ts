@@ -7,11 +7,7 @@
 
 import { BusinessMapClientFactory } from '../../src/client/client-factory';
 import { InstanceConfigManager } from '../../src/config/instance-manager';
-import {
-  InstanceConfigError,
-  InstanceNotFoundError,
-  MultiInstanceConfig,
-} from '../../src/types/instance-config';
+import { MultiInstanceConfig } from '../../src/types/instance-config';
 
 describe('Multi-Instance Integration Tests', () => {
   let factory: BusinessMapClientFactory;
@@ -364,7 +360,6 @@ describe('Multi-Instance Integration Tests', () => {
         BusinessMapClientFactory.resetInstance();
 
         const configManager = InstanceConfigManager.getInstance();
-        const factory = BusinessMapClientFactory.getInstance();
 
         process.env.BUSINESSMAP_INSTANCES = JSON.stringify(multiInstanceConfig);
         delete process.env.BUSINESSMAP_API_TOKEN_PROD; // Missing default instance token
@@ -438,7 +433,6 @@ describe('Multi-Instance Integration Tests', () => {
         delete process.env.NONEXISTENT_TOKEN_VAR;
 
         const mgr = InstanceConfigManager.getInstance();
-        const fac = BusinessMapClientFactory.getInstance();
 
         await mgr.loadConfig();
 
@@ -462,7 +456,6 @@ describe('Multi-Instance Integration Tests', () => {
         BusinessMapClientFactory.resetInstance();
 
         const mgr = InstanceConfigManager.getInstance();
-        const fac = BusinessMapClientFactory.getInstance();
 
         process.env.BUSINESSMAP_INSTANCES = JSON.stringify(multiInstanceConfig);
         process.env.BUSINESSMAP_API_TOKEN_PROD = 'prod_token';

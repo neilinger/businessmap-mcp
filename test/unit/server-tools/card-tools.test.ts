@@ -541,7 +541,9 @@ describe('CardToolHandler', () => {
       expect(result.isError).toBeUndefined();
 
       const parsedContent = JSON.parse(result.content[0].text);
-      expect(Array.isArray(parsedContent)).toBe(true);
+      expect(parsedContent.customFields).toBeDefined();
+      expect(Array.isArray(parsedContent.customFields)).toBe(true);
+      expect(parsedContent.count).toBe(2);
       expect(mockClient.getCardCustomFields).toHaveBeenCalledWith(1);
     });
 

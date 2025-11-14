@@ -54,7 +54,7 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
         'lru-cache',
         '../../src/server/mcp-server',
         '../../src/client/client-factory',
-        '../../src/client/businessmap-client'
+        '../../src/client/businessmap-client',
       ];
 
       for (const modulePath of criticalImports) {
@@ -182,7 +182,7 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
         const validInstance = {
           name: 'test',
           apiUrl: 'https://test.kanbanize.com/api/v2',
-          apiTokenEnv: 'TEST_TOKEN' // Correct field name
+          apiTokenEnv: 'TEST_TOKEN', // Correct field name
         };
 
         // ASSERTION: Valid schema with apiTokenEnv passes
@@ -192,7 +192,7 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
         const invalidInstance = {
           name: 'test',
           apiUrl: 'https://test.kanbanize.com/api/v2',
-          apiTokenEnvVar: 'TEST_TOKEN' // Wrong field name (historical bug)
+          apiTokenEnvVar: 'TEST_TOKEN', // Wrong field name (historical bug)
         };
 
         // ASSERTION: Invalid schema with apiTokenEnvVar fails
@@ -221,14 +221,14 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
           {
             name: 'test1',
             apiUrl: 'https://test1.kanbanize.com/api/v2',
-            apiTokenEnv: 'TOKEN1' // Correct
+            apiTokenEnv: 'TOKEN1', // Correct
           },
           {
             name: 'test2',
             apiUrl: 'https://test2.kanbanize.com/api/v2',
-            apiTokenEnvVar: 'TOKEN2' // Incorrect (historical bug)
-          }
-        ]
+            apiTokenEnvVar: 'TOKEN2', // Incorrect (historical bug)
+          },
+        ],
       };
 
       if (TEST_MODE === 'real') {
@@ -325,7 +325,7 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
         // ASSERTION: Error details are structured
         expect(error.details).toEqual({
           envVarName: 'NONEXISTENT_TOKEN_VAR',
-          instanceName: 'test-instance'
+          instanceName: 'test-instance',
         });
       });
 
@@ -479,38 +479,40 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
         'L1-Precommit': {
           description: 'TypeScript compilation + lint rules',
           catches: ['Import syntax errors', 'Type mismatches'],
-          notTested: 'Runs during git commit (not in test suite)'
+          notTested: 'Runs during git commit (not in test suite)',
         },
         'L2-CI-Build': {
           description: 'Multi-version Node.js build matrix',
           catches: ['Import errors', 'Module resolution failures'],
-          testedBy: 'Bug Type 1 tests'
+          testedBy: 'Bug Type 1 tests',
         },
         'L3-Unit-Tests': {
           description: 'Zod schema validation + type guards',
           catches: ['Config schema mismatches', 'Field name errors'],
-          testedBy: 'Bug Type 2 tests'
+          testedBy: 'Bug Type 2 tests',
         },
         'L4-Integration-Tests': {
           description: 'Full server initialization + API calls',
           catches: ['Environment validation failures', 'Token format errors'],
-          testedBy: 'Bug Type 3 tests'
+          testedBy: 'Bug Type 3 tests',
         },
         'L5-Monitoring': {
           description: 'Runtime error tracking',
           catches: ['Production failures', 'API errors'],
-          notTested: 'Production-only layer'
-        }
+          notTested: 'Production-only layer',
+        },
       };
 
       // ASSERTION: All three bug types have layer coverage
       expect(layerCoverage['L2-CI-Build'].catches).toContain('Import errors');
       expect(layerCoverage['L3-Unit-Tests'].catches).toContain('Config schema mismatches');
-      expect(layerCoverage['L4-Integration-Tests'].catches).toContain('Environment validation failures');
+      expect(layerCoverage['L4-Integration-Tests'].catches).toContain(
+        'Environment validation failures'
+      );
 
       // Document coverage for reporting
-      // eslint-disable-next-line no-console
-      Object.entries(layerCoverage).forEach(([layer, info]) => {
+      // eslint-disable-next-line no-console, @typescript-eslint/no-unused-vars
+      Object.entries(layerCoverage).forEach(([_layer, info]) => {
         // eslint-disable-next-line no-console
         // eslint-disable-next-line no-console
         // eslint-disable-next-line no-console

@@ -1,10 +1,26 @@
 // Import jest globals explicitly for ESM compatibility
 import { jest } from '@jest/globals';
 
-import { CacheManager } from '../src/client/modules/base-client';
+// Mock lru-cache before importing CacheManager
+jest.unstable_mockModule('lru-cache', () => {
+  return {
+    default: class MockLRUCache extends Map {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      constructor(options?: any) {
+        super();
+      }
+    },
+  };
+});
 
 describe('CacheManager', () => {
-  let cache: CacheManager;
+  let CacheManager: any;
+  let cache: any;
+
+  beforeAll(async () => {
+    const baseClientModule = await import('../../src/client/modules/base-client.js');
+    CacheManager = baseClientModule.CacheManager;
+  });
 
   beforeEach(() => {
     cache = new CacheManager(true, 1000); // 1 second TTL for faster tests
@@ -16,7 +32,7 @@ describe('CacheManager', () => {
 
   describe('get()', () => {
     it('should execute fetcher on cache miss', async () => {
-      const fetcher = jest.fn().mockResolvedValue('test-data');
+      const fetcher = jest.fn<() => Promise<string>>().mockResolvedValue('test-data');
       const result = await cache.get('test-key', fetcher);
 
       expect(result).toBe('test-data');
@@ -24,7 +40,7 @@ describe('CacheManager', () => {
     });
 
     it('should return cached value on cache hit', async () => {
-      const fetcher = jest.fn().mockResolvedValue('test-data');
+      const fetcher = jest.fn<() => Promise<string>>().mockResolvedValue('test-data');
 
       // First call - cache miss
       await cache.get('test-key', fetcher);
@@ -37,7 +53,7 @@ describe('CacheManager', () => {
     });
 
     it('should respect TTL and refetch after expiry', async () => {
-      const fetcher = jest.fn().mockResolvedValue('test-data');
+      const fetcher = jest.fn<() => Promise<string>>().mockResolvedValue('test-data');
 
       // First call
       await cache.get('test-key', fetcher, 100); // 100ms TTL
@@ -53,7 +69,7 @@ describe('CacheManager', () => {
 
     it('should deduplicate concurrent requests', async () => {
       const fetcher = jest
-        .fn()
+        .fn<() => Promise<string>>()
         .mockImplementation(
           () => new Promise((resolve) => setTimeout(() => resolve('test-data'), 50))
         );
@@ -73,7 +89,7 @@ describe('CacheManager', () => {
 
     it('should bypass cache when disabled', async () => {
       const disabledCache = new CacheManager(false);
-      const fetcher = jest.fn().mockResolvedValue('test-data');
+      const fetcher = jest.fn<() => Promise<string>>().mockResolvedValue('test-data');
 
       await disabledCache.get('test-key', fetcher);
       await disabledCache.get('test-key', fetcher);
@@ -84,7 +100,7 @@ describe('CacheManager', () => {
 
   describe('invalidate()', () => {
     it('should invalidate cache entry by exact key', async () => {
-      const fetcher = jest.fn().mockResolvedValue('test-data');
+      const fetcher = jest.fn<() => Promise<string>>().mockResolvedValue('test-data');
 
       await cache.get('test-key', fetcher);
       cache.invalidate('test-key');
@@ -96,9 +112,9 @@ describe('CacheManager', () => {
     });
 
     it('should invalidate cache entries by regex pattern', async () => {
-      const fetcher1 = jest.fn().mockResolvedValue('data1');
-      const fetcher2 = jest.fn().mockResolvedValue('data2');
-      const fetcher3 = jest.fn().mockResolvedValue('data3');
+      const fetcher1 = jest.fn<() => Promise<string>>().mockResolvedValue('data1');
+      const fetcher2 = jest.fn<() => Promise<string>>().mockResolvedValue('data2');
+      const fetcher3 = jest.fn<() => Promise<string>>().mockResolvedValue('data3');
 
       await cache.get('users:all', fetcher1);
       await cache.get('users:123', fetcher2);
@@ -122,8 +138,8 @@ describe('CacheManager', () => {
 
   describe('clear()', () => {
     it('should clear all cache entries', async () => {
-      const fetcher1 = jest.fn().mockResolvedValue('data1');
-      const fetcher2 = jest.fn().mockResolvedValue('data2');
+      const fetcher1 = jest.fn<() => Promise<string>>().mockResolvedValue('data1');
+      const fetcher2 = jest.fn<() => Promise<string>>().mockResolvedValue('data2');
 
       await cache.get('key1', fetcher1);
       await cache.get('key2', fetcher2);
@@ -140,7 +156,7 @@ describe('CacheManager', () => {
 
   describe('getStats()', () => {
     it('should track hits and misses correctly', async () => {
-      const fetcher = jest.fn().mockResolvedValue('test-data');
+      const fetcher = jest.fn<() => Promise<string>>().mockResolvedValue('test-data');
 
       // Miss
       await cache.get('key1', fetcher);
@@ -172,7 +188,7 @@ describe('CacheManager', () => {
   describe('error handling', () => {
     it('should not cache failed requests', async () => {
       const error = new Error('API error');
-      const fetcher = jest.fn().mockRejectedValue(error);
+      const fetcher = jest.fn<() => Promise<string>>().mockRejectedValue(error);
 
       // First call should fail
       await expect(cache.get('test-key', fetcher)).rejects.toThrow('API error');
@@ -186,7 +202,7 @@ describe('CacheManager', () => {
     it('should handle concurrent request failures correctly', async () => {
       const error = new Error('API error');
       const fetcher = jest
-        .fn()
+        .fn<() => Promise<never>>()
         .mockImplementation(() => new Promise((_, reject) => setTimeout(() => reject(error), 50)));
 
       // Make 3 concurrent requests that will fail
@@ -208,8 +224,8 @@ describe('CacheManager', () => {
 
   describe('lazy expiration', () => {
     it('should remove expired entries on next access', async () => {
-      const fetcher1 = jest.fn().mockResolvedValue('data1');
-      const fetcher2 = jest.fn().mockResolvedValue('data2');
+      const fetcher1 = jest.fn<() => Promise<string>>().mockResolvedValue('data1');
+      const fetcher2 = jest.fn<() => Promise<string>>().mockResolvedValue('data2');
 
       await cache.get('key1', fetcher1, 100); // Expires in 100ms
       await cache.get('key2', fetcher2, 10000); // Expires in 10s
@@ -236,9 +252,9 @@ describe('CacheManager', () => {
       const cache = new CacheManager(true, 5000);
 
       const slowFetcher = jest
-        .fn()
+        .fn<() => Promise<string>>()
         .mockImplementation(
-          () => new Promise((resolve) => setTimeout(() => resolve('stale-data'), 200))
+          () => new Promise<string>((resolve) => setTimeout(() => resolve('stale-data'), 200))
         );
 
       // Start slow request
@@ -256,7 +272,7 @@ describe('CacheManager', () => {
       expect(statsAfterCompletion.size).toBe(0); // Generation counter worked!
 
       // Next request refetches (because cache is empty, not just pendingRequests cleanup)
-      const freshFetcher = jest.fn().mockResolvedValue('fresh-data');
+      const freshFetcher = jest.fn<() => Promise<string>>().mockResolvedValue('fresh-data');
       const result = await cache.get('test-key', freshFetcher);
 
       expect(result).toBe('fresh-data');

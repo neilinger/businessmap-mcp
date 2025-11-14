@@ -110,7 +110,7 @@ describe('Environment Variable Validation', () => {
         const invalidConfig = {
           name: 'invalid',
           apiUrl: 'https://invalid.kanbanize.com/api/v2',
-          apiTokenEnv: 'NONEXISTENT_TOKEN_VAR'
+          apiTokenEnv: 'NONEXISTENT_TOKEN_VAR',
         };
 
         // Verify the token env var doesn't exist
@@ -130,13 +130,13 @@ describe('Environment Variable Validation', () => {
 
       it('should validate token environment variable format', () => {
         // Check all BUSINESSMAP_API_TOKEN_* variables in environment
-        const tokenEnvVars = Object.keys(process.env).filter(key =>
+        const tokenEnvVars = Object.keys(process.env).filter((key) =>
           key.startsWith('BUSINESSMAP_API_TOKEN_')
         );
 
         expect(tokenEnvVars.length).toBeGreaterThan(0);
 
-        tokenEnvVars.forEach(varName => {
+        tokenEnvVars.forEach((varName) => {
           const token = process.env[varName];
 
           // Token should be a non-empty string
@@ -169,7 +169,8 @@ describe('Environment Variable Validation', () => {
           apiCallSuccessful = !!userData;
         } catch (error) {
           // Token might be invalid or expired
-          const message = error instanceof Error ? error.message : 'Unknown error';
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const _message = error instanceof Error ? error.message : 'Unknown error';
           // eslint-disable-next-line no-console
         }
 
@@ -314,7 +315,9 @@ describe('Environment Variable Validation', () => {
       });
 
       it('should verify error types are properly defined', async () => {
-        const { TokenLoadError, InstanceConfigError } = await import('../../src/types/instance-config');
+        const { TokenLoadError, InstanceConfigError } = await import(
+          '../../src/types/instance-config'
+        );
 
         // Verify error classes exist and are constructable
         const tokenError = new TokenLoadError('TEST_VAR', 'test-instance');
@@ -341,12 +344,9 @@ describe('Environment Variable Validation', () => {
       // All token variables should follow BUSINESSMAP_API_TOKEN_{INSTANCE} pattern
       const expectedPattern = /^BUSINESSMAP_API_TOKEN_[A-Z_]+$/;
 
-      const knownTokenVars = [
-        'BUSINESSMAP_API_TOKEN_FIMANCIA',
-        'BUSINESSMAP_API_TOKEN_KERKOW'
-      ];
+      const knownTokenVars = ['BUSINESSMAP_API_TOKEN_FIMANCIA', 'BUSINESSMAP_API_TOKEN_KERKOW'];
 
-      knownTokenVars.forEach(varName => {
+      knownTokenVars.forEach((varName) => {
         expect(varName).toMatch(expectedPattern);
       });
     });
@@ -371,7 +371,7 @@ describe('Environment Variable Validation', () => {
       expect(error.code).toBe('TOKEN_LOAD_ERROR');
       expect(error.details).toEqual({
         envVarName: 'MISSING_TOKEN_VAR',
-        instanceName: 'test-instance'
+        instanceName: 'test-instance',
       });
     });
   });
