@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 
-// Load .env file for integration tests
+// Load .env file for performance tests
 dotenv.config();
 
 export default {
@@ -24,8 +24,8 @@ export default {
   transformIgnorePatterns: [
     'node_modules/(?!(p-limit|yocto-queue))',
   ],
-  testMatch: ['**/test/integration/**/*.test.ts'],
-  setupFilesAfterEnv: ['<rootDir>/test/integration/infrastructure/setup.ts'],
+  testMatch: ['**/test/performance/**/*.test.ts'],
+  testTimeout: 30000, // Performance tests may take longer
   collectCoverageFrom: ['src/**/*.ts'],
   coveragePathIgnorePatterns: ['/node_modules/', '/dist/'],
 };

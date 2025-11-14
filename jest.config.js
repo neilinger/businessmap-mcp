@@ -1,8 +1,3 @@
-import dotenv from 'dotenv';
-
-// Load .env file for integration tests
-dotenv.config();
-
 export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
@@ -24,8 +19,7 @@ export default {
   transformIgnorePatterns: [
     'node_modules/(?!(p-limit|yocto-queue))',
   ],
-  testMatch: ['**/test/integration/**/*.test.ts'],
-  setupFilesAfterEnv: ['<rootDir>/test/integration/infrastructure/setup.ts'],
+  testMatch: ['**/test/unit/**/*.test.ts'],
   collectCoverageFrom: ['src/**/*.ts'],
   coveragePathIgnorePatterns: ['/node_modules/', '/dist/'],
 };
