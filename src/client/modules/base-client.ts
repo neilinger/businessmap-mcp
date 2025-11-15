@@ -195,11 +195,12 @@ export class CacheManager {
    * Clear all cache entries
    */
   clear(): void {
-    // Use reset() for LRUCache v5.1.1 or clear() for Map-like objects
-    if (typeof this.cache.reset === 'function') {
-      this.cache.reset();
-    } else if (typeof this.cache.clear === 'function') {
-      this.cache.clear();
+    // Use reset() for LRUCache v5.1.1 or clear() for v11+
+    const cache = this.cache as any;
+    if (typeof cache.reset === 'function') {
+      cache.reset();
+    } else if (typeof cache.clear === 'function') {
+      cache.clear();
     }
     this.pendingRequests.clear();
     this.keysByPrefix.clear();
