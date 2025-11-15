@@ -70,9 +70,7 @@ export class DependencyAnalyzer {
    * Analyze dependencies for multiple workspaces
    */
   async analyzeWorkspaces(workspaceIds: number[]): Promise<BulkDependencyAnalysis> {
-    const results = await Promise.all(
-      workspaceIds.map((id) => this.analyzeWorkspace(id))
-    );
+    const results = await Promise.all(workspaceIds.map((id) => this.analyzeWorkspace(id)));
 
     // Extract names from analysis results for post-delete display
     const nameMap = new Map<number, string | undefined>();
@@ -140,9 +138,7 @@ export class DependencyAnalyzer {
    * Analyze dependencies for multiple boards
    */
   async analyzeBoards(boardIds: number[]): Promise<BulkDependencyAnalysis> {
-    const results = await Promise.all(
-      boardIds.map((id) => this.analyzeBoard(id))
-    );
+    const results = await Promise.all(boardIds.map((id) => this.analyzeBoard(id)));
 
     // Extract names from analysis results for post-delete display
     const nameMap = new Map<number, string | undefined>();
@@ -198,9 +194,7 @@ export class DependencyAnalyzer {
    * Analyze dependencies for multiple cards
    */
   async analyzeCards(cardIds: number[]): Promise<BulkDependencyAnalysis> {
-    const results = await Promise.all(
-      cardIds.map((id) => this.analyzeCard(id))
-    );
+    const results = await Promise.all(cardIds.map((id) => this.analyzeCard(id)));
 
     // Extract names from analysis results for post-delete display
     const nameMap = new Map<number, string | undefined>();

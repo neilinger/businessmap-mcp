@@ -5,7 +5,7 @@ export interface BusinessMapConfig {
   apiToken: string;
   defaultWorkspaceId?: number;
   readOnlyMode?: boolean;
-  
+
   // Cache configuration
   cacheEnabled?: boolean; // Default: true
   cacheTtl?: number; // Default TTL in milliseconds (default: 300000 = 5 minutes)
