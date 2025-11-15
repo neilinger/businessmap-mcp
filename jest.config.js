@@ -1,6 +1,6 @@
 export default {
   preset: 'ts-jest/presets/default-esm',
-  testEnvironment: 'node',
+  testEnvironment: './jest-environment-node-no-localstorage.cjs',
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.\\.?/.*)\\.js$': '$1',
