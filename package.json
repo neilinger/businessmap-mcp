@@ -1,6 +1,6 @@
 {
   "name": "@neilinger/businessmap-mcp",
-  "version": "1.12.1",
+  "version": "1.12.5",
   "description": "Model Context Protocol server for BusinessMap (Kanbanize) integration",
   "type": "module",
   "main": "dist/index.js",
@@ -69,6 +69,7 @@
     "axios": "^1.12.0",
     "axios-retry": "^4.5.0",
     "dotenv": "^16.3.1",
+    "lru-cache": "^11.0.0",
     "p-limit": "^6.1.0",
     "zod": "^3.22.0"
   },

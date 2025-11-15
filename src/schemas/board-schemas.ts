@@ -12,7 +12,7 @@ import {
   SECURITY_LIMITS,
 } from './security-validation.js';
 
-// Schema para listagem de boards
+// Schema for listagem de boards
 export const listBoardsSchema = z.object({
   // ID filters (arrays) with size limits
   board_ids: secureArray(entityIdSchema, {
@@ -59,7 +59,7 @@ export const listBoardsSchema = z.object({
   ...instanceParameterSchema,
 });
 
-// Schema para busca de boards
+// Schema for busca de boards
 export const searchBoardSchema = z.object({
   board_id: optionalEntityId.describe('The ID of the board to search for'),
   board_name: entityNameSchema.optional().describe('The name of the board to search for'),
@@ -67,31 +67,31 @@ export const searchBoardSchema = z.object({
   ...instanceParameterSchema,
 });
 
-// Schema para obter detalhes de um board específico
+// Schema for obter detalhes de um board específico
 export const getBoardSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board'),
   ...instanceParameterSchema,
 });
 
-// Schema para obter colunas de um board
+// Schema for obter colunas de um board
 export const getColumnsSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board'),
   ...instanceParameterSchema,
 });
 
-// Schema para obter lanes de um board
+// Schema for obter lanes de um board
 export const getLanesSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board'),
   ...instanceParameterSchema,
 });
 
-// Schema para obter detalhes de uma lane específica
+// Schema for obter detalhes de uma lane específica
 export const getLaneSchema = z.object({
   lane_id: entityIdSchema.describe('The ID of the lane'),
   ...instanceParameterSchema,
 });
 
-// Schema para criação de boards
+// Schema for criação de boards
 export const createBoardSchema = z.object({
   name: entityNameSchema.describe('The name of the board'),
   description: optionalDescription.describe('Optional description for the board'),
@@ -100,7 +100,7 @@ export const createBoardSchema = z.object({
   ...instanceParameterSchema,
 });
 
-// Schema para criação de lanes
+// Schema for criação de lanes
 export const createLaneSchema = z.object({
   name: entityNameSchema.describe('The name of the lane'),
   description: optionalDescription.describe('Optional description for the lane'),
@@ -110,13 +110,13 @@ export const createLaneSchema = z.object({
   ...instanceParameterSchema,
 });
 
-// Schema para obter estrutura atual do board
+// Schema for obter estrutura atual do board
 export const getCurrentBoardStructureSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board'),
   ...instanceParameterSchema,
 });
 
-// Schema para atualização de boards
+// Schema for atualização de boards
 export const updateBoardSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board to update'),
   name: entityNameSchema.optional().describe('New name for the board'),
@@ -124,7 +124,7 @@ export const updateBoardSchema = z.object({
   ...instanceParameterSchema,
 });
 
-// Schema para deleção de boards
+// Schema for deleção de boards
 export const deleteBoardSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board to delete'),
   archive_first: z
