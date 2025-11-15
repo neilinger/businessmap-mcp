@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 // Mock lru-cache before importing CacheManager
 jest.unstable_mockModule('lru-cache', () => {
   return {
-    default: class MockLRUCache extends Map {
+    LRUCache: class MockLRUCache extends Map {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       constructor(options?: any) {
         super();

@@ -18,7 +18,7 @@ export default {
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(p-limit|yocto-queue))',
+    'node_modules/(?!(p-limit|yocto-queue|lru-cache))',
   ],
   testMatch: ['**/test/unit/**/*.test.ts'],
   collectCoverageFrom: ['src/**/*.ts'],

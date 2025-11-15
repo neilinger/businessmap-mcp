@@ -94,11 +94,14 @@
     "lint-staged": "^16.2.6",
     "prettier": "^3.0.0",
     "semantic-release": "^24.2.9",
-    "ts-jest": "^29.0.0",
+    "ts-jest": "^29.4.5",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "overrides": {
+    "js-yaml": "^4.1.1"
   }
 }
