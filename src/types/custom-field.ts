@@ -4,13 +4,13 @@ export interface CustomField {
   name: string;
   color: string;
   type:
-    | 'single_line_text'
-    | 'multi_line_text'
-    | 'dropdown'
-    | 'number'
-    | 'date'
-    | 'checkbox'
-    | string;
+  | 'single_line_text'
+  | 'multi_line_text'
+  | 'dropdown'
+  | 'number'
+  | 'date'
+  | 'checkbox'
+  | string;
   is_immutable: number;
   is_always_present: number;
   all_properties_are_locked: number;
