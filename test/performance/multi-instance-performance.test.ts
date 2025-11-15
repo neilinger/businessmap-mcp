@@ -13,8 +13,6 @@
 import { InstanceConfigManager } from '../../src/config/instance-manager';
 import { BusinessMapClientFactory } from '../../src/client/client-factory';
 import { MultiInstanceConfig } from '../../src/types/instance-config';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 // Performance thresholds
 const PERF_THRESHOLDS = {
@@ -32,7 +30,7 @@ const createTestConfig = (instanceCount: number): MultiInstanceConfig => {
     apiTokenEnv: `BUSINESSMAP_API_TOKEN_${i}`,
     readOnlyMode: false,
     description: `Test instance ${i}`,
-    tags: [`test`, `instance${i}`],
+    tags: ['test', `instance${i}`],
   }));
 
   return {
@@ -101,21 +99,6 @@ describe('Multi-Instance Performance Validation', () => {
       const tokenSavings = totalTokensSingleInstance - totalTokensMultiInstance;
       const reductionPercentage = (tokenSavings / totalTokensSingleInstance) * 100;
 
-      console.log('\n=== Token Overhead Analysis ===');
-      console.log(`Tools: ${TOOL_COUNT}`);
-      console.log(`Instances: ${INSTANCE_COUNT}`);
-      console.log(`\nSingle-Instance (3 servers):`);
-      console.log(`  - Tokens per tool: ${tokensPerToolSingleInstance}`);
-      console.log(`  - Tokens per server: ${tokensPerServerSingleInstance}`);
-      console.log(`  - Total tokens: ${totalTokensSingleInstance}`);
-      console.log(`\nMulti-Instance (1 server):`);
-      console.log(`  - Tokens per tool: ${tokensPerToolMultiInstance}`);
-      console.log(`  - Total tokens: ${totalTokensMultiInstance}`);
-      console.log(`\nSavings:`);
-      console.log(`  - Token savings: ${tokenSavings}`);
-      console.log(`  - Reduction percentage: ${reductionPercentage.toFixed(1)}%`);
-      console.log(`  - Threshold: ${PERF_THRESHOLDS.tokenOverheadReduction}%`);
-
       // Validate claimed reduction
       expect(reductionPercentage).toBeGreaterThanOrEqual(PERF_THRESHOLDS.tokenOverheadReduction);
       expect(reductionPercentage).toBeCloseTo(64, 1);
@@ -131,12 +114,6 @@ describe('Multi-Instance Performance Validation', () => {
       const toolTokensWithInstance = BASE_TOOL_TOKENS + INSTANCE_PARAM_TOKENS;
       const overheadPercentage = (INSTANCE_PARAM_TOKENS / BASE_TOOL_TOKENS) * 100;
 
-      console.log('\n=== Per-Tool Token Overhead ===');
-      console.log(`Base tool tokens: ${BASE_TOOL_TOKENS}`);
-      console.log(`Instance parameter tokens: ${INSTANCE_PARAM_TOKENS}`);
-      console.log(`Total tokens: ${toolTokensWithInstance}`);
-      console.log(`Overhead percentage: ${overheadPercentage.toFixed(1)}%`);
-
       // Verify overhead is minimal (< 10%)
       expect(overheadPercentage).toBeLessThan(10);
       expect(toolTokensWithInstance).toBe(45);
@@ -149,14 +126,7 @@ describe('Multi-Instance Performance Validation', () => {
       const REQUEST_BASE_TOKENS = 15; // tool invocation + response
       const INSTANCE_PARAM_TOKENS = 2; // "instance": "staging"
 
-      const requestTokensWithInstance = REQUEST_BASE_TOKENS + INSTANCE_PARAM_TOKENS;
       const overheadPercentage = (INSTANCE_PARAM_TOKENS / REQUEST_BASE_TOKENS) * 100;
-
-      console.log('\n=== Per-Request Token Overhead ===');
-      console.log(`Base request tokens: ${REQUEST_BASE_TOKENS}`);
-      console.log(`Instance parameter tokens: ${INSTANCE_PARAM_TOKENS}`);
-      console.log(`Total request tokens: ${requestTokensWithInstance}`);
-      console.log(`Overhead percentage: ${overheadPercentage.toFixed(1)}%`);
 
       // Verify runtime overhead is negligible (< 15%)
       expect(overheadPercentage).toBeLessThan(15);
@@ -178,10 +148,6 @@ describe('Multi-Instance Performance Validation', () => {
 
       const loadTime = endTime - startTime;
 
-      console.log('\n=== Configuration Loading Performance ===');
-      console.log(`Load time: ${loadTime.toFixed(2)}ms`);
-      console.log(`Threshold: ${PERF_THRESHOLDS.configLoading}ms`);
-
       expect(loadTime).toBeLessThan(PERF_THRESHOLDS.configLoading);
     });
 
@@ -195,10 +161,6 @@ describe('Multi-Instance Performance Validation', () => {
       const endTime = performance.now();
 
       const creationTime = endTime - startTime;
-
-      console.log('\n=== Client Creation Performance ===');
-      console.log(`Creation time: ${creationTime.toFixed(2)}ms`);
-      console.log(`Threshold: ${PERF_THRESHOLDS.clientCreation}ms`);
 
       expect(client).toBeDefined();
       expect(creationTime).toBeLessThan(PERF_THRESHOLDS.clientCreation);
@@ -218,10 +180,6 @@ describe('Multi-Instance Performance Validation', () => {
 
       const retrievalTime = endTime - startTime;
 
-      console.log('\n=== Cache Retrieval Performance ===');
-      console.log(`Retrieval time: ${retrievalTime.toFixed(3)}ms`);
-      console.log(`Threshold: ${PERF_THRESHOLDS.cacheRetrieval}ms`);
-
       expect(client).toBeDefined();
       expect(retrievalTime).toBeLessThan(PERF_THRESHOLDS.cacheRetrieval);
     });
@@ -240,11 +198,6 @@ describe('Multi-Instance Performance Validation', () => {
 
       const totalTime = endTime - startTime;
       const avgTime = totalTime / 3;
-
-      console.log('\n=== Parallel Access Performance ===');
-      console.log(`Total time: ${totalTime.toFixed(2)}ms`);
-      console.log(`Average per client: ${avgTime.toFixed(2)}ms`);
-      console.log(`Threshold: ${PERF_THRESHOLDS.clientCreation}ms`);
 
       expect(clients).toHaveLength(3);
       expect(avgTime).toBeLessThan(PERF_THRESHOLDS.clientCreation);
@@ -269,14 +222,6 @@ describe('Multi-Instance Performance Validation', () => {
 
       const avgTime = retrievalTimes.reduce((a, b) => a + b, 0) / iterations;
       const maxTime = Math.max(...retrievalTimes);
-      const minTime = Math.min(...retrievalTimes);
-
-      console.log('\n=== Sequential Cache Hits Performance ===');
-      console.log(`Iterations: ${iterations}`);
-      console.log(`Average time: ${avgTime.toFixed(3)}ms`);
-      console.log(`Min time: ${minTime.toFixed(3)}ms`);
-      console.log(`Max time: ${maxTime.toFixed(3)}ms`);
-      console.log(`Threshold: ${PERF_THRESHOLDS.cacheRetrieval}ms`);
 
       expect(avgTime).toBeLessThan(PERF_THRESHOLDS.cacheRetrieval);
       expect(maxTime).toBeLessThan(PERF_THRESHOLDS.cacheRetrieval * 5); // Allow some variance
@@ -316,19 +261,14 @@ describe('Multi-Instance Performance Validation', () => {
         measurements.push({ instances: instanceCount, heapUsed });
       }
 
-      console.log('\n=== Memory Scaling ===');
-      measurements.forEach(({ instances, heapUsed }) => {
-        console.log(`${instances} instances: ${heapUsed.toFixed(2)} MB`);
+      measurements.forEach(() => {
+        // Measurements recorded for analysis
       });
 
       // Calculate memory per instance
       const memoryPerInstance1 = measurements[0]!.heapUsed;
       const memoryPerInstance3 = (measurements[1]!.heapUsed - memoryPerInstance1) / 2;
       const memoryPerInstance5 = (measurements[2]!.heapUsed - measurements[1]!.heapUsed) / 2;
-
-      console.log(`\nMemory per instance:`);
-      console.log(`  1→3: ${memoryPerInstance3.toFixed(2)} MB/instance`);
-      console.log(`  3→5: ${memoryPerInstance5.toFixed(2)} MB/instance`);
 
       // Verify memory scaling is reasonable (< 10MB per instance)
       expect(memoryPerInstance3).toBeLessThan(10);
@@ -354,11 +294,6 @@ describe('Multi-Instance Performance Validation', () => {
       const finalHeap = process.memoryUsage().heapUsed / 1024 / 1024; // MB
       const heapGrowth = finalHeap - initialHeap;
 
-      console.log('\n=== Cache Memory Stability ===');
-      console.log(`Initial heap: ${initialHeap.toFixed(2)} MB`);
-      console.log(`Final heap: ${finalHeap.toFixed(2)} MB`);
-      console.log(`Heap growth: ${heapGrowth.toFixed(2)} MB`);
-
       // Verify no significant memory growth (< 5MB)
       expect(heapGrowth).toBeLessThan(5);
     });
@@ -372,23 +307,13 @@ describe('Multi-Instance Performance Validation', () => {
       const TOOL_COUNT = 43;
       const INSTANCE_COUNTS = [1, 3, 5, 10];
 
-      console.log('\n=== Comparative Token Analysis ===');
-      console.log('Instance Count | Single-Instance (total) | Multi-Instance (total) | Savings | Reduction %');
-      console.log('---------------|-------------------------|------------------------|---------|-------------');
-
       INSTANCE_COUNTS.forEach((instanceCount) => {
         const singleInstanceTotal = TOOL_COUNT * 42 * instanceCount; // 42 tokens per tool, N servers
         const multiInstanceTotal = TOOL_COUNT * 45; // 45 tokens per tool, 1 server
-        const savings = singleInstanceTotal - multiInstanceTotal;
-        const reductionPercentage = (savings / singleInstanceTotal) * 100;
+        singleInstanceTotal - multiInstanceTotal;
 
-        console.log(
-          `${instanceCount.toString().padEnd(14)} | ${singleInstanceTotal
-            .toString()
-            .padEnd(23)} | ${multiInstanceTotal.toString().padEnd(22)} | ${savings
-            .toString()
-            .padEnd(7)} | ${reductionPercentage.toFixed(1)}%`
-        );
+        // Token comparison calculated for instance count
+        // Reduction: (savings / singleInstanceTotal) * 100
       });
 
       // Verify efficiency increases with instance count
@@ -411,10 +336,6 @@ describe('Multi-Instance Performance Validation', () => {
       // N > 45/42 = 1.07
 
       const breakEvenInstances = TOKENS_PER_TOOL_MULTI / TOKENS_PER_TOOL_SINGLE;
-
-      console.log('\n=== Break-Even Analysis ===');
-      console.log(`Break-even point: ${breakEvenInstances.toFixed(2)} instances`);
-      console.log(`Recommendation: Use multi-instance for 2+ instances`);
 
       // Verify break-even calculation
       expect(breakEvenInstances).toBeCloseTo(1.07, 2);
@@ -462,7 +383,7 @@ describe('Multi-Instance Performance Validation', () => {
 
       // Measure config loading (already done in beforeEach, so use fast path)
       const configStart = performance.now();
-      const freshConfig = configManager.getConfig();
+      configManager.getConfig();
       metrics.configLoading.measured = performance.now() - configStart;
       metrics.configLoading.status =
         metrics.configLoading.measured < metrics.configLoading.threshold ? 'PASS' : 'FAIL';
@@ -480,34 +401,6 @@ describe('Multi-Instance Performance Validation', () => {
       metrics.cacheRetrieval.measured = performance.now() - cacheStart;
       metrics.cacheRetrieval.status =
         metrics.cacheRetrieval.measured < metrics.cacheRetrieval.threshold ? 'PASS' : 'FAIL';
-
-      console.log('\n=== PERFORMANCE VALIDATION REPORT ===');
-      console.log('\n1. Token Efficiency:');
-      console.log(`   ✓ Claimed reduction: ${metrics.tokenReduction.claimed}%`);
-      console.log(`   ✓ Measured reduction: ${metrics.tokenReduction.measured}%`);
-      console.log(`   ✓ Status: ${metrics.tokenReduction.status}`);
-
-      console.log('\n2. Configuration Loading:');
-      console.log(`   ✓ Threshold: < ${metrics.configLoading.threshold}ms`);
-      console.log(`   ✓ Measured: ${metrics.configLoading.measured.toFixed(2)}ms`);
-      console.log(`   ✓ Status: ${metrics.configLoading.status}`);
-
-      console.log('\n3. Client Creation:');
-      console.log(`   ✓ Threshold: < ${metrics.clientCreation.threshold}ms`);
-      console.log(`   ✓ Measured: ${metrics.clientCreation.measured.toFixed(2)}ms`);
-      console.log(`   ✓ Status: ${metrics.clientCreation.status}`);
-
-      console.log('\n4. Cache Retrieval:');
-      console.log(`   ✓ Threshold: < ${metrics.cacheRetrieval.threshold}ms`);
-      console.log(`   ✓ Measured: ${metrics.cacheRetrieval.measured.toFixed(3)}ms`);
-      console.log(`   ✓ Status: ${metrics.cacheRetrieval.status}`);
-
-      console.log('\n=== RECOMMENDATIONS ===');
-      console.log('✓ Multi-instance configuration achieves claimed performance goals');
-      console.log('✓ Token overhead reduced by 64% for 3+ instances');
-      console.log('✓ Runtime performance within acceptable thresholds');
-      console.log('✓ Memory scaling is linear and efficient');
-      console.log('✓ Break-even point: 2 instances (adopt multi-instance for 2+ instances)');
 
       // Verify all metrics pass
       expect(metrics.tokenReduction.status).toBe('PASS');

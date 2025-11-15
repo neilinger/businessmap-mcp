@@ -55,8 +55,8 @@ describe('Issue #21: Subtask Creation on Newly Created Cards', () => {
       };
 
       // WRONG: This is what the buggy code does
-      const { instance, ...restParams } = mockParams;
-      const { card_id, ...subtaskDataBuggy } = mockParams; // Destructures from params, not restParams!
+      const { instance: _instance, ...restParams: _restParams } = mockParams;
+      const { card_id: _card_id, ...subtaskDataBuggy } = mockParams; // Destructures from params, not restParams!
 
       // Bug: subtaskDataBuggy still contains 'instance'
       expect(subtaskDataBuggy).toHaveProperty('instance');
@@ -74,8 +74,8 @@ describe('Issue #21: Subtask Creation on Newly Created Cards', () => {
       };
 
       // CORRECT: Destructure from restParams, not params
-      const { instance, ...restParams } = mockParams;
-      const { card_id, ...subtaskDataFixed } = restParams;
+      const { instance: _instance2, ...restParams } = mockParams;
+      const { card_id: _card_id2, ...subtaskDataFixed } = restParams;
 
       // Fix: subtaskDataFixed does NOT contain 'instance'
       expect(subtaskDataFixed).not.toHaveProperty('instance');
@@ -88,7 +88,7 @@ describe('Issue #21: Subtask Creation on Newly Created Cards', () => {
   describe('Live API tests', () => {
     let client: BusinessMapClient;
     let testCardId: number;
-    const TEST_BOARD_ID = 2; // XpertPulse GmbH board from issue
+    // const TEST_BOARD_ID = 2; // XpertPulse GmbH board from issue
     const TEST_COLUMN_ID = 1; // Adjust based on actual board structure
 
     beforeAll(async () => {

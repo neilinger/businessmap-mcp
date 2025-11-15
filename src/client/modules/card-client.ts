@@ -35,6 +35,30 @@ import {
 import { BULK_OPERATION_DEFAULTS } from '../constants.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
+/**
+ * Filters for querying cards.
+ *
+ * Comprehensive filtering options for cards including date ranges,
+ * board/column/lane locations, ownership, priorities, custom fields,
+ * and pagination.
+ *
+ * @example
+ * ```typescript
+ * // Get cards by owner and priority
+ * const filters: CardFilters = {
+ *   owner_user_ids: [userId],
+ *   priorities: [1, 2], // High and Medium
+ *   board_ids: [boardId],
+ * };
+ *
+ * // Get cards with deadline in next 7 days
+ * const upcomingFilters: CardFilters = {
+ *   deadline_from_date: new Date().toISOString(),
+ *   deadline_to_date: new Date(Date.now() + 7*24*60*60*1000).toISOString(),
+ * };
+ * ```
+ */
+
 export interface CardFilters {
   // Date and time filters
   archived_from?: string;
@@ -111,6 +135,44 @@ export interface CardFilters {
   tag_ids?: number[];
 }
 
+/**
+ * Card Management Client
+ *
+ * Handles all card-related operations including CRUD, comments, subtasks,
+ * parent-child relationships, custom fields, and bulk operations.
+ *
+ * Features:
+ * - Card lifecycle management (create, read, update, move, delete)
+ * - Comment management with CRUD operations
+ * - Subtask management
+ * - Parent-child card relationships and hierarchy graphs
+ * - Card history and outcomes tracking
+ * - Custom field values
+ * - Bulk operations with configurable concurrency
+ * - Automatic preservation of linked_cards during updates
+ * - Safe deletion with automatic archiving
+ *
+ * @example
+ * ```typescript
+ * // Create a new card
+ * const card = await cardClient.createCard({
+ *   title: 'New Task',
+ *   column_id: columnId,
+ *   owner_user_id: userId,
+ * });
+ *
+ * // Move card to different column/lane
+ * await cardClient.moveCard(cardId, newColumnId, laneId);
+ *
+ * // Get card with all relationships
+ * const parents = await cardClient.getCardParents(cardId);
+ * const children = await cardClient.getCardChildren(cardId);
+ * const graph = await cardClient.getCardParentGraph(cardId);
+ * ```
+ *
+ * @see {@link CardFilters} for available query filters
+ */
+
 export class CardClient extends BaseClientModuleImpl {
   /**
    * Get cards from a board with optional filters
@@ -169,12 +231,7 @@ export class CardClient extends BaseClientModuleImpl {
         // Merge current linked_cards with update data
         updateData.linked_cards = currentCard.linked_cards;
 
-        // Log preservation for debugging
-        if (currentCard.linked_cards && currentCard.linked_cards.length > 0) {
-          console.debug(
-            `[card-client] Preserving ${currentCard.linked_cards.length} linked_cards for card ${cardId}`
-          );
-        }
+        // Preserve linked_cards during updates
       } catch (error) {
         // If getCard fails, log warning but proceed with update
         // This allows update to succeed even if fetch fails (transient error)
@@ -217,18 +274,8 @@ export class CardClient extends BaseClientModuleImpl {
     try {
       const currentCard = await this.getCard(cardId);
       linkedCards = currentCard.linked_cards;
-
-      // Log cross-workflow moves (higher risk)
-      if (linkedCards && linkedCards.length > 0) {
-        console.debug(
-          `[card-client] Preserving ${linkedCards.length} linked_cards during move of card ${cardId} to column ${columnId}`
-        );
-      }
     } catch (error) {
-      console.warn(
-        `[card-client] Failed to fetch card ${cardId} for linked_cards preservation during move:`,
-        error instanceof Error ? error.message : 'Unknown error'
-      );
+      // Failed to fetch card for preservation - proceed with move anyway
     }
 
     const response = await this.http.patch<ApiResponse<Card>>(`/cards/${cardId}`, {
@@ -277,9 +324,16 @@ export class CardClient extends BaseClientModuleImpl {
   /**
    * Update a card comment
    */
-  async updateCardComment(cardId: number, commentId: number, params: UpdateCommentParams): Promise<Comment> {
+  async updateCardComment(
+    cardId: number,
+    commentId: number,
+    params: UpdateCommentParams
+  ): Promise<Comment> {
     this.checkReadOnlyMode('update card comment');
-    const response = await this.http.patch<CommentResponse>(`/cards/${cardId}/comments/${commentId}`, params);
+    const response = await this.http.patch<CommentResponse>(
+      `/cards/${cardId}/comments/${commentId}`,
+      params
+    );
     return response.data.data;
   }
 
@@ -368,9 +422,16 @@ export class CardClient extends BaseClientModuleImpl {
   /**
    * Update a card subtask
    */
-  async updateCardSubtask(cardId: number, subtaskId: number, params: UpdateSubtaskParams): Promise<Subtask> {
+  async updateCardSubtask(
+    cardId: number,
+    subtaskId: number,
+    params: UpdateSubtaskParams
+  ): Promise<Subtask> {
     this.checkReadOnlyMode('update card subtask');
-    const response = await this.http.patch<SubtaskResponse>(`/cards/${cardId}/subtasks/${subtaskId}`, params);
+    const response = await this.http.patch<SubtaskResponse>(
+      `/cards/${cardId}/subtasks/${subtaskId}`,
+      params
+    );
     return response.data.data;
   }
 

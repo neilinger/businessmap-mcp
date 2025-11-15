@@ -262,15 +262,11 @@ export class BusinessMapClientFactory {
         }`;
 
         if (this.options.throwOnInitError) {
-          throw new InstanceConfigError(
-            message,
-            'CLIENT_INIT_ERROR',
-            {
-              instanceName: resolution.instance.name,
-              apiUrl: resolution.instance.apiUrl,
-              originalError: error,
-            }
-          );
+          throw new InstanceConfigError(message, 'CLIENT_INIT_ERROR', {
+            instanceName: resolution.instance.name,
+            apiUrl: resolution.instance.apiUrl,
+            originalError: error,
+          });
         }
 
         // Log error but don't throw

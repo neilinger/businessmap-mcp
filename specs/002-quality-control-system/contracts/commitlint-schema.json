@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "commitlint Configuration",
+  "description": "Schema for .commitlintrc.json",
+  "type": "object",
+  "required": ["extends"],
+  "properties": {
+    "extends": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Base configurations to extend"
+    },
+    "rules": {
+      "type": "object",
+      "properties": {
+        "type-enum": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            { "type": "integer", "enum": [0, 1, 2] },
+            { "type": "string", "enum": ["always", "never"] },
+            {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          ],
+          "description": "Allowed commit types [level, condition, types]"
+        },
+        "subject-case": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            { "type": "integer", "enum": [0, 1, 2] },
+            { "type": "string", "enum": ["always", "never"] },
+            {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          ],
+          "description": "Subject case rules [level, condition, cases]"
+        },
+        "header-max-length": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            { "type": "integer", "enum": [0, 1, 2] },
+            { "type": "string", "enum": ["always", "never"] },
+            { "type": "integer", "minimum": 1 }
+          ],
+          "description": "Max header length [level, condition, length]"
+        }
+      },
+      "description": "Custom commitlint rules"
+    }
+  }
+}

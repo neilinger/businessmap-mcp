@@ -148,6 +148,233 @@ For other MCP clients, use the appropriate configuration format for your client,
    npm start
    ```
 
+## Quality Control System
+
+This project implements a **five-layer defense-in-depth quality control architecture** designed to ensure code quality, prevent regressions, and maintain security throughout the development lifecycle.
+
+### Five-Layer Architecture
+
+The quality control system operates as a cascading defense mechanism, where each layer provides increasingly thorough validation:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Layer 1: Branch Protection                                      │
+│ ├─ Blocks direct commits to main branch                        │
+│ └─ Requires all checks to pass before merge                    │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ Layer 2: Pre-commit Hooks (< 2s)                               │
+│ ├─ ESLint: Code quality and style enforcement                  │
+│ ├─ Prettier: Automatic code formatting                         │
+│ └─ TypeScript: Type checking and compilation                   │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ Layer 3: Commit Message Validation                             │
+│ ├─ Conventional Commits: Semantic versioning support           │
+│ └─ Commitlint: Message format enforcement                      │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ Layer 4: Pre-push Hooks (30-90s)                               │
+│ ├─ Unit Tests: Fast component validation                       │
+│ └─ Integration Tests (REAL mode): Live API validation          │
+│    └─ Requires BUSINESSMAP_API_TOKEN credentials               │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│ Layer 5: CI Enforcement                                         │
+│ ├─ Hook Bypass Detection: Catches --no-verify attempts         │
+│ ├─ Pre-commit Validation: Re-runs Layer 2 checks               │
+│ └─ Integration Tests (MOCK mode): Schema validation            │
+│    └─ No credentials required                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Layer Details
+
+#### Layer 1: Branch Protection
+**Purpose**: Prevent unauthorized direct commits to protected branches
+
+- Blocks direct pushes to `main` branch
+- Requires status checks to pass before merge:
+  - `CI / Build and Test` - Core compilation and unit tests
+  - `CI / Pre-commit Validation` - Detects pre-commit hook bypasses
+  - `CI / Integration Tests (Mock)` - Detects pre-push hook bypasses
+- Enforced by GitHub branch protection rules
+- **Maintenance**: Run `bash scripts/setup-branch-protection.sh` periodically to verify configuration
+
+#### Layer 2: Pre-commit Hooks (< 2s)
+**Purpose**: Fast feedback on code quality before commit creation
+
+Implemented via Husky + lint-staged:
+- **ESLint**: Enforces code quality rules and catches common errors
+- **Prettier**: Automatically formats code to project standards
+- **TypeScript**: Validates types and catches compilation errors
+
+Performance target: Complete in under 2 seconds for rapid iteration.
+
+#### Layer 3: Commit Message Validation
+**Purpose**: Ensure consistent commit messages for semantic versioning
+
+- **Commitlint**: Enforces Conventional Commits format (`feat:`, `fix:`, `docs:`, etc.)
+- **Semantic Release**: Automatically determines version bumps from commit messages
+- **Format**: `type(scope): description`
+  - `feat`: New features (minor version bump)
+  - `fix`: Bug fixes (patch version bump)
+  - `BREAKING CHANGE`: Breaking changes (major version bump)
+
+#### Layer 4: Pre-push Hooks (30-90s)
+**Purpose**: Thorough validation before code reaches remote repository
+
+- **Unit Tests**: Fast component-level validation
+- **Integration Tests (REAL mode)**: Live API validation with actual BusinessMap credentials
+  - Requires `BUSINESSMAP_API_TOKEN` environment variable
+  - Tests full CRUD workflows against real API
+  - Performance: 30-90 seconds for comprehensive validation
+
+#### Layer 5: CI Enforcement
+**Purpose**: Detect hook bypasses and provide final validation gate
+
+Catches developers who use `git commit --no-verify` or `git push --no-verify`:
+
+| Bypass Attempt | Caught By | CI Job |
+|---------------|-----------|---------|
+| `git commit --no-verify` | Pre-commit Validation | `CI / Pre-commit Validation` |
+| `git push --no-verify` | Integration Tests (Mock) | `CI / Integration Tests (Mock)` |
+
+**CI runs in MOCK mode** (no credentials required):
+- Schema and structure validation only
+- No actual API calls to BusinessMap
+- Fast execution (< 1 minute)
+- Prevents credential exposure in CI environment
+
+### Hook Bypass Detection (T059)
+
+The system detects and blocks two common bypass attempts:
+
+**1. Pre-commit Hook Bypass**
+```bash
+git commit --no-verify  # Skips Layer 2 + Layer 3
+```
+**Detection**: `CI / Pre-commit Validation` job re-runs ESLint, Prettier, TypeScript, and Commitlint
+**Outcome**: PR merge blocked if violations found
+
+**2. Pre-push Hook Bypass**
+```bash
+git push --no-verify  # Skips Layer 4
+```
+**Detection**: `CI / Integration Tests (Mock)` job runs schema validation
+**Outcome**: PR merge blocked if integration test structure invalid
+
+### Dual-Mode Testing (T060)
+
+Integration tests support two operational modes:
+
+| Mode | Environment | Credentials | API Calls | Performance | Use Case |
+|------|-------------|-------------|-----------|-------------|----------|
+| **REAL** | Local (pre-push) | Required (`BUSINESSMAP_API_TOKEN`) | Live API validation | 30-90s | Developer validation before push |
+| **MOCK** | CI (GitHub Actions) | Not required | Schema/structure only | < 1min | Hook bypass detection |
+
+**Security**: Production credentials never exposed in CI environment. MOCK mode provides structural validation without requiring sensitive tokens.
+
+**Configuration**:
+```bash
+# Local .env (REAL mode)
+BUSINESSMAP_API_TOKEN=your_token_here
+BUSINESSMAP_API_URL=https://your-account.kanbanize.com/api/v2
+
+# CI environment (MOCK mode)
+# No credentials configured - tests run in mock mode automatically
+```
+
+### Setup and Maintenance
+
+#### Initial Setup
+The quality control system is automatically configured during project setup:
+
+```bash
+npm install  # Installs Husky, commitlint, lint-staged
+```
+
+Husky git hooks are installed automatically via the `prepare` script.
+
+#### Branch Protection Setup
+Configure GitHub branch protection rules:
+
+```bash
+bash scripts/setup-branch-protection.sh
+```
+
+This script requires a GitHub personal access token with `repo` scope. Follow the interactive prompts to configure branch protection.
+
+#### Periodic Maintenance
+
+**Branch Protection Verification** (Monthly):
+```bash
+bash scripts/setup-branch-protection.sh
+```
+Verifies that branch protection rules remain correctly configured.
+
+**NPM Token Rotation** (Every 90 days):
+1. Generate new NPM automation token
+2. Update `NPM_TOKEN` secret in GitHub repository settings
+3. See [docs/ONBOARDING.md](docs/ONBOARDING.md) for detailed instructions
+
+### Workflow Example
+
+```bash
+# 1. Developer makes changes
+git add src/index.ts
+
+# 2. Attempts to commit
+git commit -m "feat: add new feature"
+# → Layer 2: Pre-commit hooks run (ESLint, Prettier, TypeScript)
+# → Layer 3: Commitlint validates message format
+# ✓ Commit created if all checks pass
+
+# 3. Attempts to push
+git push origin feature-branch
+# → Layer 4: Pre-push hooks run (tests + integration tests with REAL API)
+# ✓ Push succeeds if all tests pass
+
+# 4. Creates pull request
+# → Layer 1: Branch protection requires status checks
+# → Layer 5: CI runs all validations (including bypass detection)
+# ✓ PR can be merged if all CI checks pass
+```
+
+### Troubleshooting
+
+**Pre-commit hooks not running?**
+```bash
+npm run prepare  # Reinstall Husky hooks
+```
+
+**Integration tests failing locally?**
+```bash
+# Verify credentials are configured
+echo $BUSINESSMAP_API_TOKEN
+# Should output your API token
+
+# Run tests manually to see detailed output
+npm run test:integration
+```
+
+**CI integration tests failing?**
+- CI runs in MOCK mode - verify test structure is valid
+- Check that schema validation logic is correct
+- MOCK mode failures indicate structural issues, not credential problems
+
+### Documentation
+
+For comprehensive implementation details, see:
+- **[docs/ONBOARDING.md](docs/ONBOARDING.md)**: Complete setup guide and maintenance procedures
+- **[docs/specs/T058-T060-five-layer-quality-control.md](docs/specs/T058-T060-five-layer-quality-control.md)**: Technical specification
+- **[.husky/](.husky/)**: Git hook implementations
+- **[scripts/hooks/](scripts/hooks/)**: Hook execution scripts
+
 ## Claude Code Skills
 
 For Claude Code users, this project includes specialized skills for interactive API guidance and best practices.

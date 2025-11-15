@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "defaultInstance": "prod",
+  "instances": [
+    {
+      "name": "prod",
+      "apiUrl": "https://test.businessmap.io/api/v2",
+      "apiTokenEnvVar": "PROD_TOKEN",
+      "description": "Invalid schema - uses apiTokenEnvVar instead of apiTokenEnv"
+    }
+  ]
+}

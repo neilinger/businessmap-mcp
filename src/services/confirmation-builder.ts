@@ -69,7 +69,8 @@ export class ConfirmationBuilder {
     // Resources without dependencies
     const withoutDepsCount = analysis.resourcesWithoutDeps.length;
     if (withoutDepsCount > 0) {
-      const resourceType = analysis.resourcesWithDeps[0]?.type || analysis.resourcesWithoutDeps[0]?.type || 'resource';
+      const resourceType =
+        analysis.resourcesWithDeps[0]?.type || analysis.resourcesWithoutDeps[0]?.type || 'resource';
       const dependencyType = resourceType === 'workspace' ? 'boards' : 'dependencies';
       parts.push(
         `\nAdditionally, ${withoutDepsCount} ${resourceType}${withoutDepsCount > 1 ? 's' : ''} with no ${dependencyType} will be deleted automatically:`
@@ -97,11 +98,8 @@ export class ConfirmationBuilder {
     const parts: string[] = [];
 
     // Resource header
-    const resourceType =
-      resource.type.charAt(0).toUpperCase() + resource.type.slice(1);
-    parts.push(
-      `\n${resourceType} "${resource.name}" (ID: ${resource.id})`
-    );
+    const resourceType = resource.type.charAt(0).toUpperCase() + resource.type.slice(1);
+    parts.push(`\n${resourceType} "${resource.name}" (ID: ${resource.id})`);
 
     // Dependents
     if (resource.dependents.length > 0) {
@@ -138,7 +136,9 @@ export class ConfirmationBuilder {
         `  ${connector} ${dep.count} child card${dep.count > 1 ? 's' : ''} will have parent link removed:`
       );
       dep.items.forEach((item) => {
-        parts.push(`     • "${item.name}" (ID: ${item.id}) → ${item.additionalInfo || 'remains as independent card'}`);
+        parts.push(
+          `     • "${item.name}" (ID: ${item.id}) → ${item.additionalInfo || 'remains as independent card'}`
+        );
       });
     }
 

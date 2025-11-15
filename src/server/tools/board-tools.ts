@@ -13,18 +13,24 @@ import {
   searchBoardSchema,
   updateBoardSchema,
 } from '../../schemas/index.js';
-import {
-  bulkDeleteBoardsSchema,
-  bulkUpdateBoardsSchema,
-} from '../../schemas/bulk-schemas.js';
+import { bulkDeleteBoardsSchema, bulkUpdateBoardsSchema } from '../../schemas/bulk-schemas.js';
 import { DependencyAnalyzer } from '../../services/dependency-analyzer.js';
 import { ConfirmationBuilder } from '../../services/confirmation-builder.js';
-import { BaseToolHandler, createErrorResponse, createSuccessResponse, getClientForInstance } from './base-tool.js';
+import {
+  BaseToolHandler,
+  createErrorResponse,
+  createSuccessResponse,
+  getClientForInstance,
+} from './base-tool.js';
 
 const logger = createLoggerSync({ level: 'info' });
 
 export class BoardToolHandler implements BaseToolHandler {
-  registerTools(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory, readOnlyMode: boolean): void {
+  registerTools(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
+    readOnlyMode: boolean
+  ): void {
     this.registerListBoards(server, clientOrFactory);
     this.registerSearchBoard(server, clientOrFactory);
     this.registerGetColumns(server, clientOrFactory);
@@ -42,7 +48,10 @@ export class BoardToolHandler implements BaseToolHandler {
     }
   }
 
-  private registerListBoards(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerListBoards(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'list_boards',
       {
@@ -63,7 +72,10 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerSearchBoard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerSearchBoard(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'search_board',
       {
@@ -101,7 +113,7 @@ export class BoardToolHandler implements BaseToolHandler {
     } catch (directError) {
       logger.warn('Direct board lookup failed', {
         boardId,
-        error: directError instanceof Error ? directError.message : 'Unknown error'
+        error: directError instanceof Error ? directError.message : 'Unknown error',
       });
       return await this.searchBoardByIdFallback(client, boardId, workspaceId);
     }
@@ -176,7 +188,7 @@ export class BoardToolHandler implements BaseToolHandler {
     } catch (structureError) {
       logger.warn('Structure lookup failed', {
         boardId: board.board_id,
-        error: structureError instanceof Error ? structureError.message : 'Unknown error'
+        error: structureError instanceof Error ? structureError.message : 'Unknown error',
       });
       return createSuccessResponse(
         board,
@@ -193,7 +205,10 @@ export class BoardToolHandler implements BaseToolHandler {
     }));
   }
 
-  private registerGetColumns(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetColumns(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'get_columns',
       {
@@ -201,7 +216,7 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Get board columns',
         inputSchema: getBoardSchema.shape,
       },
-      async ({ board_id , instance }: any) => {
+      async ({ board_id, instance }: any) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const columns = await client.getColumns(board_id);
@@ -213,7 +228,10 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetLanes(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetLanes(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'get_lanes',
       {
@@ -221,7 +239,7 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Get board lanes',
         inputSchema: getBoardSchema.shape,
       },
-      async ({ board_id , instance }: any) => {
+      async ({ board_id, instance }: any) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const lanes = await client.getLanes(board_id);
@@ -233,7 +251,10 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetLane(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetLane(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'get_lane',
       {
@@ -241,7 +262,7 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Get lane details',
         inputSchema: getLaneSchema.shape,
       },
-      async ({ lane_id , instance }: any) => {
+      async ({ lane_id, instance }: any) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const lane = await client.getLane(lane_id);
@@ -253,7 +274,10 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerCreateBoard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerCreateBoard(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'create_board',
       {
@@ -261,7 +285,7 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Create board',
         inputSchema: createBoardSchema.shape,
       },
-      async ({ name, workspace_id, description , instance }: any) => {
+      async ({ name, workspace_id, description, instance }: any) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const board = await client.createBoard({
@@ -277,7 +301,10 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerCreateLane(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerCreateLane(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'create_lane',
       {
@@ -285,7 +312,7 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Create lane',
         inputSchema: createLaneSchema.shape,
       },
-      async ({ workflow_id, name, description, color, position , instance }: any) => {
+      async ({ workflow_id, name, description, color, position, instance }: any) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const lane = await client.createLane({
@@ -303,8 +330,10 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-
-  private registerUpdateBoard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerUpdateBoard(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'update_board',
       {
@@ -312,7 +341,7 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Update board',
         inputSchema: updateBoardSchema.shape,
       },
-      async ({ board_id, name, description , instance }: any) => {
+      async ({ board_id, name, description, instance }: any) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const board = await client.updateBoard(board_id, { name, description });
@@ -324,7 +353,10 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerDeleteBoard(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerDeleteBoard(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'delete_board',
       {
@@ -332,7 +364,7 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Delete board',
         inputSchema: deleteBoardSchema.shape,
       },
-      async ({ board_id, archive_first , instance }: any) => {
+      async ({ board_id, archive_first, instance }: any) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           await client.deleteBoard(board_id, { archive_first });
@@ -344,7 +376,10 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCurrentBoardStructure(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCurrentBoardStructure(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'get_current_board_structure',
       {
@@ -352,7 +387,7 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Get board structure',
         inputSchema: getCurrentBoardStructureSchema.shape,
       },
-      async ({ board_id , instance }: any) => {
+      async ({ board_id, instance }: any) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const structure = await client.getCurrentBoardStructure(board_id);
@@ -364,7 +399,10 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerBulkDeleteBoards(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerBulkDeleteBoards(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'bulk_delete_boards',
       {
@@ -372,7 +410,7 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Delete multiple boards',
         inputSchema: bulkDeleteBoardsSchema.shape,
       },
-      async ({ resource_ids, analyze_dependencies = true , instance }: any) => {
+      async ({ resource_ids, analyze_dependencies = true, instance }: any) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const analyzer = new DependencyAnalyzer(client);
@@ -417,14 +455,22 @@ export class BoardToolHandler implements BaseToolHandler {
               })
             );
 
-            const message = confirmationBuilder.formatSimpleSuccess('board', successes.length, boards);
+            const message = confirmationBuilder.formatSimpleSuccess(
+              'board',
+              successes.length,
+              boards
+            );
             return createSuccessResponse({ deleted: successes.length, results }, message);
           } else if (successes.length > 0) {
             // Partial success
             const message = confirmationBuilder.formatPartialSuccess(
               'board',
               successes.map((s) => ({ id: s.id, name: `Board ${s.id}` })),
-              failures.map((f) => ({ id: f.id, name: `Board ${f.id}`, error: f.error || 'Unknown error' }))
+              failures.map((f) => ({
+                id: f.id,
+                name: `Board ${f.id}`,
+                error: f.error || 'Unknown error',
+              }))
             );
             return createSuccessResponse(
               { successful: successes.length, failed: failures.length, results },
@@ -444,7 +490,10 @@ export class BoardToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerBulkUpdateBoards(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerBulkUpdateBoards(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'bulk_update_boards',
       {
@@ -476,7 +525,11 @@ export class BoardToolHandler implements BaseToolHandler {
             const message = confirmationBuilder.formatPartialSuccess(
               'board',
               successes.map((s: any) => ({ id: s.id, name: s.board?.name || `Board ${s.id}` })),
-              failures.map((f: any) => ({ id: f.id, name: `Board ${f.id}`, error: f.error || 'Unknown error' }))
+              failures.map((f: any) => ({
+                id: f.id,
+                name: `Board ${f.id}`,
+                error: f.error || 'Unknown error',
+              }))
             );
             return createSuccessResponse(
               { successful: successes.length, failed: failures.length, results },

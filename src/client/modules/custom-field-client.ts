@@ -1,6 +1,40 @@
 import { ApiResponse, CustomField } from '../../types/index.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
+/**
+ * Custom Field Management Client
+ *
+ * Handles custom field definitions for boards. Custom fields allow
+ * extending card data with additional typed fields (text, number, date,
+ * dropdown, checkbox, user references, and card references).
+ *
+ * Features:
+ * - List all custom fields or filter by board
+ * - Create custom fields with validation rules
+ * - Update field definitions and options
+ * - Delete custom fields
+ * - Support for multiple field types with type-specific validation
+ *
+ * @example
+ * ```typescript
+ * // Create a dropdown custom field
+ * const field = await customFieldClient.createCustomField({
+ *   board_id: boardId,
+ *   name: 'Priority',
+ *   field_type: 'dropdown',
+ *   options: [
+ *     { value: 'High', color: '#FF0000' },
+ *     { value: 'Medium', color: '#FFA500' },
+ *     { value: 'Low', color: '#00FF00' },
+ *   ],
+ *   is_required: true,
+ * });
+ *
+ * // List all custom fields for a board
+ * const boardFields = await customFieldClient.listBoardCustomFields(boardId);
+ * ```
+ */
+
 export class CustomFieldClient extends BaseClientModuleImpl {
   /**
    * List all custom field definitions
@@ -102,11 +136,11 @@ export class CustomFieldClient extends BaseClientModuleImpl {
       `/custom_fields/${customFieldId}`,
       params
     );
-    
+
     // Invalidate cache for this custom field and all board custom field lists
     this.cache.invalidate(`customField:${customFieldId}`);
     this.cache.invalidate(/^customFields:board:/);
-    
+
     return response.data.data;
   }
 
@@ -117,7 +151,7 @@ export class CustomFieldClient extends BaseClientModuleImpl {
     this.checkReadOnlyMode('delete custom field');
 
     await this.http.delete(`/custom_fields/${customFieldId}`);
-    
+
     // Invalidate cache for this custom field and all board custom field lists
     this.cache.invalidate(`customField:${customFieldId}`);
     this.cache.invalidate(/^customFields:board:/);

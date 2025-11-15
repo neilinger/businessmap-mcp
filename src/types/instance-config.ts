@@ -128,7 +128,7 @@ export enum InstanceResolutionStrategy {
    * Use the first available instance.
    * Useful for single-instance deployments.
    */
-  FIRST_AVAILABLE = 'first_available'
+  FIRST_AVAILABLE = 'first_available',
 }
 
 /**
@@ -205,11 +205,9 @@ export class InstanceConfigError extends Error {
  */
 export class InstanceNotFoundError extends InstanceConfigError {
   constructor(instanceName: string) {
-    super(
-      `Instance '${instanceName}' not found in configuration`,
-      'INSTANCE_NOT_FOUND',
-      { instanceName }
-    );
+    super(`Instance '${instanceName}' not found in configuration`, 'INSTANCE_NOT_FOUND', {
+      instanceName,
+    });
     this.name = 'InstanceNotFoundError';
     Object.setPrototypeOf(this, InstanceNotFoundError.prototype);
   }
@@ -247,7 +245,8 @@ export function isInstanceConfig(obj: unknown): obj is InstanceConfig {
     (config.readOnlyMode === undefined || typeof config.readOnlyMode === 'boolean') &&
     (config.defaultWorkspaceId === undefined || typeof config.defaultWorkspaceId === 'number') &&
     (config.description === undefined || typeof config.description === 'string') &&
-    (config.tags === undefined || (Array.isArray(config.tags) && config.tags.every((t) => typeof t === 'string')))
+    (config.tags === undefined ||
+      (Array.isArray(config.tags) && config.tags.every((t) => typeof t === 'string')))
   );
 }
 

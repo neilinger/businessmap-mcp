@@ -161,11 +161,11 @@ export class BusinessMapMcpServer {
       readOnlyMode: this.getReadOnlyMode(),
       ...(this.isMultiInstance &&
         this.clientOrFactory instanceof BusinessMapClientFactory && {
-        defaultInstance: this.clientOrFactory.getDefaultInstanceName(),
-        availableInstances: this.clientOrFactory.getAvailableInstances(),
-        cachedInstances: this.clientOrFactory.getCachedInstances(),
-        isLegacyMode: this.clientOrFactory.isLegacyMode(),
-      }),
+          defaultInstance: this.clientOrFactory.getDefaultInstanceName(),
+          availableInstances: this.clientOrFactory.getAvailableInstances(),
+          cachedInstances: this.clientOrFactory.getCachedInstances(),
+          isLegacyMode: this.clientOrFactory.isLegacyMode(),
+        }),
     };
   }
 }

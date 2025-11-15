@@ -42,27 +42,27 @@ const InstanceConfigSchema = z.object({
 /**
  * Zod schema for runtime validation of MultiInstanceConfig.
  */
-const MultiInstanceConfigSchema = z.object({
-  version: z.string().regex(/^\d+\.\d+$/, 'Version must be in major.minor format (e.g., 1.0)'),
-  defaultInstance: z.string().min(1, 'Default instance name cannot be empty'),
-  instances: z.array(InstanceConfigSchema).min(1, 'At least one instance must be configured'),
-}).refine(
-  (config) => config.instances.some((inst) => inst.name === config.defaultInstance),
-  {
+const MultiInstanceConfigSchema = z
+  .object({
+    version: z.string().regex(/^\d+\.\d+$/, 'Version must be in major.minor format (e.g., 1.0)'),
+    defaultInstance: z.string().min(1, 'Default instance name cannot be empty'),
+    instances: z.array(InstanceConfigSchema).min(1, 'At least one instance must be configured'),
+  })
+  .refine((config) => config.instances.some((inst) => inst.name === config.defaultInstance), {
     message: 'Default instance must exist in instances array',
     path: ['defaultInstance'],
-  }
-).refine(
-  (config) => {
-    const names = config.instances.map((inst) => inst.name);
-    const uniqueNames = new Set(names);
-    return names.length === uniqueNames.size;
-  },
-  {
-    message: 'Instance names must be unique',
-    path: ['instances'],
-  }
-);
+  })
+  .refine(
+    (config) => {
+      const names = config.instances.map((inst) => inst.name);
+      const uniqueNames = new Set(names);
+      return names.length === uniqueNames.size;
+    },
+    {
+      message: 'Instance names must be unique',
+      path: ['instances'],
+    }
+  );
 
 /**
  * Default configuration file paths (searched in order).
@@ -126,12 +126,7 @@ export class InstanceConfigManager {
    * @throws {InstanceConfigError} If configuration is invalid or cannot be loaded
    */
   public async loadConfig(options: LoadConfigOptions = {}): Promise<void> {
-    const {
-      configPath,
-      validate = true,
-      allowLegacyFallback = true,
-      strict = true,
-    } = options;
+    const { configPath, validate = true, allowLegacyFallback = true, strict = true } = options;
 
     try {
       // Try loading from explicit path first
@@ -191,11 +186,9 @@ export class InstanceConfigManager {
   private loadFromFile(path: string, validate: boolean): void {
     try {
       if (!existsSync(path)) {
-        throw new InstanceConfigError(
-          `Configuration file not found: ${path}`,
-          'FILE_NOT_FOUND',
-          { path }
-        );
+        throw new InstanceConfigError(`Configuration file not found: ${path}`, 'FILE_NOT_FOUND', {
+          path,
+        });
       }
 
       const content = readFileSync(path, 'utf-8');
@@ -204,11 +197,9 @@ export class InstanceConfigManager {
       if (validate) {
         this.validateConfig(parsed);
       } else if (!isMultiInstanceConfig(parsed)) {
-        throw new InstanceConfigError(
-          'Invalid configuration structure',
-          'INVALID_CONFIG',
-          { path }
-        );
+        throw new InstanceConfigError('Invalid configuration structure', 'INVALID_CONFIG', {
+          path,
+        });
       }
 
       this.config = parsed;
@@ -325,11 +316,9 @@ export class InstanceConfigManager {
           message: err.message,
         }));
 
-        throw new InstanceConfigError(
-          'Configuration validation failed',
-          'VALIDATION_ERROR',
-          { errors: formattedErrors }
-        );
+        throw new InstanceConfigError('Configuration validation failed', 'VALIDATION_ERROR', {
+          errors: formattedErrors,
+        });
       }
       throw error;
     }

@@ -1,4 +1,5 @@
 // Re-export all schemas for easy importing
+export * from './security-validation.js';
 export * from './board-schemas.js';
 export * from './card-schemas.js';
 export * from './common-schemas.js';

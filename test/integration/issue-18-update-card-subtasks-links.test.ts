@@ -40,8 +40,7 @@ describe('Issue #18: update_card with subtasks_to_add and links', () => {
       : Object.values(firstWorkflow?.columns || {});
     const columnId = columns[0]?.column_id;
     if (!columnId) {
-      console.log('DEBUG structure:', JSON.stringify(structure, null, 2));
-      throw new Error('No columns found');
+      throw new Error(`No columns found in board structure (workflows: ${Object.keys(structure.workflows || {}).length})`);
     }
 
     const parentCard = await client.createCard({

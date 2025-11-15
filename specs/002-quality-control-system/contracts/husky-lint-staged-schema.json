@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Husky + lint-staged Configuration",
+  "description": "Schema for package.json scripts and lint-staged config",
+  "type": "object",
+  "properties": {
+    "scripts": {
+      "type": "object",
+      "required": ["prepare"],
+      "properties": {
+        "prepare": {
+          "type": "string",
+          "const": "husky install",
+          "description": "Install Husky hooks on npm install"
+        }
+      }
+    },
+    "lint-staged": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Commands to run for matching files"
+            },
+            {
+              "type": "string",
+              "description": "Single command to run for matching files"
+            }
+          ]
+        }
+      },
+      "description": "File pattern to command mapping"
+    }
+  },
+  "examples": [
+    {
+      "scripts": {
+        "prepare": "husky install"
+      },
+      "lint-staged": {
+        "*.{ts,tsx}": [
+          "eslint --fix",
+          "prettier --write",
+          "bash -c 'tsc --noEmit'"
+        ],
+        "*.{json,md}": ["prettier --write"]
+      }
+    }
+  ]
+}

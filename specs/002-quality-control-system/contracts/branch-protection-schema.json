@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GitHub Branch Protection Configuration",
+  "description": "Schema for GitHub Branch Protection API payload",
+  "type": "object",
+  "required": [
+    "required_status_checks",
+    "enforce_admins",
+    "allow_force_pushes",
+    "allow_deletions"
+  ],
+  "properties": {
+    "required_status_checks": {
+      "type": "object",
+      "required": ["strict", "contexts"],
+      "properties": {
+        "strict": {
+          "type": "boolean",
+          "description": "Require branches to be up to date before merging"
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "List of required status check names (must match CI job names)"
+        }
+      }
+    },
+    "enforce_admins": {
+      "type": "boolean",
+      "description": "Apply branch protection rules to administrators (false for solo dev)"
+    },
+    "required_pull_request_reviews": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "properties": {
+            "required_approving_review_count": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      ],
+      "description": "PR approval requirements (null = self-merge allowed)"
+    },
+    "restrictions": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "object" }
+      ],
+      "description": "User/team merge restrictions (null = no restrictions)"
+    },
+    "allow_force_pushes": {
+      "type": "boolean",
+      "description": "Allow force pushes (false preserves history)"
+    },
+    "allow_deletions": {
+      "type": "boolean",
+      "description": "Allow branch deletion (false prevents accidents)"
+    }
+  }
+}

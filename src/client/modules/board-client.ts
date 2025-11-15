@@ -12,6 +12,13 @@ import {
 import { BULK_OPERATION_DEFAULTS } from '../constants.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
+/**
+ * Filters for querying boards.
+ *
+ * Supports filtering by workspace, archive status, assignment,
+ * and field selection with optional expansion of related data.
+ */
+
 export interface BoardFilters {
   // ID filters (arrays)
   board_ids?: number[];
@@ -32,6 +39,33 @@ export interface BoardFilters {
   // Legacy compatibility
   workspace_id?: number;
 }
+
+/**
+ * Board Management Client
+ *
+ * Handles all board-related operations including CRUD operations,
+ * structure management (columns, lanes), and bulk operations.
+ *
+ * Features:
+ * - Board lifecycle management (create, read, update, archive, delete)
+ * - Board structure queries (columns, lanes, workflows)
+ * - Bulk operations with configurable concurrency
+ * - Safe deletion with automatic archiving
+ * - Read-only mode enforcement
+ *
+ * @example
+ * ```typescript
+ * // Get all boards for a workspace
+ * const boards = await boardClient.getBoards({ workspace_ids: [1] });
+ *
+ * // Get board with structure details
+ * const board = await boardClient.getBoard(boardId);
+ * const structure = await boardClient.getBoardStructure(boardId);
+ *
+ * // Bulk delete boards (with automatic archiving)
+ * await boardClient.bulkDeleteBoards([1, 2, 3], { maxConcurrent: 5 });
+ * ```
+ */
 
 export class BoardClient extends BaseClientModuleImpl {
   /**

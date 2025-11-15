@@ -11,9 +11,7 @@ dotenv.config();
 // Get package version
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const packageJson = JSON.parse(
-  readFileSync(join(__dirname, '../../package.json'), 'utf-8')
-);
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8'));
 const PACKAGE_VERSION = packageJson.version;
 
 const logger = createLoggerSync({ level: 'info' });
@@ -71,8 +69,12 @@ export const config: EnvironmentConfig = {
   businessMap: {
     // In multi-instance mode, these are optional (will use instance-specific config)
     // In legacy mode, these are required
-    apiUrl: isMultiInstanceMode ? (process.env.BUSINESSMAP_API_URL || '') : getRequiredEnvVar('BUSINESSMAP_API_URL'),
-    apiToken: isMultiInstanceMode ? (process.env.BUSINESSMAP_API_TOKEN || '') : getRequiredEnvVar('BUSINESSMAP_API_TOKEN'),
+    apiUrl: isMultiInstanceMode
+      ? process.env.BUSINESSMAP_API_URL || ''
+      : getRequiredEnvVar('BUSINESSMAP_API_URL'),
+    apiToken: isMultiInstanceMode
+      ? process.env.BUSINESSMAP_API_TOKEN || ''
+      : getRequiredEnvVar('BUSINESSMAP_API_TOKEN'),
     defaultWorkspaceId: getNumberEnvVar('BUSINESSMAP_DEFAULT_WORKSPACE_ID'),
     readOnlyMode: getBooleanEnvVar('BUSINESSMAP_READ_ONLY_MODE', false),
   },
@@ -117,6 +119,6 @@ export function validateConfig(): void {
     serverName: config.server.name,
     serverVersion: config.server.version,
     apiUrl: config.businessMap.apiUrl,
-    readOnlyMode: config.businessMap.readOnlyMode
+    readOnlyMode: config.businessMap.readOnlyMode,
   });
 }
