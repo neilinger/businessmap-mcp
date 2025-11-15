@@ -3,13 +3,27 @@
  *
  * Tests that legacy single-instance configuration continues to work without changes,
  * and that migration paths are smooth and safe.
+ *
+ * Note: These tests are skipped if a project config file exists, as they specifically
+ * test the legacy mode fallback path which requires no config file to be present.
  */
 
-import { BusinessMapClientFactory } from '../../src/client/client-factory';
-import { InstanceConfigManager } from '../../src/config/instance-manager';
-import { MultiInstanceConfig } from '../../src/types/instance-config';
+import { existsSync } from 'fs';
+import { join } from 'path';
+import { BusinessMapClientFactory } from '../../../src/client/client-factory.js';
+import { InstanceConfigManager } from '../../../src/config/instance-manager.js';
+import { MultiInstanceConfig } from '../../../src/types/instance-config.js';
 
-describe('Backward Compatibility Integration Tests', () => {
+// Check if project config file exists (tests assume no config file)
+const CONFIG_FILE_EXISTS = existsSync(join(process.cwd(), '.businessmap-instances.json'));
+const SKIP_LEGACY_TESTS = CONFIG_FILE_EXISTS;
+if (SKIP_LEGACY_TESTS) {
+  console.warn(
+    '⚠️  Skipping backward-compatibility tests - .businessmap-instances.json config file found (legacy tests require no config file)'
+  );
+}
+
+(SKIP_LEGACY_TESTS ? describe.skip : describe)('Backward Compatibility Integration Tests', () => {
   let factory: BusinessMapClientFactory;
   let configManager: InstanceConfigManager;
   let originalEnv: NodeJS.ProcessEnv;

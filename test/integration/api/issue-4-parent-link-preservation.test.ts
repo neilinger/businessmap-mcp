@@ -19,23 +19,28 @@
  * npm test -- issue-4-parent-link-preservation
  */
 
-import { BusinessMapClient } from '../../src/client/businessmap-client';
-import { LinkedCard } from '../../src/types/index.js';
+import { jest } from '@jest/globals';
+import { BusinessMapClient } from '../../../src/client/businessmap-client.js';
+import { LinkedCard } from '../../../src/types/index.js';
 
 // Test configuration
 const API_URL = process.env.BUSINESSMAP_API_URL || 'https://demo.kanbanize.com/api/v2';
 const API_TOKEN = process.env.BUSINESSMAP_API_TOKEN;
 
-if (!API_TOKEN) {
-  throw new Error('BUSINESSMAP_API_TOKEN environment variable is required');
+// Skip tests if API token not available (environment-dependent integration test)
+const SKIP_TESTS = !API_TOKEN;
+if (SKIP_TESTS) {
+  console.warn('⚠️  Skipping Issue #4 tests - BUSINESSMAP_API_TOKEN not set');
 }
 
-// Create BusinessMap client
-const client = new BusinessMapClient({
-  apiUrl: API_URL,
-  apiToken: API_TOKEN,
-  readOnlyMode: false,
-});
+// Create BusinessMap client (only if token available)
+const client = API_TOKEN
+  ? new BusinessMapClient({
+      apiUrl: API_URL,
+      apiToken: API_TOKEN,
+      readOnlyMode: false,
+    })
+  : (null as any);
 
 // Test resources tracking
 interface TestResource {
@@ -97,7 +102,7 @@ let testColumn1Id: number;
 let testColumn2Id: number;
 let testWorkflow2Id: number;
 
-describe('Issue #4: Parent Link Preservation', () => {
+(SKIP_TESTS ? describe.skip : describe)('Issue #4: Parent Link Preservation', () => {
   jest.setTimeout(60000); // 60s timeout for integration tests
 
   beforeAll(async () => {
@@ -130,7 +135,6 @@ describe('Issue #4: Parent Link Preservation', () => {
 
     // Get first workflow and its columns
     const workflow1 = workflows[0];
-    testWorkflow1Id = workflow1.workflow_id;
     const workflow1Columns = workflow1.columns || [];
 
     if (workflow1Columns.length < 2) {
@@ -155,18 +159,19 @@ describe('Issue #4: Parent Link Preservation', () => {
       const moveOps = performanceMetrics.filter((m) => m.operation.includes('move'));
 
       if (updateOps.length > 0) {
-        updateOps.reduce((sum, m) => sum + m.duration, 0) / updateOps.length;
-        Math.max(...updateOps.map((m) => m.duration));
+        updateOps.reduce((sum: number, m: PerformanceMetric) => sum + m.duration, 0) /
+          updateOps.length;
+        Math.max(...updateOps.map((m: PerformanceMetric) => m.duration));
       }
 
       if (moveOps.length > 0) {
-        moveOps.reduce((sum, m) => sum + m.duration, 0) / moveOps.length;
-        Math.max(...moveOps.map((m) => m.duration));
+        moveOps.reduce((sum: number, m: PerformanceMetric) => sum + m.duration, 0) / moveOps.length;
+        Math.max(...moveOps.map((m: PerformanceMetric) => m.duration));
       }
 
       // Check performance targets
-      const allDurations = performanceMetrics.map((m) => m.duration);
-      Math.max(...allDurations);
+      const allDurations = performanceMetrics.map((m: PerformanceMetric) => m.duration);
+      const maxDuration = Math.max(...allDurations);
       const performanceTarget = 500; // 500ms per operation target
 
       if (maxDuration > performanceTarget) {
@@ -336,20 +341,20 @@ describe('Issue #4: Parent Link Preservation', () => {
       // Verify parent's perspective
       const parentChildren = await client.getCardChildren(parentCardId);
 
-      const childFound = parentChildren.some((child) => child.card_id === childCardId);
+      const childFound = parentChildren.some((child: any) => child.card_id === childCardId);
       expect(childFound).toBe(true);
 
       // Verify child's perspective
       const childParents = await client.getCardParents(childCardId);
 
-      const parentFound = childParents.some((parent) => parent.card_id === parentCardId);
+      const parentFound = childParents.some((parent: any) => parent.card_id === parentCardId);
       expect(parentFound).toBe(true);
 
       // Verify linked_cards matches
       const childCard = await client.getCard(childCardId);
       const linkedCards = childCard.linked_cards || [];
 
-      const parentInLinkedCards = linkedCards.some((link) => link.card_id === parentCardId);
+      const parentInLinkedCards = linkedCards.some((link: any) => link.card_id === parentCardId);
       expect(parentInLinkedCards).toBe(true);
     });
 
@@ -387,7 +392,7 @@ describe('Issue #4: Parent Link Preservation', () => {
       trackPerformance('bulkUpdateCards_preserve_links', duration, childIds[0], childIds.length);
 
       // Verify all succeeded
-      const successCount = results.filter((r) => r.success).length;
+      const successCount = results.filter((r: any) => r.success).length;
       expect(successCount).toBe(childIds.length);
 
       // Verify all parent links preserved
@@ -538,6 +543,7 @@ describe('Issue #4: Parent Link Preservation', () => {
       }
 
       // Performance threshold: 500ms per operation (GET + PATCH combined)
+      const maxDuration = Math.max(...durations);
       expect(maxDuration).toBeLessThan(500);
     });
   });

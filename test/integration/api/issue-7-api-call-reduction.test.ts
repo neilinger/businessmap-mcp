@@ -14,12 +14,12 @@
 // Import jest globals explicitly for ESM compatibility
 import { jest } from '@jest/globals';
 
-import { DependencyAnalyzer } from '../../src/services/dependency-analyzer';
-import { ConfirmationBuilder } from '../../src/services/confirmation-builder';
-import { BusinessMapClient } from '../../src/client/businessmap-client';
+import { DependencyAnalyzer } from '../../../src/services/dependency-analyzer.js';
+import { ConfirmationBuilder } from '../../../src/services/confirmation-builder.js';
+import { BusinessMapClient } from '../../../src/client/businessmap-client.js';
 
 // Mock the BusinessMapClient
-jest.mock('../../src/client/businessmap-client');
+jest.mock('../../../src/client/businessmap-client.js');
 
 describe('Issue #7: API Call Reduction Integration Test', () => {
   let mockClient: jest.Mocked<BusinessMapClient>;

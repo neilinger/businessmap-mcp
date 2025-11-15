@@ -8,7 +8,11 @@
  * - MOCK mode: Basic module load check (no server initialization)
  */
 
-import { TEST_MODE } from './setup';
+import { TEST_MODE } from './setup.js';
+import { BusinessMapMcpServer } from '../../../src/server/mcp-server.js';
+import { BusinessMapClientFactory } from '../../../src/client/client-factory.js';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 describe('Server Initialization', () => {
   if (TEST_MODE === 'real') {
@@ -17,7 +21,7 @@ describe('Server Initialization', () => {
 
       beforeAll(async () => {
         // Import the actual server module (this will catch import errors)
-        serverModule = await import('../../src/index');
+        serverModule = await import('../../../src/index.js');
       });
 
       it('should successfully import the server module without errors', () => {
@@ -25,19 +29,16 @@ describe('Server Initialization', () => {
       });
 
       it('should have BusinessMapMcpServer class available', async () => {
-        const { BusinessMapMcpServer } = await import('../../src/server/mcp-server');
         expect(BusinessMapMcpServer).toBeDefined();
         expect(typeof BusinessMapMcpServer).toBe('function');
       });
 
       it('should successfully create MCP server instance', async () => {
-        const { BusinessMapMcpServer } = await import('../../src/server/mcp-server');
         const server = new BusinessMapMcpServer();
         expect(server).toBeDefined();
       });
 
       it('should initialize server with expected configuration', async () => {
-        const { BusinessMapMcpServer } = await import('../../src/server/mcp-server');
         const server = new BusinessMapMcpServer();
 
         // Initialize the server
@@ -53,20 +54,20 @@ describe('Server Initialization', () => {
 
       it('should successfully import all critical dependencies', async () => {
         // Test MCP SDK imports
-        const mcpServer = await import('@modelcontextprotocol/sdk/server/mcp');
+        const mcpServer = await import('@modelcontextprotocol/sdk/server/mcp.js');
         expect(mcpServer.McpServer).toBeDefined();
 
         // Test configuration imports
-        const configModule = await import('../../src/config/environment');
+        const configModule = await import('../../../src/config/environment.js');
         expect(configModule.config).toBeDefined();
         expect(configModule.validateConfig).toBeDefined();
 
         // Test client imports
-        const clientModule = await import('../../src/client/businessmap-client');
+        const clientModule = await import('../../../src/client/businessmap-client.js');
         expect(clientModule.BusinessMapClient).toBeDefined();
 
         // Test client factory imports
-        const factoryModule = await import('../../src/client/client-factory');
+        const factoryModule = await import('../../../src/client/client-factory.js');
         expect(factoryModule.BusinessMapClientFactory).toBeDefined();
 
         // Test that LRUCache can be imported (historical bug: named vs default import)
@@ -77,7 +78,6 @@ describe('Server Initialization', () => {
       });
 
       it('should handle both multi-instance and legacy mode gracefully', async () => {
-        const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
         const factory = BusinessMapClientFactory.getInstance();
 
         // Factory should initialize in some mode
@@ -100,7 +100,7 @@ describe('Server Initialization', () => {
         let error: Error | null = null;
 
         try {
-          await import('../../src/index');
+          await import('../../../src/index.js');
         } catch (e) {
           error = e as Error;
         }
@@ -112,7 +112,6 @@ describe('Server Initialization', () => {
         let error: Error | null = null;
 
         try {
-          const { BusinessMapMcpServer } = await import('../../src/server/mcp-server');
           expect(BusinessMapMcpServer).toBeDefined();
         } catch (e) {
           error = e as Error;
@@ -125,10 +124,10 @@ describe('Server Initialization', () => {
         // Test that critical imports don't throw in mock mode
         const dependencies = [
           'lru-cache',
-          '@modelcontextprotocol/sdk/server/mcp',
-          '../../src/config/environment',
-          '../../src/client/businessmap-client',
-          '../../src/client/client-factory'
+          '@modelcontextprotocol/sdk/server/mcp.js',
+          '../../../src/config/environment.js',
+          '../../../src/client/businessmap-client.js',
+          '../../../src/client/client-factory.js',
         ];
 
         for (const dep of dependencies) {
@@ -154,12 +153,7 @@ describe('Server Initialization', () => {
   // Common tests that run in both modes
   describe('Common initialization checks', () => {
     it('should have valid package.json with version', async () => {
-      const { readFileSync } = await import('fs');
-      const { join } = await import('path');
-
-      const packageJson = JSON.parse(
-        readFileSync(join(process.cwd(), 'package.json'), 'utf-8')
-      );
+      const packageJson = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8'));
 
       expect(packageJson.name).toBe('@neilinger/businessmap-mcp');
       expect(packageJson.version).toBeDefined();
@@ -167,9 +161,6 @@ describe('Server Initialization', () => {
     });
 
     it('should have TypeScript configured correctly', async () => {
-      const { readFileSync, existsSync } = await import('fs');
-      const { join } = await import('path');
-
       const tsconfigPath = join(process.cwd(), 'tsconfig.json');
       expect(existsSync(tsconfigPath)).toBe(true);
 
@@ -180,7 +171,7 @@ describe('Server Initialization', () => {
     });
 
     it('should export expected module structure', async () => {
-      const indexModule = await import('../../src/index');
+      const indexModule = await import('../../../src/index.js');
 
       // In ESM, the module itself is exported as default or named exports
       // Verify the module loads without errors

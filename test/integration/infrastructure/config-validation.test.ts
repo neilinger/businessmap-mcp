@@ -13,12 +13,14 @@
  * - invalid-schema.json: Invalid schema (wrong field names)
  */
 
-import { TEST_MODE } from './setup';
-import { readFileSync } from 'fs';
+import { TEST_MODE } from './setup.js';
+import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { isMultiInstanceConfig, isInstanceConfig } from '../../../src/types/instance-config.js';
+import { BusinessMapClientFactory } from '../../../src/client/client-factory.js';
 
 // Fixture paths
-const FIXTURES_DIR = join(process.cwd(), 'tests', 'integration', 'fixtures');
+const FIXTURES_DIR = join(process.cwd(), 'test', 'integration', 'infrastructure', 'fixtures');
 const VALID_MULTI_INSTANCE = join(FIXTURES_DIR, 'valid-multi-instance.json');
 const VALID_SINGLE_INSTANCE = join(FIXTURES_DIR, 'valid-single-instance.json');
 const INVALID_SCHEMA = join(FIXTURES_DIR, 'invalid-schema.json');
@@ -29,8 +31,6 @@ describe('Configuration Validation', () => {
       it('should validate valid multi-instance configuration', async () => {
         const configJson = readFileSync(VALID_MULTI_INSTANCE, 'utf-8');
         const config = JSON.parse(configJson);
-
-        const { isMultiInstanceConfig } = await import('../../src/types/instance-config');
 
         // Type guard validation
         expect(isMultiInstanceConfig(config)).toBe(true);
@@ -56,8 +56,6 @@ describe('Configuration Validation', () => {
         const configJson = readFileSync(VALID_SINGLE_INSTANCE, 'utf-8');
         const config = JSON.parse(configJson);
 
-        const { isMultiInstanceConfig } = await import('../../src/types/instance-config');
-
         // Type guard validation
         expect(isMultiInstanceConfig(config)).toBe(true);
 
@@ -77,8 +75,6 @@ describe('Configuration Validation', () => {
         const configJson = readFileSync(INVALID_SCHEMA, 'utf-8');
         const config = JSON.parse(configJson);
 
-        const { isMultiInstanceConfig } = await import('../../src/types/instance-config');
-
         // Type guard should fail for invalid schema
         expect(isMultiInstanceConfig(config)).toBe(false);
 
@@ -89,14 +85,12 @@ describe('Configuration Validation', () => {
       });
 
       it('should validate InstanceConfig with type guard', async () => {
-        const { isInstanceConfig } = await import('../../src/types/instance-config');
-
         // Valid instance config
         const validInstance = {
           name: 'test',
           apiUrl: 'https://test.kanbanize.com/api/v2',
           apiTokenEnv: 'TEST_TOKEN',
-          description: 'Test instance'
+          description: 'Test instance',
         };
 
         expect(isInstanceConfig(validInstance)).toBe(true);
@@ -104,7 +98,7 @@ describe('Configuration Validation', () => {
         // Invalid instance config - missing required field
         const invalidInstance1 = {
           name: 'test',
-          apiUrl: 'https://test.kanbanize.com/api/v2'
+          apiUrl: 'https://test.kanbanize.com/api/v2',
           // Missing apiTokenEnv
         };
 
@@ -114,7 +108,7 @@ describe('Configuration Validation', () => {
         const invalidInstance2 = {
           name: 'test',
           apiUrl: 'https://test.kanbanize.com/api/v2',
-          apiTokenEnvVar: 'TEST_TOKEN' // Wrong field name
+          apiTokenEnvVar: 'TEST_TOKEN', // Wrong field name
         };
 
         expect(isInstanceConfig(invalidInstance2)).toBe(false);
@@ -123,7 +117,7 @@ describe('Configuration Validation', () => {
         const invalidInstance3 = {
           name: 'test',
           apiUrl: 'https://test.kanbanize.com/api/v2',
-          apiTokenEnv: 123 // Should be string
+          apiTokenEnv: 123, // Should be string
         };
 
         expect(isInstanceConfig(invalidInstance3)).toBe(false);
@@ -137,8 +131,6 @@ describe('Configuration Validation', () => {
           // Set multi-instance configuration via environment
           const configJson = readFileSync(VALID_MULTI_INSTANCE, 'utf-8');
           process.env.BUSINESSMAP_INSTANCES = configJson;
-
-          const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
 
           // Create a fresh factory instance
           const factory = BusinessMapClientFactory.getInstance();
@@ -169,12 +161,10 @@ describe('Configuration Validation', () => {
             {
               name: 'test',
               apiUrl: 'https://test.kanbanize.com/api/v2',
-              apiTokenEnv: 'TEST_TOKEN'
-            }
-          ]
+              apiTokenEnv: 'TEST_TOKEN',
+            },
+          ],
         };
-
-        const { isMultiInstanceConfig } = await import('../../src/types/instance-config');
 
         // Type guard checks structure but not version semantics
         expect(isMultiInstanceConfig(invalidConfig)).toBe(true);
@@ -184,8 +174,6 @@ describe('Configuration Validation', () => {
       });
 
       it('should validate optional fields correctly', async () => {
-        const { isInstanceConfig } = await import('../../src/types/instance-config');
-
         // Instance with optional fields
         const instanceWithOptionals = {
           name: 'test',
@@ -194,7 +182,7 @@ describe('Configuration Validation', () => {
           readOnlyMode: true,
           defaultWorkspaceId: 123,
           description: 'Test instance',
-          tags: ['production', 'customer-facing']
+          tags: ['production', 'customer-facing'],
         };
 
         expect(isInstanceConfig(instanceWithOptionals)).toBe(true);
@@ -206,15 +194,13 @@ describe('Configuration Validation', () => {
           apiTokenEnv: 'TEST_TOKEN',
           readOnlyMode: 'yes', // Should be boolean
           defaultWorkspaceId: '123', // Should be number
-          tags: ['valid', 123] // Should be all strings
+          tags: ['valid', 123], // Should be all strings
         };
 
         expect(isInstanceConfig(instanceWithInvalidOptionals)).toBe(false);
       });
 
       it('should validate configuration file loading from filesystem', async () => {
-        const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
-
         // Test loading from environment variable
         const originalEnv = process.env.BUSINESSMAP_INSTANCES;
 
@@ -315,10 +301,10 @@ describe('Configuration Validation', () => {
           instances: [
             {
               name: 'test',
-              apiUrl: 'https://test.kanbanize.com/api/v2'
+              apiUrl: 'https://test.kanbanize.com/api/v2',
               // Missing apiTokenEnv
-            }
-          ]
+            },
+          ],
         };
 
         expect(invalidConfig.defaultInstance).toBeUndefined();
@@ -335,8 +321,6 @@ describe('Configuration Validation', () => {
   // Common tests that run in both modes
   describe('Common configuration checks', () => {
     it('should have fixture files present', async () => {
-      const { existsSync } = await import('fs');
-
       expect(existsSync(VALID_MULTI_INSTANCE)).toBe(true);
       expect(existsSync(VALID_SINGLE_INSTANCE)).toBe(true);
       expect(existsSync(INVALID_SCHEMA)).toBe(true);

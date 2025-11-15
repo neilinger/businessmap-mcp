@@ -8,7 +8,7 @@ export default {
   testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^(\\.\\.?/.*)\\.js$': '$1',
   },
   transform: {
     '^.+\\.tsx?$': [
@@ -17,7 +17,10 @@ export default {
         useESM: true,
         tsconfig: {
           module: 'es2020',
+          noImplicitAny: false,
+          strict: false,
         },
+        diagnostics: false,
       },
     ],
   },

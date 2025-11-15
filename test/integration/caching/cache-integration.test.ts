@@ -1,5 +1,5 @@
-import { BusinessMapClient } from '../../src/client/businessmap-client';
-import { BusinessMapConfig } from '../../src/types/base';
+import { BusinessMapClient } from '../../../src/client/businessmap-client.js';
+import { BusinessMapConfig } from '../../../src/types/base.js';
 
 describe('Cache Integration Tests', () => {
   let client: BusinessMapClient;
@@ -178,7 +178,7 @@ describe('Cache Integration Tests', () => {
       const stats = client.getCacheStats();
 
       // All caches should be empty
-      Object.values(stats).forEach(stat => {
+      Object.values(stats).forEach((stat: any) => {
         expect(stat.size).toBe(0);
       });
     });
@@ -207,7 +207,7 @@ describe('Cache Integration Tests', () => {
       ]);
 
       // All results should be identical
-      results.forEach(result => {
+      results.forEach((result: any) => {
         expect(result).toEqual(results[0]);
       });
 

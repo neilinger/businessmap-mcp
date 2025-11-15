@@ -27,7 +27,8 @@ export class CacheManager {
   private readonly enabled: boolean;
   private readonly defaultTtl: number;
 
-  constructor(enabled: boolean = true, defaultTtl: number = 300000, maxSize: number = 1000) { // 5 minutes default, 1000 entries max
+  constructor(enabled: boolean = true, defaultTtl: number = 300000, maxSize: number = 1000) {
+    // 5 minutes default, 1000 entries max
     this.enabled = enabled;
     this.defaultTtl = defaultTtl;
     this.cache = new LRUCache<string, CacheEntry<any>>({
@@ -58,11 +59,7 @@ export class CacheManager {
   /**
    * Get cached value or execute fetcher function with lazy expiration
    */
-  async get<T>(
-    key: string,
-    fetcher: () => Promise<T>,
-    ttl: number = this.defaultTtl
-  ): Promise<T> {
+  async get<T>(key: string, fetcher: () => Promise<T>, ttl: number = this.defaultTtl): Promise<T> {
     if (!this.enabled) {
       return fetcher();
     }
@@ -124,9 +121,6 @@ export class CacheManager {
       }
 
       return data;
-    } catch (error) {
-      // Error propagates naturally
-      throw error;
     } finally {
       // Clean up pending request (single cleanup point)
       this.pendingRequests.delete(key);
@@ -202,7 +196,12 @@ export class CacheManager {
    * Clear all cache entries
    */
   clear(): void {
-    this.cache.clear();
+    // Use reset() for LRUCache v5.1.1 or clear() for Map-like objects
+    if (typeof this.cache.reset === 'function') {
+      this.cache.reset();
+    } else if (typeof this.cache.clear === 'function') {
+      this.cache.clear();
+    }
     this.pendingRequests.clear();
     this.keysByPrefix.clear();
     this.invalidationGeneration.clear();
@@ -242,7 +241,7 @@ export abstract class BaseClientModuleImpl implements BaseClientModule {
   initialize(http: AxiosInstance, config: BusinessMapConfig): void {
     this.http = http;
     this.config = config;
-    
+
     // Initialize cache manager with config
     const cacheEnabled = config.cacheEnabled !== false; // Default to true
     const defaultTtl = config.cacheTtl || 300000; // Default 5 minutes
@@ -264,11 +263,7 @@ export abstract class BaseClientModuleImpl implements BaseClientModule {
    * @param path - API path
    * @param ttl - Time to live in milliseconds (optional, uses default if not provided)
    */
-  protected async cachedGet<T>(
-    key: string,
-    path: string,
-    ttl?: number
-  ): Promise<T> {
+  protected async cachedGet<T>(key: string, path: string, ttl?: number): Promise<T> {
     return this.cache.get<T>(
       key,
       async () => {

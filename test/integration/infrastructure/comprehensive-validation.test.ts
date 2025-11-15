@@ -20,12 +20,19 @@
  * - L5 (Monitoring): Not applicable to test suite
  */
 
-import { TEST_MODE } from './setup';
+import { TEST_MODE } from './setup.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import {
+  isMultiInstanceConfig,
+  isInstanceConfig,
+  TokenLoadError,
+} from '../../../src/types/instance-config.js';
+import { BusinessMapMcpServer } from '../../../src/server/mcp-server.js';
+import { BusinessMapClientFactory } from '../../../src/client/client-factory.js';
 
 // Fixture paths
-const FIXTURES_DIR = join(process.cwd(), 'tests', 'integration', 'fixtures');
+const FIXTURES_DIR = join(process.cwd(), 'test', 'integration', 'infrastructure', 'fixtures');
 const INVALID_SCHEMA = join(FIXTURES_DIR, 'invalid-schema.json');
 
 describe('Comprehensive Historical Bug Validation (T056a)', () => {
@@ -40,7 +47,7 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
 
       try {
         // Import the main server module - this will fail if LRUCache import is wrong
-        serverModule = await import('../../src/index');
+        serverModule = await import('../../../src/index.js');
       } catch (e) {
         importError = e as Error;
       }
@@ -52,9 +59,9 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
       // EXPLICIT VALIDATION: Critical dependencies import correctly
       const criticalImports = [
         'lru-cache',
-        '../../src/server/mcp-server',
-        '../../src/client/client-factory',
-        '../../src/client/businessmap-client',
+        '../../../src/server/mcp-server.js',
+        '../../../src/client/client-factory.js',
+        '../../../src/client/businessmap-client.js',
       ];
 
       for (const modulePath of criticalImports) {
@@ -76,8 +83,6 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
     if (TEST_MODE === 'real') {
       it('should successfully initialize server with all dependencies', async () => {
         // REAL MODE: Full server initialization tests all imports
-        const { BusinessMapMcpServer } = await import('../../src/server/mcp-server');
-
         let initError: Error | null = null;
         let server: any;
 
@@ -96,8 +101,6 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
 
       it('should verify client factory uses LRUCache correctly', async () => {
         // REAL MODE: Client factory internal cache must work
-        const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
-
         let factoryError: Error | null = null;
         let factory: any;
 
@@ -154,8 +157,6 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
 
       if (TEST_MODE === 'real') {
         // REAL MODE: Type guard validation must reject invalid schema
-        const { isMultiInstanceConfig } = await import('../../src/types/instance-config');
-
         // ASSERTION: Type guard rejects invalid schema
         expect(isMultiInstanceConfig(config)).toBe(false);
 
@@ -176,8 +177,6 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
 
     it('should explicitly validate correct field name apiTokenEnv is required', async () => {
       if (TEST_MODE === 'real') {
-        const { isInstanceConfig } = await import('../../src/types/instance-config');
-
         // Test valid instance with correct field name
         const validInstance = {
           name: 'test',
@@ -232,8 +231,6 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
       };
 
       if (TEST_MODE === 'real') {
-        const { isMultiInstanceConfig } = await import('../../src/types/instance-config');
-
         // ASSERTION: Mixed valid/invalid instances should fail validation
         expect(isMultiInstanceConfig(mixedConfig)).toBe(false);
       } else {
@@ -310,8 +307,6 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
       });
 
       it('should reject missing or invalid API tokens with helpful error', async () => {
-        const { TokenLoadError } = await import('../../src/types/instance-config');
-
         // Create error for missing token
         const error = new TokenLoadError('NONEXISTENT_TOKEN_VAR', 'test-instance');
 
@@ -330,8 +325,6 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
       });
 
       it('should validate tokens during client factory initialization', async () => {
-        const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
-
         let initError: Error | null = null;
         let factory: any;
 
@@ -352,8 +345,6 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
       }, 30000);
 
       it('should validate token enables successful API calls', async () => {
-        const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
-
         const factory = BusinessMapClientFactory.getInstance();
         await factory.initialize();
 
@@ -412,14 +403,11 @@ describe('Comprehensive Historical Bug Validation (T056a)', () => {
 
         try {
           // Step 1: Import server (catches import errors)
-          const { BusinessMapMcpServer } = await import('../../src/server/mcp-server');
-
           // Step 2: Initialize server (validates config schema)
           const server = new BusinessMapMcpServer();
           await server.initialize();
 
           // Step 3: Get client (validates environment tokens)
-          const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
           const factory = BusinessMapClientFactory.getInstance();
           await factory.initialize();
           const client = await factory.getClient();

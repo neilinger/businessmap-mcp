@@ -5,9 +5,9 @@
  * and error handling across the BusinessMap MCP server.
  */
 
-import { BusinessMapClientFactory } from '../../src/client/client-factory';
-import { InstanceConfigManager } from '../../src/config/instance-manager';
-import { MultiInstanceConfig } from '../../src/types/instance-config';
+import { BusinessMapClientFactory } from '../../../src/client/client-factory.js';
+import { InstanceConfigManager } from '../../../src/config/instance-manager.js';
+import { MultiInstanceConfig } from '../../../src/types/instance-config.js';
 
 describe('Multi-Instance Integration Tests', () => {
   let factory: BusinessMapClientFactory;

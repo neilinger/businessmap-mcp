@@ -10,7 +10,8 @@
  * npm test -- phase9-validation
  */
 
-import { BusinessMapClient } from '../../src/client/businessmap-client';
+import { jest } from '@jest/globals';
+import { BusinessMapClient } from '../../../src/client/businessmap-client.js';
 
 // Test configuration
 const API_URL = process.env.BUSINESSMAP_API_URL || 'https://demo.kanbanize.com/api/v2';

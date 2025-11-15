@@ -8,7 +8,9 @@
  * - MOCK mode: typeof check + regex match /^BUSINESSMAP_API_TOKEN_/
  */
 
-import { TEST_MODE } from './setup';
+import { TEST_MODE } from './setup.js';
+import { BusinessMapClientFactory } from '../../../src/client/client-factory.js';
+import { TokenLoadError, InstanceConfigError } from '../../../src/types/instance-config.js';
 
 describe('Environment Variable Validation', () => {
   if (TEST_MODE === 'real') {
@@ -52,8 +54,6 @@ describe('Environment Variable Validation', () => {
       });
 
       it('should successfully connect to API with real credentials', async () => {
-        const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
-
         const factory = BusinessMapClientFactory.getInstance();
         await factory.initialize();
 
@@ -78,8 +78,6 @@ describe('Environment Variable Validation', () => {
       }, 30000);
 
       it('should load token from environment for specific instance', async () => {
-        const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
-
         const factory = BusinessMapClientFactory.getInstance();
         await factory.initialize();
 
@@ -104,8 +102,6 @@ describe('Environment Variable Validation', () => {
       }, 30000);
 
       it('should reject invalid or missing API tokens', async () => {
-        const { TokenLoadError } = await import('../../src/types/instance-config');
-
         // Create a mock instance config with invalid token env var
         const invalidConfig = {
           name: 'invalid',
@@ -153,8 +149,6 @@ describe('Environment Variable Validation', () => {
       });
 
       it('should successfully make API call using loaded token', async () => {
-        const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
-
         const factory = BusinessMapClientFactory.getInstance();
         await factory.initialize();
 
@@ -180,8 +174,6 @@ describe('Environment Variable Validation', () => {
       }, 30000);
 
       it('should handle multiple instance tokens correctly', async () => {
-        const { BusinessMapClientFactory } = await import('../../src/client/client-factory');
-
         const factory = BusinessMapClientFactory.getInstance();
         await factory.initialize();
 
@@ -315,10 +307,6 @@ describe('Environment Variable Validation', () => {
       });
 
       it('should verify error types are properly defined', async () => {
-        const { TokenLoadError, InstanceConfigError } = await import(
-          '../../src/types/instance-config'
-        );
-
         // Verify error classes exist and are constructable
         const tokenError = new TokenLoadError('TEST_VAR', 'test-instance');
         expect(tokenError.name).toBe('TokenLoadError');
@@ -361,8 +349,6 @@ describe('Environment Variable Validation', () => {
     });
 
     it('should verify TokenLoadError provides helpful error messages', async () => {
-      const { TokenLoadError } = await import('../../src/types/instance-config');
-
       const error = new TokenLoadError('MISSING_TOKEN_VAR', 'test-instance');
 
       expect(error.message).toContain('MISSING_TOKEN_VAR');
