@@ -1,3 +1,18 @@
+# [1.14.0](https://github.com/neilinger/businessmap-mcp/compare/v1.13.0...v1.14.0) (2025-11-16)
+
+
+### Bug Fixes
+
+* disable Husky hooks during semantic-release ([48d0ecc](https://github.com/neilinger/businessmap-mcp/commit/48d0ecce27505261fabc592cff793f5defc64e11))
+* disable npm publishing in semantic-release ([3e203fc](https://github.com/neilinger/businessmap-mcp/commit/3e203fcdc87e91e5a5ddcc5236cd68106a937f4c))
+* ensure release workflow checks out main branch explicitly ([1446746](https://github.com/neilinger/businessmap-mcp/commit/14467466cadb4fedcc1af7ea257bbdf437d86b1f))
+* update repository URL to neilinger/businessmap-mcp ([a821c72](https://github.com/neilinger/businessmap-mcp/commit/a821c72e985885d44df01e095ce823f73be33547))
+
+
+### Features
+
+* enable automated releases with PAT and npm publishing ([50ca478](https://github.com/neilinger/businessmap-mcp/commit/50ca4788b5de701d8d7714ac3bbfb32c48ac4ef7))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
