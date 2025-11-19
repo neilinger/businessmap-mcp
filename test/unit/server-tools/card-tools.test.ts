@@ -164,6 +164,80 @@ describe('CardToolHandler', () => {
 
       expect(mockClient.getCards).toHaveBeenCalled();
     });
+
+    it('should flatten date_filters nested object', async () => {
+      cardHandler.registerTools(mockServer, mockClient, true);
+      const handler = registeredTools.get('list_cards');
+
+      mockClient.getCards.mockResolvedValue([]);
+
+      await handler({
+        board_id: 10,
+        date_filters: {
+          created: {
+            from: '2024-01-01',
+            to: '2024-12-31',
+          },
+          deadline: {
+            from_date: '2024-02-01',
+            to_date: '2024-02-28',
+          },
+        },
+      });
+
+      expect(mockClient.getCards).toHaveBeenCalledWith(10, {
+        created_from: '2024-01-01',
+        created_to: '2024-12-31',
+        deadline_from_date: '2024-02-01',
+        deadline_to_date: '2024-02-28',
+      });
+    });
+
+    it('should flatten multiple date_filters', async () => {
+      cardHandler.registerTools(mockServer, mockClient, true);
+      const handler = registeredTools.get('list_cards');
+
+      mockClient.getCards.mockResolvedValue([]);
+
+      await handler({
+        board_id: 10,
+        date_filters: {
+          archived: { from: '2024-01-01', to: '2024-01-31' },
+          last_modified: { from_date: '2024-02-01', to_date: '2024-02-28' },
+          last_start: { from: '2024-03-01' },
+        },
+      });
+
+      expect(mockClient.getCards).toHaveBeenCalledWith(10, {
+        archived_from: '2024-01-01',
+        archived_to: '2024-01-31',
+        last_modified_from_date: '2024-02-01',
+        last_modified_to_date: '2024-02-28',
+        last_start_from: '2024-03-01',
+      });
+    });
+
+    it('should handle date_filters with other filters', async () => {
+      cardHandler.registerTools(mockServer, mockClient, true);
+      const handler = registeredTools.get('list_cards');
+
+      mockClient.getCards.mockResolvedValue([]);
+
+      await handler({
+        board_id: 10,
+        date_filters: {
+          created: { from: '2024-01-01' },
+        },
+        column_ids: [1, 2, 3],
+        priorities: [5, 10],
+      });
+
+      expect(mockClient.getCards).toHaveBeenCalledWith(10, {
+        created_from: '2024-01-01',
+        column_ids: [1, 2, 3],
+        priorities: [5, 10],
+      });
+    });
   });
 
   describe('get_card tool', () => {
@@ -299,6 +373,111 @@ describe('CardToolHandler', () => {
       expect(mockClient.createCard).not.toHaveBeenCalledWith(
         expect.objectContaining({ instance: 'test' })
       );
+    });
+
+    it('should flatten placement nested object', async () => {
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('create_card');
+
+      mockClient.createCard.mockResolvedValue({ card_id: 101 });
+
+      await handler({
+        title: 'Card with Placement',
+        column_id: 5,
+        placement: {
+          lane_id: 3,
+          position: 2,
+          track: 1,
+        },
+      });
+
+      expect(mockClient.createCard).toHaveBeenCalledWith({
+        title: 'Card with Placement',
+        column_id: 5,
+        lane_id: 3,
+        position: 2,
+        track: 1,
+      });
+    });
+
+    it('should flatten metadata nested object', async () => {
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('create_card');
+
+      mockClient.createCard.mockResolvedValue({ card_id: 102 });
+
+      await handler({
+        title: 'Card with Metadata',
+        column_id: 5,
+        metadata: {
+          description: 'Test description',
+          size: 5,
+          priority: 3,
+          type_id: 10,
+        },
+      });
+
+      expect(mockClient.createCard).toHaveBeenCalledWith({
+        title: 'Card with Metadata',
+        column_id: 5,
+        description: 'Test description',
+        size: 5,
+        priority: 3,
+        type_id: 10,
+      });
+    });
+
+    it('should flatten owners nested object', async () => {
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('create_card');
+
+      mockClient.createCard.mockResolvedValue({ card_id: 103 });
+
+      await handler({
+        title: 'Card with Owners',
+        column_id: 5,
+        owners: {
+          user_id: 42,
+          reporter_user_id: 99,
+        },
+      });
+
+      expect(mockClient.createCard).toHaveBeenCalledWith({
+        title: 'Card with Owners',
+        column_id: 5,
+        user_id: 42,
+        reporter_user_id: 99,
+      });
+    });
+
+    it('should flatten multiple nested objects', async () => {
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('create_card');
+
+      mockClient.createCard.mockResolvedValue({ card_id: 104 });
+
+      await handler({
+        title: 'Complex Card',
+        column_id: 5,
+        placement: { lane_id: 1, position: 0 },
+        metadata: { description: 'Test', size: 3 },
+        owners: { user_id: 7 },
+        dates: { planned_start: '2024-01-01', planned_end: '2024-01-31' },
+        collections: { tag_ids_to_add: [1, 2, 3] },
+      });
+
+      expect(mockClient.createCard).toHaveBeenCalledWith({
+        title: 'Complex Card',
+        column_id: 5,
+        lane_id: 1,
+        position: 0,
+        description: 'Test',
+        size: 3,
+        user_id: 7,
+        planned_start: '2024-01-01',
+        planned_end: '2024-01-31',
+        tag_ids_to_add: [1, 2, 3],
+      });
     });
   });
 

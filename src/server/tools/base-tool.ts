@@ -16,7 +16,12 @@ export interface BaseToolHandler {
    * @param clientOrFactory The BusinessMap client or client factory instance
    * @param readOnlyMode Whether the server is in read-only mode
    */
-  registerTools(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory, readOnlyMode: boolean): void;
+  registerTools(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
+    readOnlyMode: boolean,
+    enabledTools?: string[]
+  ): void;
 }
 
 /**
@@ -60,7 +65,9 @@ export function createSuccessResponse(data: any, message?: string) {
   const tokenEstimate = Math.ceil(byteSize / 4);
 
   if (tokenEstimate > 10000) {
-    logger.warn(`Large response: ${tokenEstimate} tokens (~${(byteSize / 1024).toFixed(1)}KB) - consider pagination`);
+    logger.warn(
+      `Large response: ${tokenEstimate} tokens (~${(byteSize / 1024).toFixed(1)}KB) - consider pagination`
+    );
   }
 
   return {
@@ -108,4 +115,33 @@ export function isMultiInstanceMode(
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): boolean {
   return clientOrFactory instanceof BusinessMapClientFactory;
+}
+
+/**
+ * Check if a tool should be registered based on the enabled tools list
+ *
+ * @param toolName - The name of the tool to check
+ * @param enabledTools - Optional array of enabled tool names (empty/undefined means all tools enabled)
+ * @returns True if the tool should be registered
+ *
+ * @example
+ * ```typescript
+ * // With profile filtering
+ * if (shouldRegisterTool('list_boards', ['list_boards', 'get_board'])) {
+ *   // Register the tool
+ * }
+ *
+ * // Without filtering (backward compatibility)
+ * if (shouldRegisterTool('list_boards', undefined)) {
+ *   // Always returns true - register all tools
+ * }
+ * ```
+ */
+export function shouldRegisterTool(toolName: string, enabledTools?: string[]): boolean {
+  // If no enabled tools list provided, register all tools (backward compatibility)
+  if (!enabledTools || enabledTools.length === 0) {
+    return true;
+  }
+
+  return enabledTools.includes(toolName);
 }

@@ -3,7 +3,12 @@ import { z } from 'zod';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
 import { BusinessMapClientFactory } from '../../client/client-factory.js';
 import { InstanceConfigManager } from '../../config/instance-manager.js';
-import { BaseToolHandler, createErrorResponse, createSuccessResponse } from './base-tool.js';
+import {
+  BaseToolHandler,
+  createErrorResponse,
+  createSuccessResponse,
+  shouldRegisterTool,
+} from './base-tool.js';
 
 /**
  * Tool handler for instance management operations.
@@ -13,12 +18,17 @@ export class InstanceToolHandler implements BaseToolHandler {
   registerTools(
     server: McpServer,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean
+    readOnlyMode: boolean,
+    enabledTools?: string[]
   ): void {
     // Only register instance tools in multi-instance mode
     if (clientOrFactory instanceof BusinessMapClientFactory) {
-      this.registerListInstances(server, clientOrFactory);
-      this.registerGetInstanceInfo(server, clientOrFactory);
+      if (shouldRegisterTool('list_instances', enabledTools)) {
+        this.registerListInstances(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('get_instance_info', enabledTools)) {
+        this.registerGetInstanceInfo(server, clientOrFactory);
+      }
     }
   }
 
@@ -27,8 +37,7 @@ export class InstanceToolHandler implements BaseToolHandler {
       'list_instances',
       {
         title: 'List Instances',
-        description:
-          'Get a list of all configured BusinessMap instances. Shows instance names, descriptions, and connection status.',
+        description: 'List all configured instances',
         inputSchema: z.object({}).shape,
       },
       async () => {
@@ -73,8 +82,7 @@ export class InstanceToolHandler implements BaseToolHandler {
       'get_instance_info',
       {
         title: 'Get Instance Info',
-        description:
-          'Get detailed information about a specific BusinessMap instance, including configuration and cache status.',
+        description: 'Get instance details',
         inputSchema: schema.shape,
       },
       async ({ instance }) => {

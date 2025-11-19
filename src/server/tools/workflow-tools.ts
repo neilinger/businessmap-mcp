@@ -3,17 +3,35 @@ import { createLoggerSync } from '@toolprint/mcp-logger';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
 import { BusinessMapClientFactory } from '../../client/client-factory.js';
 import { getWorkflowCycleTimeColumnsSchema } from '../../schemas/workflow-schemas.js';
-import { BaseToolHandler, createErrorResponse, createSuccessResponse, getClientForInstance } from './base-tool.js';
+import {
+  BaseToolHandler,
+  createErrorResponse,
+  createSuccessResponse,
+  getClientForInstance,
+  shouldRegisterTool,
+} from './base-tool.js';
 
 const logger = createLoggerSync({ level: 'debug' });
 
 export class WorkflowToolHandler implements BaseToolHandler {
-  registerTools(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory, readOnlyMode: boolean): void {
-    this.registerGetWorkflowCycleTimeColumns(server, clientOrFactory);
-    this.registerGetWorkflowEffectiveCycleTimeColumns(server, clientOrFactory);
+  registerTools(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
+    readOnlyMode: boolean,
+    enabledTools?: string[]
+  ): void {
+    if (shouldRegisterTool('get_workflow_cycle_time_columns', enabledTools)) {
+      this.registerGetWorkflowCycleTimeColumns(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_workflow_effective_cycle_time_columns', enabledTools)) {
+      this.registerGetWorkflowEffectiveCycleTimeColumns(server, clientOrFactory);
+    }
   }
 
-  private registerGetWorkflowCycleTimeColumns(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetWorkflowCycleTimeColumns(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'get_workflow_cycle_time_columns',
       {
@@ -49,13 +67,13 @@ export class WorkflowToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           logger.debug('Fetching effective cycle time columns', {
             boardId: board_id,
-            workflowId: workflow_id
+            workflowId: workflow_id,
           });
           const columns = await client.getWorkflowEffectiveCycleTimeColumns(board_id, workflow_id);
           logger.debug('Received effective cycle time columns', {
             count: columns.length,
             boardId: board_id,
-            workflowId: workflow_id
+            workflowId: workflow_id,
           });
           return createSuccessResponse(
             columns,
@@ -65,7 +83,7 @@ export class WorkflowToolHandler implements BaseToolHandler {
           logger.error('Error fetching effective cycle time columns', {
             boardId: board_id,
             workflowId: workflow_id,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error instanceof Error ? error.message : 'Unknown error',
           });
           return createErrorResponse(error, 'fetching workflow effective cycle time columns');
         }

@@ -4,6 +4,12 @@ import { BusinessMapClientFactory } from '../client/client-factory.js';
 import { config } from '../config/environment.js';
 import { logger } from '../utils/logger.js';
 import {
+  getToolProfile,
+  getToolsForProfile,
+  PROFILE_METADATA,
+  type ToolProfile,
+} from '../config/tool-profiles.js';
+import {
   BoardToolHandler,
   CardToolHandler,
   CustomFieldToolHandler,
@@ -108,6 +114,31 @@ export class BusinessMapMcpServer {
   private setupTools(): void {
     const readOnlyMode = this.getReadOnlyMode();
 
+    // Get active tool profile from environment
+    let profile: ToolProfile;
+    let enabledTools: string[];
+
+    try {
+      profile = getToolProfile();
+      enabledTools = getToolsForProfile(profile);
+
+      const metadata = PROFILE_METADATA[profile];
+      logger.info(`Loading ${profile} profile: ${metadata.toolCount} tools`, {
+        profile,
+        toolCount: metadata.toolCount,
+        estimatedTokens: metadata.estimatedTokens,
+        useCase: metadata.useCase,
+      });
+    } catch (error) {
+      // Fallback to full profile if there's any error
+      logger.error(
+        'Error loading tool profile, falling back to full profile',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      profile = 'full';
+      enabledTools = []; // Empty array means all tools enabled (backward compatibility)
+    }
+
     // Initialize tool handlers
     const toolHandlers = [
       new WorkspaceToolHandler(),
@@ -120,12 +151,30 @@ export class BusinessMapMcpServer {
       new InstanceToolHandler(), // Only registers tools in multi-instance mode
     ];
 
-    // Register all tools from handlers
+    // Register tools from handlers with profile filtering
+    let registeredCount = 0;
     toolHandlers.forEach((handler) => {
-      handler.registerTools(this.mcpServer, this.clientOrFactory, readOnlyMode);
+      const initialCount = this.getRegisteredToolCount();
+      handler.registerTools(this.mcpServer, this.clientOrFactory, readOnlyMode, enabledTools);
+      const newCount = this.getRegisteredToolCount();
+      registeredCount += newCount - initialCount;
     });
 
-    logger.info(`Registered ${toolHandlers.length} tool handlers`, { readOnly: readOnlyMode });
+    logger.info(`Registered ${registeredCount} tools from ${toolHandlers.length} handlers`, {
+      profile,
+      readOnly: readOnlyMode,
+    });
+  }
+
+  /**
+   * Get the current count of registered tools
+   * Uses internal MCP server API to count registered tools
+   */
+  private getRegisteredToolCount(): number {
+    // Access the internal tools map from MCP server
+    // This is a workaround since MCP SDK doesn't expose tool count
+    const server = this.mcpServer as any;
+    return server._tools ? server._tools.size : 0;
   }
 
   /**

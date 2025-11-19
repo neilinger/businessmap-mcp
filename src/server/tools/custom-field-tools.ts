@@ -1,7 +1,13 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
 import { BusinessMapClientFactory } from '../../client/client-factory.js';
-import { BaseToolHandler, createErrorResponse, createSuccessResponse, getClientForInstance } from './base-tool.js';
+import {
+  BaseToolHandler,
+  createErrorResponse,
+  createSuccessResponse,
+  getClientForInstance,
+  shouldRegisterTool,
+} from './base-tool.js';
 import {
   createCustomFieldSchema,
   deleteCustomFieldSchema,
@@ -12,19 +18,39 @@ import {
 } from '../../schemas/custom-field-schemas.js';
 
 export class CustomFieldToolHandler implements BaseToolHandler {
-  registerTools(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory, readOnlyMode: boolean): void {
-    this.registerListCustomFields(server, clientOrFactory);
-    this.registerListBoardCustomFields(server, clientOrFactory);
-    this.registerGetCustomField(server, clientOrFactory);
+  registerTools(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
+    readOnlyMode: boolean,
+    enabledTools?: string[]
+  ): void {
+    if (shouldRegisterTool('list_custom_fields', enabledTools)) {
+      this.registerListCustomFields(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('list_board_custom_fields', enabledTools)) {
+      this.registerListBoardCustomFields(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_custom_field', enabledTools)) {
+      this.registerGetCustomField(server, clientOrFactory);
+    }
 
     if (!readOnlyMode) {
-      this.registerCreateCustomField(server, clientOrFactory);
-      this.registerUpdateCustomField(server, clientOrFactory);
-      this.registerDeleteCustomField(server, clientOrFactory);
+      if (shouldRegisterTool('create_custom_field', enabledTools)) {
+        this.registerCreateCustomField(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('update_custom_field', enabledTools)) {
+        this.registerUpdateCustomField(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('delete_custom_field', enabledTools)) {
+        this.registerDeleteCustomField(server, clientOrFactory);
+      }
     }
   }
 
-  private registerListCustomFields(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerListCustomFields(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'list_custom_fields',
       {
@@ -44,7 +70,10 @@ export class CustomFieldToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerListBoardCustomFields(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerListBoardCustomFields(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'list_board_custom_fields',
       {
@@ -64,7 +93,10 @@ export class CustomFieldToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCustomField(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCustomField(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'get_custom_field',
       {
@@ -84,7 +116,10 @@ export class CustomFieldToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerCreateCustomField(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerCreateCustomField(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'create_custom_field',
       {
@@ -105,7 +140,10 @@ export class CustomFieldToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerUpdateCustomField(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerUpdateCustomField(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'update_custom_field',
       {
@@ -125,7 +163,10 @@ export class CustomFieldToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerDeleteCustomField(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerDeleteCustomField(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'delete_custom_field',
       {
@@ -206,7 +247,9 @@ Type 'DELETE' to confirm or any other response to cancel.
                 } catch (deleteError: any) {
                   if (deleteError.response?.status === 403) {
                     return createErrorResponse(
-                      new Error('Insufficient permissions. Custom field definition management requires workspace admin role.'),
+                      new Error(
+                        'Insufficient permissions. Custom field definition management requires workspace admin role.'
+                      ),
                       'deleting custom field'
                     );
                   }
@@ -218,7 +261,9 @@ Type 'DELETE' to confirm or any other response to cancel.
         } catch (error: any) {
           if (error.response?.status === 403) {
             return createErrorResponse(
-              new Error('Insufficient permissions. Custom field definition management requires workspace admin role.'),
+              new Error(
+                'Insufficient permissions. Custom field definition management requires workspace admin role.'
+              ),
               'analyzing custom field for deletion'
             );
           }
