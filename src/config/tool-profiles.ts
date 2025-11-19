@@ -27,10 +27,9 @@ export type ToolName = string;
  *
  * Includes:
  * - Basic listing (boards, cards, workspaces)
- * - Core retrieval (get_board, get_card, get_workspace)
+ * - Core retrieval (get_card, get_workspace)
  * - Essential mutations (create_card, update_card, move_card)
  * - Search and health utilities
- * - Instance management (multi-instance mode)
  */
 export const MINIMAL_PROFILE: ToolName[] = [
   // Core listing operations
@@ -39,7 +38,6 @@ export const MINIMAL_PROFILE: ToolName[] = [
   'list_workspaces',
 
   // Core retrieval operations
-  'get_board',
   'get_card',
   'get_workspace',
 
@@ -51,9 +49,6 @@ export const MINIMAL_PROFILE: ToolName[] = [
   // Search and utilities
   'search_board',
   'health_check',
-
-  // Instance management (multi-instance mode only)
-  'list_instances',
 ];
 
 /**
@@ -103,9 +98,6 @@ export const STANDARD_PROFILE: ToolName[] = [
   // User operations
   'list_users',
   'get_current_user',
-
-  // Instance management (extended)
-  'get_instance_info',
 
   // Utility operations
   'get_api_info',

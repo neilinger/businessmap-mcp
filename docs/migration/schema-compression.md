@@ -260,7 +260,7 @@ getCard({ instance: "prod", ... })
 listBoards({ instance: "prod", ... })
 ```
 
-**Why**: No code changes needed, internal deduplication saves 650-975 tokens across all 65 tools.
+**Why**: No code changes needed, internal deduplication saves 650-975 tokens across all 59 registered tools.
 
 ---
 
@@ -289,7 +289,7 @@ grep -r "createCard\|updateCard\|listCards" your-client-code/
 
 **Full Profile Users** (power users):
 
-- All 65 tools including bulk operations
+- All 59 tools including bulk operations
 - **Migration time**: 45-60 minutes
 
 ---
@@ -600,13 +600,13 @@ Choose the tool profile that matches your usage pattern:
 #### Environment Variable Setup
 
 ```bash
-# Option 1: Minimal profile (12 core tools, ~9k tokens)
+# Option 1: Minimal profile (10 core tools, ~14k tokens)
 export BUSINESSMAP_TOOL_PROFILE=minimal
 
-# Option 2: Standard profile (30 tools, ~20k tokens) [DEFAULT]
+# Option 2: Standard profile (24 tools, ~18.5k tokens) [DEFAULT]
 export BUSINESSMAP_TOOL_PROFILE=standard
 
-# Option 3: Full profile (all 65 tools, ~31.6k tokens)
+# Option 3: Full profile (all 59 tools, ~31.6k tokens)
 export BUSINESSMAP_TOOL_PROFILE=full
 ```
 
@@ -614,16 +614,18 @@ export BUSINESSMAP_TOOL_PROFILE=full
 
 | Profile      | Tools | Use Case                       | Tokens  |
 | ------------ | ----- | ------------------------------ | ------- |
-| **minimal**  | 12    | Basic CRUD operations          | ~9,000  |
-| **standard** | ~30   | Most workflows + custom fields | ~20,000 |
-| **full**     | 65    | Advanced features + bulk ops   | ~31,600 |
+| **minimal**  | 10    | Basic CRUD operations          | ~14,276 |
+| **standard** | 24    | Most workflows + custom fields | ~18,500 |
+| **full**     | 59    | Advanced features + bulk ops   | ~31,663 |
 
 **Minimal Profile Tools**:
 
 - `list_boards`, `list_cards`, `list_workspaces`
-- `get_card`, `get_board`, `get_workspace`
+- `get_card`, `get_workspace`
 - `create_card`, `update_card`, `move_card`
-- `search_board`, `health_check`, `list_instances`
+- `search_board`, `health_check`
+
+**Note**: `get_board` removed (use `get_current_board_structure`), `list_instances`/`get_instance_info` were never registered.
 
 **When to use each**:
 

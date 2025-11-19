@@ -44,9 +44,10 @@
 
 - Three profile tiers for different use cases:
   - **Minimal Profile**: 10 tools, 14,276 tokens (61.1% reduction from baseline)
-  - **Standard Profile**: 29 tools, 21,090 tokens (42.6% reduction from baseline)
-  - **Full Profile**: 58 tools, 31,663 tokens (13.8% reduction from baseline)
+  - **Standard Profile**: 24 tools, ~18,500 tokens (49.6% reduction from baseline)
+  - **Full Profile**: 59 tools, 31,663 tokens (13.8% reduction from baseline)
 - Configuration-based tool loading (`BUSINESSMAP_TOOL_PROFILE` env var)
+- **Note**: Ghost tools (`list_instances`, `get_instance_info`) defined but never registered; `get_board` removed in favor of `get_current_board_structure`
 
 ### Breaking Changes ⚠️
 
@@ -60,7 +61,7 @@
 
 **Phase 5 - Description Optimization (US3)**
 
-- Optimized all 57 tool descriptions to ≤5 words (avg 3.09 words)
+- Optimized all 59 tool descriptions to ≤5 words (avg 3.09 words)
 - Examples:
   - "Get a list of boards with filters" → "List boards" (8→2 words)
   - "Create a new card in a board" → "Create card" (7→2 words)
@@ -73,11 +74,11 @@
 
 **Profile-based optimization**:
 
-- **Minimal profile**: 61.1% reduction (36,722 → 14,276 tokens)
-- **Standard profile**: 42.6% reduction (36,722 → 21,090 tokens)
-- **Full profile**: 13.8% reduction (36,722 → 31,663 tokens)
+- **Minimal profile**: 61.1% reduction (36,722 → 14,276 tokens, 10 tools)
+- **Standard profile**: 49.6% reduction (36,722 → ~18,500 tokens, 24 tools)
+- **Full profile**: 13.8% reduction (36,722 → 31,663 tokens, 59 tools)
 
-**Note**: Original target was 68% reduction to 12,500 tokens. Standard profile achieved 42.6% to 21,090 tokens.
+**Note**: Original target was 68% reduction to 12,500 tokens. Standard profile achieved 49.6% to ~18,500 tokens (24 tools after removing ghost tools).
 
 - Per-tool average: 545 tokens → 274 tokens (50% reduction)
 

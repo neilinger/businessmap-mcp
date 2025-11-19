@@ -47,14 +47,16 @@ The `BUSINESSMAP_TOOL_PROFILE` environment variable controls which tools are reg
 | Profile    | Tools | Token Count | Use Case                                                                                              |
 | ---------- | ----- | ----------- | ----------------------------------------------------------------------------------------------------- |
 | `minimal`  | 10    | ~14,276     | Basic card and board operations only. Ideal for simple workflows or token-constrained environments.   |
-| `standard` | 29    | ~21,090     | Most common workflows including cards, boards, workspaces, and users. **Default if not specified.**   |
-| `full`     | 58    | ~31,663     | All available tools including advanced features (custom fields, subtasks, outcomes, bulk operations). |
+| `standard` | 24    | ~18,500     | Most common workflows including cards, boards, workspaces, and users. **Default if not specified.**   |
+| `full`     | 59    | ~31,663     | All available tools including advanced features (custom fields, subtasks, outcomes, bulk operations). |
 
 **Profile Contents:**
 
-- **Minimal** (10 tools): `list_boards`, `get_board`, `list_cards`, `get_card`, `create_card`, `update_card`, `move_card`, `delete_card`, `get_current_user`, `health_check`
-- **Standard** (29 tools): Minimal + workspace management, board creation/updates, card comments, card parents/children, custom field viewing, users, system tools
-- **Full** (58 tools): Standard + advanced card features (subtasks, outcomes, history, linked cards), custom field management, workflow analysis, bulk operations
+- **Minimal** (10 tools): `list_boards`, `list_cards`, `get_card`, `get_workspace`, `create_card`, `update_card`, `move_card`, `search_board`, `health_check`
+- **Standard** (24 tools): Minimal + workspace management, board creation/updates/structure, card comments, card parents/children, custom field viewing, users, system tools
+- **Full** (59 tools): Standard + advanced card features (subtasks, outcomes, history, linked cards), custom field management, workflow analysis, bulk operations
+
+**Note:** Ghost tools (`list_instances`, `get_instance_info`, `get_board`) were defined but never properly registered. Tool counts reflect actual registered tools in `src/config/tool-profiles.ts`.
 
 **Example Usage:**
 
@@ -619,16 +621,16 @@ The BusinessMap MCP server provides the following tools:
 
 ## Tool Summary
 
-The BusinessMap MCP server provides **65 tools** across 9 categories:
+The BusinessMap MCP server provides **59 registered tools** across 9 categories (in full profile):
 
 - **Workspace Management**: 5 tools
-- **Board Management**: 11 tools
+- **Board Management**: 10 tools (`get_board` removed in favor of `get_current_board_structure`)
 - **Card Management**: 25 tools (organized in 6 subcategories)
 - **Custom Field Management**: 7 tools
-- **Workflow & Cycle Time Analysis**: 2 tools
+- **Workflow & Cycle Time Analysis**: 2 tools (`calculate_card_cycle_time` removed)
 - **Bulk Operations**: 6 tools
 - **User Management**: 3 tools
-- **System**: 2 tools
+- **System**: 1 tool (`health_check` only; `list_instances`/`get_instance_info` never registered)
 
 ## Key Features
 
