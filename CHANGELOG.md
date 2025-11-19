@@ -75,10 +75,10 @@
 **Profile-based optimization**:
 
 - **Minimal profile**: 61.1% reduction (36,722 → 14,276 tokens, 10 tools)
-- **Standard profile**: 49.6% reduction (36,722 → ~18,500 tokens, 24 tools)
+- **Standard profile**: 42.6% reduction (36,722 → 21,090 tokens, 24 tools)
 - **Full profile**: 13.8% reduction (36,722 → 31,663 tokens, 59 tools)
 
-**Note**: Original target was 68% reduction to 12,500 tokens. Standard profile achieved 49.6% to ~18,500 tokens (24 tools after removing ghost tools).
+**Note**: Original target was 68% reduction to 12,500 tokens. Standard profile achieved 42.6% to 21,090 tokens (24 tools after removing ghost tools).
 
 - Per-tool average: 545 tokens → 274 tokens (50% reduction)
 
