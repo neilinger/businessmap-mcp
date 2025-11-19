@@ -1,4 +1,4 @@
-# [1.15.0](https://github.com/neilinger/businessmap-mcp/compare/v1.14.0...v1.15.0) (2025-11-19)
+# [2.0.0](https://github.com/neilinger/businessmap-mcp/compare/v1.14.0...v2.0.0) (2025-11-19)
 
 ### Added
 
