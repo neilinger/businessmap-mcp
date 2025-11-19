@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/neilinger/businessmap-mcp/compare/v1.14.0...v1.15.0) (2025-11-19)
+
+
+### Features
+
+* Token Optimization Phase 2 - Schema Compression & Lazy Loading ([#30](https://github.com/neilinger/businessmap-mcp/issues/30)) ([298dd31](https://github.com/neilinger/businessmap-mcp/commit/298dd31e95e528af891ececba74b2a06fe9a727e)), closes [#3](https://github.com/neilinger/businessmap-mcp/issues/3)
+
 # [2.0.0](https://github.com/neilinger/businessmap-mcp/compare/v1.14.0...v2.0.0) (2025-11-19)
 
 ### Added
