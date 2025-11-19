@@ -1115,17 +1115,6 @@ After completing the migration:
    - Subscribe to release notes
    - Join community discussions
 
----
-
-## Additional Resources
-
-- **API Documentation**: [Full schema reference](../api/schemas.md)
-- **Tool Profiles**: [Detailed profile comparison](../configuration/profiles.md)
-- **Examples**: [Migration examples repository](https://github.com/businessmap/mcp-migration-examples)
-- **Support**: [Community forum](https://community.businessmap.io/mcp)
-
----
-
 ## Summary
 
 You've successfully migrated to BusinessMap MCP v2.0! Key takeaways:
