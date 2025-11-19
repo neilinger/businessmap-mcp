@@ -1,3 +1,22 @@
+# [2.0.0](https://github.com/neilinger/businessmap-mcp/compare/v1.15.0...v2.0.0) (2025-11-19)
+
+
+### chore
+
+* correct version to 2.0.0 for breaking changes ([56c274b](https://github.com/neilinger/businessmap-mcp/commit/56c274b948c020f0b4710cd4849cc6e28dd9bee9))
+
+
+### BREAKING CHANGES
+
+* footer in squash commit message.
+
+This release contains breaking changes:
+- Schema structure changes (required-only properties)
+- create_card, update_card, list_cards schemas modified
+- See CHANGELOG.md and migration guide for details
+* Schema structure changes require v1.x → v2.0 migration.
+See docs/migration/schema-compression.md for migration guide.
+
 # [1.15.0](https://github.com/neilinger/businessmap-mcp/compare/v1.14.0...v1.15.0) (2025-11-19)
 
 
