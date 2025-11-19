@@ -47,7 +47,16 @@
   - **Standard Profile**: 29 tools, 21,090 tokens (42.6% reduction from baseline)
   - **Full Profile**: 58 tools, 31,663 tokens (13.8% reduction from baseline)
 - Configuration-based tool loading (`BUSINESSMAP_TOOL_PROFILE` env var)
-- Zero breaking changes - full profile is default
+
+### Breaking Changes ⚠️
+
+- **create_card**: Schema now uses nested structure (dates, workflow, custom_fields)
+- **update_card**: Schema reorganized with nested parameter groups
+- **list_cards**: Schema uses date_filters nested object
+- **No backward compatibility**: Legacy flat parameter formats NOT supported
+- **Coordinated upgrade required**: Server and clients must upgrade together
+
+**Migration Guide**: See docs/migration/schema-compression.md
 
 **Phase 5 - Description Optimization (US3)**
 
@@ -60,15 +69,21 @@
 
 **Overall Impact**:
 
-- **Maximum token reduction**: 61.1% (36,722 → 14,276 for minimal profile)
-- **Standard reduction**: 42.6% (36,722 → 21,090 for typical use cases)
-- **Full profile reduction**: 13.8% (36,722 → 31,663 for power users)
+### Token Reduction Achieved
+
+**Profile-based optimization**:
+
+- **Minimal profile**: 61.1% reduction (36,722 → 14,276 tokens)
+- **Standard profile**: 42.6% reduction (36,722 → 21,090 tokens)
+- **Full profile**: 13.8% reduction (36,722 → 31,663 tokens)
+
+**Note**: Original target was 68% reduction to 12,500 tokens. Standard profile achieved 42.6% to 21,090 tokens.
+
 - Per-tool average: 545 tokens → 274 tokens (50% reduction)
-- Zero breaking changes - backward compatible
 
 **Configuration**:
 
-- `BUSINESSMAP_TOOL_PROFILE`: "minimal" | "standard" | "full" (default: "full")
+- `BUSINESSMAP_TOOL_PROFILE`: "minimal" | "standard" | "full" (default: "standard")
 - Profile definitions in `src/server/tools/tool-profiles.ts`
 - Dynamic tool loading based on profile selection
 
