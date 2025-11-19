@@ -1,0 +1,51 @@
+{
+  "timestamp": "2025-11-19T17:10:56.779Z",
+  "profiles": [
+    {
+      "profile": "standard",
+      "metadata": {
+        "name": "Standard",
+        "description": "Most common operations",
+        "toolCount": 32,
+        "estimatedTokens": 1600,
+        "useCase": "Common business operations and structured workflows"
+      },
+      "tokens": 21090,
+      "target": 20000,
+      "targetDescription": "49% reduction from baseline",
+      "status": "FAIL",
+      "toolCount": 29,
+      "tools": [
+        "add_card_parent",
+        "create_board",
+        "create_card",
+        "create_workspace",
+        "delete_card",
+        "get_api_info",
+        "get_card",
+        "get_card_children",
+        "get_card_comments",
+        "get_card_custom_fields",
+        "get_card_parents",
+        "get_columns",
+        "get_current_board_structure",
+        "get_current_user",
+        "get_custom_field",
+        "get_lanes",
+        "get_workspace",
+        "health_check",
+        "list_boards",
+        "list_cards",
+        "list_custom_fields",
+        "list_users",
+        "list_workspaces",
+        "move_card",
+        "remove_card_parent",
+        "search_board",
+        "update_board",
+        "update_card",
+        "update_workspace"
+      ]
+    }
+  ]
+}

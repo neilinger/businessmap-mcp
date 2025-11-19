@@ -1,0 +1,230 @@
+{
+  "timestamp": "2025-11-19T15:15:58.901Z",
+  "configuration": {
+    "targetMs": 2000,
+    "iterations": 10
+  },
+  "profiles": [
+    {
+      "profile": "minimal",
+      "metadata": {
+        "name": "Minimal",
+        "description": "Core tools for basic operations",
+        "toolCount": 12,
+        "estimatedTokens": 600,
+        "useCase": "Simple queries and essential CRUD operations"
+      },
+      "statistics": {
+        "minMs": 0.021666999999979453,
+        "maxMs": 0.8366659999999797,
+        "avgMs": 0.11282479999998714,
+        "medianMs": 0.030458000000010088,
+        "p95Ms": 0.8366659999999797,
+        "stdDevMs": 0.24156483461331563
+      },
+      "targetMs": 2000,
+      "status": "PASS",
+      "iterations": [
+        {
+          "iteration": 1,
+          "durationMs": 0.8366659999999797,
+          "toolCount": 58
+        },
+        {
+          "iteration": 2,
+          "durationMs": 0.030458000000010088,
+          "toolCount": 58
+        },
+        {
+          "iteration": 3,
+          "durationMs": 0.02400000000000091,
+          "toolCount": 58
+        },
+        {
+          "iteration": 4,
+          "durationMs": 0.021666999999979453,
+          "toolCount": 58
+        },
+        {
+          "iteration": 5,
+          "durationMs": 0.022458000000028733,
+          "toolCount": 58
+        },
+        {
+          "iteration": 6,
+          "durationMs": 0.031791999999995824,
+          "toolCount": 58
+        },
+        {
+          "iteration": 7,
+          "durationMs": 0.027832999999986896,
+          "toolCount": 58
+        },
+        {
+          "iteration": 8,
+          "durationMs": 0.024082999999961885,
+          "toolCount": 58
+        },
+        {
+          "iteration": 9,
+          "durationMs": 0.05308299999995825,
+          "toolCount": 58
+        },
+        {
+          "iteration": 10,
+          "durationMs": 0.056207999999969616,
+          "toolCount": 58
+        }
+      ]
+    },
+    {
+      "profile": "standard",
+      "metadata": {
+        "name": "Standard",
+        "description": "Most common operations",
+        "toolCount": 32,
+        "estimatedTokens": 1600,
+        "useCase": "Common business operations and structured workflows"
+      },
+      "statistics": {
+        "minMs": 0.005999999999971806,
+        "maxMs": 0.024249999999994998,
+        "avgMs": 0.00892509999999902,
+        "medianMs": 0.006458000000009179,
+        "p95Ms": 0.024249999999994998,
+        "stdDevMs": 0.005543299873723124
+      },
+      "targetMs": 2000,
+      "status": "PASS",
+      "iterations": [
+        {
+          "iteration": 1,
+          "durationMs": 0.024249999999994998,
+          "toolCount": 58
+        },
+        {
+          "iteration": 2,
+          "durationMs": 0.013500000000021828,
+          "toolCount": 58
+        },
+        {
+          "iteration": 3,
+          "durationMs": 0.006833999999969365,
+          "toolCount": 58
+        },
+        {
+          "iteration": 4,
+          "durationMs": 0.007583000000010998,
+          "toolCount": 58
+        },
+        {
+          "iteration": 5,
+          "durationMs": 0.006458000000009179,
+          "toolCount": 58
+        },
+        {
+          "iteration": 6,
+          "durationMs": 0.006083000000046468,
+          "toolCount": 58
+        },
+        {
+          "iteration": 7,
+          "durationMs": 0.006209000000012566,
+          "toolCount": 58
+        },
+        {
+          "iteration": 8,
+          "durationMs": 0.005999999999971806,
+          "toolCount": 58
+        },
+        {
+          "iteration": 9,
+          "durationMs": 0.006249999999965894,
+          "toolCount": 58
+        },
+        {
+          "iteration": 10,
+          "durationMs": 0.0060839999999871,
+          "toolCount": 58
+        }
+      ]
+    },
+    {
+      "profile": "full",
+      "metadata": {
+        "name": "Full",
+        "description": "All available tools",
+        "toolCount": 61,
+        "estimatedTokens": 3050,
+        "useCase": "Complex automations, bulk operations, advanced workflows"
+      },
+      "statistics": {
+        "minMs": 0.005625000000009095,
+        "maxMs": 0.008832999999981439,
+        "avgMs": 0.0067166999999983545,
+        "medianMs": 0.00620800000001509,
+        "p95Ms": 0.008832999999981439,
+        "stdDevMs": 0.0010112847324015481
+      },
+      "targetMs": 2000,
+      "status": "PASS",
+      "iterations": [
+        {
+          "iteration": 1,
+          "durationMs": 0.00741699999997536,
+          "toolCount": 58
+        },
+        {
+          "iteration": 2,
+          "durationMs": 0.005916000000013355,
+          "toolCount": 58
+        },
+        {
+          "iteration": 3,
+          "durationMs": 0.0061670000000049185,
+          "toolCount": 58
+        },
+        {
+          "iteration": 4,
+          "durationMs": 0.005749999999977717,
+          "toolCount": 58
+        },
+        {
+          "iteration": 5,
+          "durationMs": 0.0061249999999972715,
+          "toolCount": 58
+        },
+        {
+          "iteration": 6,
+          "durationMs": 0.005625000000009095,
+          "toolCount": 58
+        },
+        {
+          "iteration": 7,
+          "durationMs": 0.008832999999981439,
+          "toolCount": 58
+        },
+        {
+          "iteration": 8,
+          "durationMs": 0.00620800000001509,
+          "toolCount": 58
+        },
+        {
+          "iteration": 9,
+          "durationMs": 0.0072920000000067375,
+          "toolCount": 58
+        },
+        {
+          "iteration": 10,
+          "durationMs": 0.007834000000002561,
+          "toolCount": 58
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "totalProfiles": 3,
+    "passedProfiles": 3,
+    "failedProfiles": 0
+  }
+}
