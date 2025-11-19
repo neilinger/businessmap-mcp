@@ -36,6 +36,58 @@ The server requires the following environment variables:
 - `BUSINESSMAP_API_URL`: Your BusinessMap API URL (e.g., `https://your-account.kanbanize.com/api/v2`)
 - `BUSINESSMAP_READ_ONLY_MODE`: Set to `"true"` for read-only mode, `"false"` to allow modifications (optional, defaults to `"false"`)
 - `BUSINESSMAP_DEFAULT_WORKSPACE_ID`: Set the BusinessMap workspace ID (optional)
+- `BUSINESSMAP_TOOL_PROFILE`: Token optimization profile for tool registration (optional, defaults to `"standard"`)
+
+#### Tool Profile Configuration
+
+The `BUSINESSMAP_TOOL_PROFILE` environment variable controls which tools are registered with the MCP server, allowing you to optimize token consumption based on your workflow needs.
+
+**Available Profiles:**
+
+| Profile    | Tools | Token Count | Use Case                                                                                              |
+| ---------- | ----- | ----------- | ----------------------------------------------------------------------------------------------------- |
+| `minimal`  | 10    | ~14,276     | Basic card and board operations only. Ideal for simple workflows or token-constrained environments.   |
+| `standard` | 24    | ~18,500     | Most common workflows including cards, boards, workspaces, and users. **Default if not specified.**   |
+| `full`     | 59    | ~31,663     | All available tools including advanced features (custom fields, subtasks, outcomes, bulk operations). |
+
+**Profile Contents:**
+
+- **Minimal** (10 tools): `list_boards`, `list_cards`, `get_card`, `get_workspace`, `create_card`, `update_card`, `move_card`, `search_board`, `health_check`
+- **Standard** (24 tools): Minimal + workspace management, board creation/updates/structure, card comments, card parents/children, custom field viewing, users, system tools
+- **Full** (59 tools): Standard + advanced card features (subtasks, outcomes, history, linked cards), custom field management, workflow analysis, bulk operations
+
+**Note:** Ghost tools (`list_instances`, `get_instance_info`, `get_board`) were defined but never properly registered. Tool counts reflect actual registered tools in `src/config/tool-profiles.ts`.
+
+**Example Usage:**
+
+```json
+{
+  "mcpServers": {
+    "Businessmap": {
+      "command": "npx",
+      "args": ["-y", "@neilinger/businessmap-mcp"],
+      "env": {
+        "BUSINESSMAP_API_TOKEN": "your_token_here",
+        "BUSINESSMAP_API_URL": "https://your-account.kanbanize.com/api/v2",
+        "BUSINESSMAP_TOOL_PROFILE": "minimal"
+      }
+    }
+  }
+}
+```
+
+**Token Optimization Benefits:**
+
+- **Reduced Context Size**: Lower token counts mean more room for conversation history and responses
+- **Faster Tool Discovery**: Fewer tools make it easier for the AI to select appropriate actions
+- **Cost Efficiency**: Lower token usage per request reduces API costs (especially important for Claude Desktop and Cursor)
+- **Progressive Enhancement**: Start with `minimal`, upgrade to `standard` or `full` as needed
+
+**Choosing a Profile:**
+
+- Use **minimal** if you primarily work with cards and boards, or in token-constrained environments
+- Use **standard** (default) for typical project management workflows covering 80% of common use cases
+- Use **full** when you need advanced features like custom fields, bulk operations, or detailed card relationships
 
 #### Claude Desktop
 
@@ -50,8 +102,9 @@ Add the following configuration to your `claude_desktop_config.json` file:
       "env": {
         "BUSINESSMAP_API_TOKEN": "your_token_here",
         "BUSINESSMAP_API_URL": "https://your-account.kanbanize.com/api/v2",
-        "BUSINESSMAP_READ_ONLY_MODE": "false", // optional
-        "BUSINESSMAP_DEFAULT_WORKSPACE_ID": "1" // optional
+        "BUSINESSMAP_READ_ONLY_MODE": "false", // optional, defaults to false
+        "BUSINESSMAP_DEFAULT_WORKSPACE_ID": "1", // optional
+        "BUSINESSMAP_TOOL_PROFILE": "standard" // optional, defaults to standard (minimal|standard|full)
       }
     }
   }
@@ -75,7 +128,8 @@ To use the BusinessMap MCP server with Cursor, add the following configuration t
     "BUSINESSMAP_API_TOKEN": "your_token_here",
     "BUSINESSMAP_API_URL": "https://your-account.kanbanize.com/api/v2",
     "BUSINESSMAP_READ_ONLY_MODE": "false",
-    "BUSINESSMAP_DEFAULT_WORKSPACE_ID": "1"
+    "BUSINESSMAP_DEFAULT_WORKSPACE_ID": "1",
+    "BUSINESSMAP_TOOL_PROFILE": "standard"
   }
 }
 ```
@@ -96,7 +150,8 @@ To use the BusinessMap MCP server with VSCode, add the following configuration:
         "BUSINESSMAP_API_TOKEN": "your_token_here",
         "BUSINESSMAP_API_URL": "https://your-account.kanbanize.com/api/v2",
         "BUSINESSMAP_READ_ONLY_MODE": "false",
-        "BUSINESSMAP_DEFAULT_WORKSPACE_ID": "1"
+        "BUSINESSMAP_DEFAULT_WORKSPACE_ID": "1",
+        "BUSINESSMAP_TOOL_PROFILE": "standard"
       }
     }
   }
@@ -108,7 +163,7 @@ To use the BusinessMap MCP server with VSCode, add the following configuration:
 For other MCP clients, use the appropriate configuration format for your client, ensuring you specify:
 
 - Command: `npx @neilinger/businessmap-mcp` (or `businessmap-mcp` if globally installed)
-- Environment variables: `BUSINESSMAP_API_TOKEN`, `BUSINESSMAP_API_URL`, and optionally `BUSINESSMAP_READ_ONLY_MODE`, `BUSINESSMAP_DEFAULT_WORKSPACE_ID`
+- Environment variables: `BUSINESSMAP_API_TOKEN`, `BUSINESSMAP_API_URL`, and optionally `BUSINESSMAP_READ_ONLY_MODE`, `BUSINESSMAP_DEFAULT_WORKSPACE_ID`, `BUSINESSMAP_TOOL_PROFILE`
 
 ### Manual Setup
 
@@ -132,6 +187,7 @@ For other MCP clients, use the appropriate configuration format for your client,
    BUSINESSMAP_API_URL=https://your-account.kanbanize.com/api/v2
    BUSINESSMAP_READ_ONLY_MODE=false
    BUSINESSMAP_DEFAULT_WORKSPACE_ID=1
+   BUSINESSMAP_TOOL_PROFILE=standard
    ```
 
    > **Note**: When using as an MCP server with Claude Desktop, you don't need a `.env` file. Configure the environment variables directly in your MCP client configuration instead.
@@ -156,7 +212,7 @@ This project implements a **five-layer defense-in-depth quality control architec
 
 The quality control system operates as a cascading defense mechanism, where each layer provides increasingly thorough validation:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │ Layer 1: Branch Protection                                      │
 │ ├─ Blocks direct commits to main branch                        │
@@ -195,6 +251,7 @@ The quality control system operates as a cascading defense mechanism, where each
 ### Layer Details
 
 #### Layer 1: Branch Protection
+
 **Purpose**: Prevent unauthorized direct commits to protected branches
 
 - Blocks direct pushes to `main` branch
@@ -206,9 +263,11 @@ The quality control system operates as a cascading defense mechanism, where each
 - **Maintenance**: Run `bash scripts/setup-branch-protection.sh` periodically to verify configuration
 
 #### Layer 2: Pre-commit Hooks (< 2s)
+
 **Purpose**: Fast feedback on code quality before commit creation
 
 Implemented via Husky + lint-staged:
+
 - **ESLint**: Enforces code quality rules and catches common errors
 - **Prettier**: Automatically formats code to project standards
 - **TypeScript**: Validates types and catches compilation errors
@@ -216,6 +275,7 @@ Implemented via Husky + lint-staged:
 Performance target: Complete in under 2 seconds for rapid iteration.
 
 #### Layer 3: Commit Message Validation
+
 **Purpose**: Ensure consistent commit messages for semantic versioning
 
 - **Commitlint**: Enforces Conventional Commits format (`feat:`, `fix:`, `docs:`, etc.)
@@ -226,6 +286,7 @@ Performance target: Complete in under 2 seconds for rapid iteration.
   - `BREAKING CHANGE`: Breaking changes (major version bump)
 
 #### Layer 4: Pre-push Hooks (30-90s)
+
 **Purpose**: Thorough validation before code reaches remote repository
 
 - **Unit Tests**: Fast component-level validation
@@ -235,16 +296,18 @@ Performance target: Complete in under 2 seconds for rapid iteration.
   - Performance: 30-90 seconds for comprehensive validation
 
 #### Layer 5: CI Enforcement
+
 **Purpose**: Detect hook bypasses and provide final validation gate
 
 Catches developers who use `git commit --no-verify` or `git push --no-verify`:
 
-| Bypass Attempt | Caught By | CI Job |
-|---------------|-----------|---------|
-| `git commit --no-verify` | Pre-commit Validation | `CI / Pre-commit Validation` |
-| `git push --no-verify` | Integration Tests (Mock) | `CI / Integration Tests (Mock)` |
+| Bypass Attempt           | Caught By                | CI Job                          |
+| ------------------------ | ------------------------ | ------------------------------- |
+| `git commit --no-verify` | Pre-commit Validation    | `CI / Pre-commit Validation`    |
+| `git push --no-verify`   | Integration Tests (Mock) | `CI / Integration Tests (Mock)` |
 
 **CI runs in MOCK mode** (no credentials required):
+
 - Schema and structure validation only
 - No actual API calls to BusinessMap
 - Fast execution (< 1 minute)
@@ -255,16 +318,20 @@ Catches developers who use `git commit --no-verify` or `git push --no-verify`:
 The system detects and blocks two common bypass attempts:
 
 **1. Pre-commit Hook Bypass**
+
 ```bash
 git commit --no-verify  # Skips Layer 2 + Layer 3
 ```
+
 **Detection**: `CI / Pre-commit Validation` job re-runs ESLint, Prettier, TypeScript, and Commitlint
 **Outcome**: PR merge blocked if violations found
 
 **2. Pre-push Hook Bypass**
+
 ```bash
 git push --no-verify  # Skips Layer 4
 ```
+
 **Detection**: `CI / Integration Tests (Mock)` job runs schema validation
 **Outcome**: PR merge blocked if integration test structure invalid
 
@@ -272,14 +339,15 @@ git push --no-verify  # Skips Layer 4
 
 Integration tests support two operational modes:
 
-| Mode | Environment | Credentials | API Calls | Performance | Use Case |
-|------|-------------|-------------|-----------|-------------|----------|
-| **REAL** | Local (pre-push) | Required (`BUSINESSMAP_API_TOKEN`) | Live API validation | 30-90s | Developer validation before push |
-| **MOCK** | CI (GitHub Actions) | Not required | Schema/structure only | < 1min | Hook bypass detection |
+| Mode     | Environment         | Credentials                        | API Calls             | Performance | Use Case                         |
+| -------- | ------------------- | ---------------------------------- | --------------------- | ----------- | -------------------------------- |
+| **REAL** | Local (pre-push)    | Required (`BUSINESSMAP_API_TOKEN`) | Live API validation   | 30-90s      | Developer validation before push |
+| **MOCK** | CI (GitHub Actions) | Not required                       | Schema/structure only | < 1min      | Hook bypass detection            |
 
 **Security**: Production credentials never exposed in CI environment. MOCK mode provides structural validation without requiring sensitive tokens.
 
 **Configuration**:
+
 ```bash
 # Local .env (REAL mode)
 BUSINESSMAP_API_TOKEN=your_token_here
@@ -292,6 +360,7 @@ BUSINESSMAP_API_URL=https://your-account.kanbanize.com/api/v2
 ### Setup and Maintenance
 
 #### Initial Setup
+
 The quality control system is automatically configured during project setup:
 
 ```bash
@@ -301,6 +370,7 @@ npm install  # Installs Husky, commitlint, lint-staged
 Husky git hooks are installed automatically via the `prepare` script.
 
 #### Branch Protection Setup
+
 Configure GitHub branch protection rules:
 
 ```bash
@@ -312,12 +382,15 @@ This script requires a GitHub personal access token with `repo` scope. Follow th
 #### Periodic Maintenance
 
 **Branch Protection Verification** (Monthly):
+
 ```bash
 bash scripts/setup-branch-protection.sh
 ```
+
 Verifies that branch protection rules remain correctly configured.
 
 **NPM Token Rotation** (Every 90 days):
+
 1. Generate new NPM automation token
 2. Update `NPM_TOKEN` secret in GitHub repository settings
 3. See [docs/ONBOARDING.md](docs/ONBOARDING.md) for detailed instructions
@@ -348,11 +421,13 @@ git push origin feature-branch
 ### Troubleshooting
 
 **Pre-commit hooks not running?**
+
 ```bash
 npm run prepare  # Reinstall Husky hooks
 ```
 
 **Integration tests failing locally?**
+
 ```bash
 # Verify credentials are configured
 echo $BUSINESSMAP_API_TOKEN
@@ -363,6 +438,7 @@ npm run test:integration
 ```
 
 **CI integration tests failing?**
+
 - CI runs in MOCK mode - verify test structure is valid
 - Check that schema validation logic is correct
 - MOCK mode failures indicate structural issues, not credential problems
@@ -370,6 +446,7 @@ npm run test:integration
 ### Documentation
 
 For comprehensive implementation details, see:
+
 - **[docs/ONBOARDING.md](docs/ONBOARDING.md)**: Complete setup guide and maintenance procedures
 - **[docs/specs/T058-T060-five-layer-quality-control.md](docs/specs/T058-T060-five-layer-quality-control.md)**: Technical specification
 - **[.husky/](.husky/)**: Git hook implementations
@@ -394,6 +471,7 @@ Or for project-specific skills, copy to `.claude/skills/` in your project root.
 **When to use**: Ask "How do I [work with boards/cards/workspaces]?" or any BusinessMap workflow questions.
 
 The consultant skill provides:
+
 - Interactive workflow guidance for board setup, card migrations, bulk operations
 - Tool usage demonstrations with actual MCP tool calls
 - Common patterns: board structure, card hierarchies, custom fields
@@ -406,6 +484,7 @@ The consultant skill provides:
 **When to use**: Encountering API errors (403, 404, 429, BS05) or unexpected behavior.
 
 The troubleshooting skill provides:
+
 - Error code diagnosis (HTTP 403/404/429/500, BS05)
 - Authentication and configuration issue resolution
 - Rate limiting strategies and solutions
@@ -419,6 +498,7 @@ The troubleshooting skill provides:
 **When to use**: Optimizing API usage, implementing production deployments, or bulk operations.
 
 The best practices skill provides:
+
 - Performance optimization patterns (bulk operations, pagination strategies)
 - Rate limiting strategies (token bucket, exponential backoff, circuit breaker)
 - Caching strategies (board structure, user data, custom fields)
@@ -541,16 +621,16 @@ The BusinessMap MCP server provides the following tools:
 
 ## Tool Summary
 
-The BusinessMap MCP server provides **65 tools** across 9 categories:
+The BusinessMap MCP server provides **59 registered tools** across 9 categories (in full profile):
 
 - **Workspace Management**: 5 tools
-- **Board Management**: 11 tools
+- **Board Management**: 10 tools (`get_board` removed in favor of `get_current_board_structure`)
 - **Card Management**: 25 tools (organized in 6 subcategories)
 - **Custom Field Management**: 7 tools
-- **Workflow & Cycle Time Analysis**: 2 tools
+- **Workflow & Cycle Time Analysis**: 2 tools (`calculate_card_cycle_time` removed)
 - **Bulk Operations**: 6 tools
 - **User Management**: 3 tools
-- **System**: 2 tools
+- **System**: 1 tool (`health_check` only; `list_instances`/`get_instance_info` never registered)
 
 ## Key Features
 
@@ -606,7 +686,8 @@ All tools follow consistent error handling patterns with specific failure causes
 - **Remediation**: Contact workspace/board administrator to request elevated permissions or have admin perform the operation
 
 **Example**:
-```
+
+```text
 Error: Insufficient permissions. Workspace archiving requires workspace admin role.
 Remediation: Contact workspace administrator to request elevated permissions.
 ```
@@ -620,7 +701,8 @@ Remediation: Contact workspace administrator to request elevated permissions.
 - **Remediation**: Use corresponding list/get tool to verify resource ID before retry
 
 **Example**:
-```
+
+```text
 Error: Board not found. Verify resource exists.
 Remediation: Use list_boards to retrieve current board IDs.
 ```
@@ -634,7 +716,8 @@ Remediation: Use list_boards to retrieve current board IDs.
 - **Remediation**: Wait indicated time and retry. Consider batching operations using bulk tools.
 
 **Example**:
-```
+
+```text
 Error: Rate limit exceeded. Retry after 60 seconds.
 Remediation: Wait 60 seconds and retry. For multiple operations, use bulk_update_cards instead of individual updates.
 ```
@@ -648,7 +731,8 @@ Remediation: Wait 60 seconds and retry. For multiple operations, use bulk_update
 - **Remediation**: Review parameter requirements and adjust input
 
 **Example**:
-```
+
+```bash
 Error: Validation failed: Custom field name must be unique within board.
 Remediation: Use list_board_custom_fields to check existing names, then choose a unique name.
 ```
@@ -662,7 +746,8 @@ Remediation: Use list_board_custom_fields to check existing names, then choose a
 - **Remediation**: Review dependencies and confirm operation or cancel
 
 **Example**:
-```
+
+```sql
 ⚠️  Delete Confirmation Required
 
 Workspace "Marketing Team" (ID: 123)
@@ -684,7 +769,8 @@ Proceed with deletion? (yes/no):
 - **Remediation**: Check network connection and retry. If persists, check BusinessMap status.
 
 **Example**:
-```
+
+```text
 Error: Connection failed: ECONNREFUSED
 Remediation: Verify BUSINESSMAP_API_URL is correct and BusinessMap service is accessible. Retry after verifying connection.
 ```
@@ -692,20 +778,24 @@ Remediation: Verify BUSINESSMAP_API_URL is correct and BusinessMap service is ac
 ### Error Handling by Tool Category
 
 #### Workspace Operations
+
 - `update_workspace`, `archive_workspace`: Permissions, NotFound, RateLimit
 - `bulk_archive_workspaces`, `bulk_update_workspaces`: All above + CascadeConfirmation for workspaces with boards
 
 #### Board Operations
+
 - `update_board`, `delete_board`: Permissions, NotFound, RateLimit
 - `bulk_delete_boards`, `bulk_update_boards`: All above + CascadeConfirmation for boards with cards
 
 #### Card Operations
+
 - `delete_card`: NotFound, RateLimit, CascadeConfirmation (if has children/comments/subtasks)
 - `update_card_comment`, `delete_card_comment`: NotFound, RateLimit, Permissions
 - `update_card_subtask`, `delete_card_subtask`: NotFound, RateLimit
 - `bulk_delete_cards`, `bulk_update_cards`: All above + CascadeConfirmation
 
 #### Custom Field Operations
+
 - `create_custom_field`, `update_custom_field`: Validation (name uniqueness, type constraints), RateLimit
 - `delete_custom_field`: Permissions, NotFound, CascadeConfirmation (shows affected boards/cards)
 
@@ -728,6 +818,11 @@ npm run build
 
 # Run tests
 npm test
+
+# Performance benchmarks
+npm run benchmark:profile  # Profile registration performance
+npm run measure:profile    # Token usage by profile
+npm run measure:baseline   # Baseline token metrics
 
 # Lint code
 npm run lint

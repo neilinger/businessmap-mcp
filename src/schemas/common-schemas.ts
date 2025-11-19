@@ -8,24 +8,10 @@ import {
   urlSchema,
   positionSchema,
   SECURITY_LIMITS,
-  secureString,
   secureArray,
 } from './security-validation.js';
 
 // Common schemas that are reused across different modules
-
-// Instance parameter (for multi-instance support)
-export const instanceParameterSchema = {
-  instance: secureString({
-    minLength: 1,
-    maxLength: 100,
-    trim: true,
-  })
-    .optional()
-    .describe(
-      'Optional instance name to target a specific BusinessMap instance. If not provided, uses the default instance.'
-    ),
-};
 
 // Date and time filters with validation
 export const dateTimeFilterSchema = {

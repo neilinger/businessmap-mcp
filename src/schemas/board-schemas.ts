@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { instanceParameterSchema } from './common-schemas.js';
+import { SharedParams } from './shared-params.js';
 import {
   entityIdSchema,
   entityNameSchema,
@@ -56,7 +56,7 @@ export const listBoardsSchema = z.object({
   workspace_id: optionalEntityId.describe(
     'Optional workspace ID to filter boards (legacy parameter)'
   ),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Schema for busca de boards
@@ -64,31 +64,31 @@ export const searchBoardSchema = z.object({
   board_id: optionalEntityId.describe('The ID of the board to search for'),
   board_name: entityNameSchema.optional().describe('The name of the board to search for'),
   workspace_id: optionalEntityId.describe('Optional workspace ID to limit search scope'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Schema for obter detalhes de um board específico
 export const getBoardSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Schema for obter colunas de um board
 export const getColumnsSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Schema for obter lanes de um board
 export const getLanesSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Schema for obter detalhes de uma lane específica
 export const getLaneSchema = z.object({
   lane_id: entityIdSchema.describe('The ID of the lane'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Schema for criação de boards
@@ -97,7 +97,7 @@ export const createBoardSchema = z.object({
   description: optionalDescription.describe('Optional description for the board'),
   project_id: optionalEntityId.describe('Optional project ID for the board'),
   workspace_id: optionalEntityId.describe('The ID of the workspace'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Schema for criação de lanes
@@ -107,13 +107,13 @@ export const createLaneSchema = z.object({
   workflow_id: entityIdSchema.describe('The workflow ID'),
   position: positionSchema.describe('The position of the lane'),
   color: colorSchema.describe('The color for the lane'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Schema for obter estrutura atual do board
 export const getCurrentBoardStructureSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Schema for atualização de boards
@@ -121,7 +121,7 @@ export const updateBoardSchema = z.object({
   board_id: entityIdSchema.describe('The ID of the board to update'),
   name: entityNameSchema.optional().describe('New name for the board'),
   description: optionalDescription.describe('New description for the board'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Schema for deleção de boards
@@ -134,5 +134,5 @@ export const deleteBoardSchema = z.object({
     .describe(
       'Archive the board before deletion to avoid API errors. Default: true. Set to false only if board is already archived.'
     ),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });

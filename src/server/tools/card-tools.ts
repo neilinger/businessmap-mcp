@@ -32,42 +32,96 @@ import {
   createErrorResponse,
   createSuccessResponse,
   getClientForInstance,
+  shouldRegisterTool,
 } from './base-tool.js';
 
 export class CardToolHandler implements BaseToolHandler {
   registerTools(
     server: McpServer,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean
+    readOnlyMode: boolean,
+    enabledTools?: string[]
   ): void {
-    this.registerListCards(server, clientOrFactory);
-    this.registerGetCard(server, clientOrFactory);
-    this.registerGetCardSize(server, clientOrFactory);
-    this.registerGetCardComments(server, clientOrFactory);
-    this.registerGetCardComment(server, clientOrFactory);
-    this.registerGetCardCustomFields(server, clientOrFactory);
-    this.registerGetCardTypes(server, clientOrFactory);
-    this.registerGetCardHistory(server, clientOrFactory);
-    this.registerGetCardOutcomes(server, clientOrFactory);
-    this.registerGetCardLinkedCards(server, clientOrFactory);
-    this.registerGetCardSubtasks(server, clientOrFactory);
-    this.registerGetCardSubtask(server, clientOrFactory);
-    this.registerGetCardParents(server, clientOrFactory);
-    this.registerGetCardParent(server, clientOrFactory);
-    this.registerGetCardParentGraph(server, clientOrFactory);
-    this.registerGetCardChildren(server, clientOrFactory);
+    if (shouldRegisterTool('list_cards', enabledTools)) {
+      this.registerListCards(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card', enabledTools)) {
+      this.registerGetCard(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_size', enabledTools)) {
+      this.registerGetCardSize(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_comments', enabledTools)) {
+      this.registerGetCardComments(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_comment', enabledTools)) {
+      this.registerGetCardComment(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_custom_fields', enabledTools)) {
+      this.registerGetCardCustomFields(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_types', enabledTools)) {
+      this.registerGetCardTypes(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_history', enabledTools)) {
+      this.registerGetCardHistory(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_outcomes', enabledTools)) {
+      this.registerGetCardOutcomes(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_linked_cards', enabledTools)) {
+      this.registerGetCardLinkedCards(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_subtasks', enabledTools)) {
+      this.registerGetCardSubtasks(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_subtask', enabledTools)) {
+      this.registerGetCardSubtask(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_parents', enabledTools)) {
+      this.registerGetCardParents(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_parent', enabledTools)) {
+      this.registerGetCardParent(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_parent_graph', enabledTools)) {
+      this.registerGetCardParentGraph(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_card_children', enabledTools)) {
+      this.registerGetCardChildren(server, clientOrFactory);
+    }
 
     if (!readOnlyMode) {
-      this.registerCreateCard(server, clientOrFactory);
-      this.registerMoveCard(server, clientOrFactory);
-      this.registerUpdateCard(server, clientOrFactory);
-      this.registerDeleteCard(server, clientOrFactory);
-      this.registerSetCardSize(server, clientOrFactory);
-      this.registerCreateCardSubtask(server, clientOrFactory);
-      this.registerAddCardParent(server, clientOrFactory);
-      this.registerRemoveCardParent(server, clientOrFactory);
-      this.registerBulkDeleteCards(server, clientOrFactory);
-      this.registerBulkUpdateCards(server, clientOrFactory);
+      if (shouldRegisterTool('create_card', enabledTools)) {
+        this.registerCreateCard(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('move_card', enabledTools)) {
+        this.registerMoveCard(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('update_card', enabledTools)) {
+        this.registerUpdateCard(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('delete_card', enabledTools)) {
+        this.registerDeleteCard(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('set_card_size', enabledTools)) {
+        this.registerSetCardSize(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('create_card_subtask', enabledTools)) {
+        this.registerCreateCardSubtask(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('add_card_parent', enabledTools)) {
+        this.registerAddCardParent(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('remove_card_parent', enabledTools)) {
+        this.registerRemoveCardParent(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('bulk_delete_cards', enabledTools)) {
+        this.registerBulkDeleteCards(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('bulk_update_cards', enabledTools)) {
+        this.registerBulkUpdateCards(server, clientOrFactory);
+      }
     }
   }
 
@@ -84,10 +138,75 @@ export class CardToolHandler implements BaseToolHandler {
       },
       async (params: any) => {
         try {
-          const { instance } = params;
+          const { instance, board_id, date_filters, ...otherFilters } = params;
           const client = await getClientForInstance(clientOrFactory, instance);
-          const { board_id, ...filters } = params;
-          const cards = await client.getCards(board_id, filters);
+
+          // Flatten date_filters if present
+          const flattenedFilters = {
+            ...otherFilters,
+            ...(date_filters?.archived && {
+              archived_from: date_filters.archived.from,
+              archived_from_date: date_filters.archived.from_date,
+              archived_to: date_filters.archived.to,
+              archived_to_date: date_filters.archived.to_date,
+            }),
+            ...(date_filters?.created && {
+              created_from: date_filters.created.from,
+              created_from_date: date_filters.created.from_date,
+              created_to: date_filters.created.to,
+              created_to_date: date_filters.created.to_date,
+            }),
+            ...(date_filters?.deadline && {
+              deadline_from: date_filters.deadline.from,
+              deadline_from_date: date_filters.deadline.from_date,
+              deadline_to: date_filters.deadline.to,
+              deadline_to_date: date_filters.deadline.to_date,
+            }),
+            ...(date_filters?.discarded && {
+              discarded_from: date_filters.discarded.from,
+              discarded_from_date: date_filters.discarded.from_date,
+              discarded_to: date_filters.discarded.to,
+              discarded_to_date: date_filters.discarded.to_date,
+            }),
+            ...(date_filters?.first_end && {
+              first_end_from: date_filters.first_end.from,
+              first_end_from_date: date_filters.first_end.from_date,
+              first_end_to: date_filters.first_end.to,
+              first_end_to_date: date_filters.first_end.to_date,
+            }),
+            ...(date_filters?.first_start && {
+              first_start_from: date_filters.first_start.from,
+              first_start_from_date: date_filters.first_start.from_date,
+              first_start_to: date_filters.first_start.to,
+              first_start_to_date: date_filters.first_start.to_date,
+            }),
+            ...(date_filters?.in_current_position_since && {
+              in_current_position_since_from: date_filters.in_current_position_since.from,
+              in_current_position_since_from_date: date_filters.in_current_position_since.from_date,
+              in_current_position_since_to: date_filters.in_current_position_since.to,
+              in_current_position_since_to_date: date_filters.in_current_position_since.to_date,
+            }),
+            ...(date_filters?.last_end && {
+              last_end_from: date_filters.last_end.from,
+              last_end_from_date: date_filters.last_end.from_date,
+              last_end_to: date_filters.last_end.to,
+              last_end_to_date: date_filters.last_end.to_date,
+            }),
+            ...(date_filters?.last_modified && {
+              last_modified_from: date_filters.last_modified.from,
+              last_modified_from_date: date_filters.last_modified.from_date,
+              last_modified_to: date_filters.last_modified.to,
+              last_modified_to_date: date_filters.last_modified.to_date,
+            }),
+            ...(date_filters?.last_start && {
+              last_start_from: date_filters.last_start.from,
+              last_start_from_date: date_filters.last_start.from_date,
+              last_start_to: date_filters.last_start.to,
+              last_start_to_date: date_filters.last_start.to_date,
+            }),
+          };
+
+          const cards = await client.getCards(board_id, flattenedFilters);
           return createSuccessResponse(cards);
         } catch (error) {
           return createErrorResponse(error, 'fetching cards');
@@ -163,9 +282,103 @@ export class CardToolHandler implements BaseToolHandler {
       },
       async (params: any) => {
         try {
-          const { instance, ...cardData } = params;
+          const {
+            instance,
+            placement,
+            metadata,
+            owners,
+            dates,
+            status,
+            collections,
+            custom_fields,
+            attachments,
+            card_links,
+            ...cardData
+          } = params;
+
+          // Flatten nested structures for BusinessMap API
+          const flattenedData = {
+            ...cardData,
+            // Flatten placement
+            ...(placement && {
+              lane_id: placement.lane_id,
+              position: placement.position,
+              track: placement.track,
+            }),
+            // Flatten metadata
+            ...(metadata && {
+              custom_id: metadata.custom_id,
+              description: metadata.description,
+              deadline: metadata.deadline,
+              size: metadata.size,
+              priority: metadata.priority,
+              color: metadata.color,
+              type_id: metadata.type_id,
+              reference: metadata.reference,
+              template_id: metadata.template_id,
+              version_id: metadata.version_id,
+            }),
+            // Flatten owners
+            ...(owners && {
+              user_id: owners.user_id,
+              co_owners: owners.co_owners,
+              reporter_user_id: owners.reporter_user_id,
+              reporter_email: owners.reporter_email,
+            }),
+            // Flatten dates
+            ...(dates && {
+              planned_start: dates.planned_start,
+              planned_start_sync: dates.planned_start_sync,
+              planned_end: dates.planned_end,
+              planned_end_sync: dates.planned_end_sync,
+              actual_start: dates.actual_start,
+              actual_end: dates.actual_end,
+              created_at: dates.created_at,
+              archived_at: dates.archived_at,
+              discarded_at: dates.discarded_at,
+            }),
+            // Flatten status
+            ...(status && {
+              is_archived: status.is_archived,
+              is_discarded: status.is_discarded,
+              watch: status.watch,
+              block_reason: status.block_reason,
+              discard_reason_id: status.discard_reason_id,
+              discard_comment: status.discard_comment,
+              exceeding_reason: status.exceeding_reason,
+            }),
+            // Flatten collections
+            ...(collections && {
+              co_owner_ids_to_add: collections.co_owner_ids_to_add,
+              co_owner_ids_to_remove: collections.co_owner_ids_to_remove,
+              watcher_ids_to_add: collections.watcher_ids_to_add,
+              watcher_ids_to_remove: collections.watcher_ids_to_remove,
+              tag_ids_to_add: collections.tag_ids_to_add,
+              tag_ids_to_remove: collections.tag_ids_to_remove,
+              milestone_ids_to_add: collections.milestone_ids_to_add,
+              milestone_ids_to_remove: collections.milestone_ids_to_remove,
+              stickers_to_add: collections.stickers_to_add,
+            }),
+            // Flatten custom_fields
+            ...(custom_fields && {
+              custom_fields_to_add_or_update: custom_fields.to_add_or_update,
+              custom_field_ids_to_remove: custom_fields.ids_to_remove,
+              custom_fields_to_copy: custom_fields.to_copy,
+            }),
+            // Flatten attachments
+            ...(attachments && {
+              attachments_to_add: attachments.to_add,
+              cover_image_link: attachments.cover_image_link,
+            }),
+            // Flatten card_links
+            ...(card_links && {
+              links_to_existing_cards_to_add_or_update: card_links.existing_cards,
+              links_to_new_cards_to_add: card_links.new_cards,
+            }),
+          };
+
           const client = await getClientForInstance(clientOrFactory, instance);
-          const card = await client.createCard(cardData);
+          const card = await client.createCard(flattenedData);
           return createSuccessResponse(card, 'Card created successfully:');
         } catch (error) {
           return createErrorResponse(error, 'creating card');

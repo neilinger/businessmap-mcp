@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { instanceParameterSchema } from './common-schemas.js';
+import { SharedParams } from './shared-params.js';
 import {
   bulkResourceIdsSchema,
   entityNameSchema,
@@ -22,7 +22,7 @@ export const bulkArchiveBaseSchema = z.object({
     .optional()
     .default(true)
     .describe('Whether to analyze dependencies before archiving'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Base bulk delete schema (for resources that support permanent deletion)
@@ -33,13 +33,13 @@ export const bulkDeleteBaseSchema = z.object({
     .optional()
     .default(true)
     .describe('Whether to analyze dependencies before deletion'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Base bulk update schema
 export const bulkUpdateBaseSchema = z.object({
   resource_ids: bulkResourceIdsSchema.describe('Array of resource IDs to update'),
-  ...instanceParameterSchema,
+  instance: SharedParams.shape.instance,
 });
 
 // Bulk archive workspaces (workspaces don't support permanent deletion)

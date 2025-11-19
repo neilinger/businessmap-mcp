@@ -6,16 +6,36 @@ import {
   getUserSchema,
   listUsersSchema,
 } from '../../schemas/user-schemas.js';
-import { BaseToolHandler, createErrorResponse, createSuccessResponse, getClientForInstance } from './base-tool.js';
+import {
+  BaseToolHandler,
+  createErrorResponse,
+  createSuccessResponse,
+  getClientForInstance,
+  shouldRegisterTool,
+} from './base-tool.js';
 
 export class UserToolHandler implements BaseToolHandler {
-  registerTools(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory, readOnlyMode: boolean): void {
-    this.registerListUsers(server, clientOrFactory);
-    this.registerGetUser(server, clientOrFactory);
-    this.registerGetCurrentUser(server, clientOrFactory);
+  registerTools(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
+    readOnlyMode: boolean,
+    enabledTools?: string[]
+  ): void {
+    if (shouldRegisterTool('list_users', enabledTools)) {
+      this.registerListUsers(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_user', enabledTools)) {
+      this.registerGetUser(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_current_user', enabledTools)) {
+      this.registerGetCurrentUser(server, clientOrFactory);
+    }
   }
 
-  private registerListUsers(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerListUsers(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'list_users',
       {
@@ -35,7 +55,10 @@ export class UserToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetUser(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetUser(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'get_user',
       {
@@ -55,7 +78,10 @@ export class UserToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetCurrentUser(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetCurrentUser(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'get_current_user',
       {

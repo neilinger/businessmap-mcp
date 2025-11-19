@@ -121,7 +121,9 @@ test-*.ts
 # Claude Code files & GITHUB Spec-kit files
 .claude/
 .serena/
-.specify/
+.specify/*
+!.specify/memory/
+!.specify/templates/
 CLAUDE.md
 docs/architecture/
 .mcp.json

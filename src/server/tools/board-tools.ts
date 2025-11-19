@@ -21,6 +21,7 @@ import {
   createErrorResponse,
   createSuccessResponse,
   getClientForInstance,
+  shouldRegisterTool,
 } from './base-tool.js';
 
 const logger = createLoggerSync({ level: 'info' });
@@ -29,22 +30,47 @@ export class BoardToolHandler implements BaseToolHandler {
   registerTools(
     server: McpServer,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean
+    readOnlyMode: boolean,
+    enabledTools?: string[]
   ): void {
-    this.registerListBoards(server, clientOrFactory);
-    this.registerSearchBoard(server, clientOrFactory);
-    this.registerGetColumns(server, clientOrFactory);
-    this.registerGetLanes(server, clientOrFactory);
-    this.registerGetLane(server, clientOrFactory);
-    this.registerGetCurrentBoardStructure(server, clientOrFactory);
+    if (shouldRegisterTool('list_boards', enabledTools)) {
+      this.registerListBoards(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('search_board', enabledTools)) {
+      this.registerSearchBoard(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_columns', enabledTools)) {
+      this.registerGetColumns(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_lanes', enabledTools)) {
+      this.registerGetLanes(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_lane', enabledTools)) {
+      this.registerGetLane(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_current_board_structure', enabledTools)) {
+      this.registerGetCurrentBoardStructure(server, clientOrFactory);
+    }
 
     if (!readOnlyMode) {
-      this.registerCreateBoard(server, clientOrFactory);
-      this.registerCreateLane(server, clientOrFactory);
-      this.registerUpdateBoard(server, clientOrFactory);
-      this.registerDeleteBoard(server, clientOrFactory);
-      this.registerBulkDeleteBoards(server, clientOrFactory);
-      this.registerBulkUpdateBoards(server, clientOrFactory);
+      if (shouldRegisterTool('create_board', enabledTools)) {
+        this.registerCreateBoard(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('create_lane', enabledTools)) {
+        this.registerCreateLane(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('update_board', enabledTools)) {
+        this.registerUpdateBoard(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('delete_board', enabledTools)) {
+        this.registerDeleteBoard(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('bulk_delete_boards', enabledTools)) {
+        this.registerBulkDeleteBoards(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('bulk_update_boards', enabledTools)) {
+        this.registerBulkUpdateBoards(server, clientOrFactory);
+      }
     }
   }
 

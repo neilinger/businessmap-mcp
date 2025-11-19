@@ -14,23 +14,51 @@ import {
 } from '../../schemas/bulk-schemas.js';
 import { DependencyAnalyzer } from '../../services/dependency-analyzer.js';
 import { ConfirmationBuilder } from '../../services/confirmation-builder.js';
-import { BaseToolHandler, createErrorResponse, createSuccessResponse, getClientForInstance } from './base-tool.js';
+import {
+  BaseToolHandler,
+  createErrorResponse,
+  createSuccessResponse,
+  getClientForInstance,
+  shouldRegisterTool,
+} from './base-tool.js';
 
 export class WorkspaceToolHandler implements BaseToolHandler {
-  registerTools(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory, readOnlyMode: boolean): void {
-    this.registerListWorkspaces(server, clientOrFactory);
-    this.registerGetWorkspace(server, clientOrFactory);
+  registerTools(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
+    readOnlyMode: boolean,
+    enabledTools?: string[]
+  ): void {
+    if (shouldRegisterTool('list_workspaces', enabledTools)) {
+      this.registerListWorkspaces(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('get_workspace', enabledTools)) {
+      this.registerGetWorkspace(server, clientOrFactory);
+    }
 
     if (!readOnlyMode) {
-      this.registerCreateWorkspace(server, clientOrFactory);
-      this.registerUpdateWorkspace(server, clientOrFactory);
-      this.registerArchiveWorkspace(server, clientOrFactory);
-      this.registerBulkArchiveWorkspaces(server, clientOrFactory);
-      this.registerBulkUpdateWorkspaces(server, clientOrFactory);
+      if (shouldRegisterTool('create_workspace', enabledTools)) {
+        this.registerCreateWorkspace(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('update_workspace', enabledTools)) {
+        this.registerUpdateWorkspace(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('archive_workspace', enabledTools)) {
+        this.registerArchiveWorkspace(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('bulk_archive_workspaces', enabledTools)) {
+        this.registerBulkArchiveWorkspaces(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('bulk_update_workspaces', enabledTools)) {
+        this.registerBulkUpdateWorkspaces(server, clientOrFactory);
+      }
     }
   }
 
-  private registerListWorkspaces(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerListWorkspaces(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'list_workspaces',
       {
@@ -50,7 +78,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerGetWorkspace(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerGetWorkspace(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'get_workspace',
       {
@@ -70,7 +101,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerCreateWorkspace(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerCreateWorkspace(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'create_workspace',
       {
@@ -90,8 +124,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-
-  private registerUpdateWorkspace(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerUpdateWorkspace(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'update_workspace',
       {
@@ -111,7 +147,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerArchiveWorkspace(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerArchiveWorkspace(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'archive_workspace',
       {
@@ -123,10 +162,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.archiveWorkspace(workspace_id);
-          return createSuccessResponse(
-            workspace,
-            'Workspace archived successfully:'
-          );
+          return createSuccessResponse(workspace, 'Workspace archived successfully:');
         } catch (error) {
           return createErrorResponse(error, 'archiving workspace');
         }
@@ -134,7 +170,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerBulkArchiveWorkspaces(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerBulkArchiveWorkspaces(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'bulk_archive_workspaces',
       {
@@ -178,17 +217,25 @@ export class WorkspaceToolHandler implements BaseToolHandler {
             // All successful
             const workspaces = successes.map((s) => ({
               id: s.id,
-              name: s.workspace?.name || `Workspace ${s.id}`
+              name: s.workspace?.name || `Workspace ${s.id}`,
             }));
 
-            const message = confirmationBuilder.formatSimpleSuccess('workspace', successes.length, workspaces);
+            const message = confirmationBuilder.formatSimpleSuccess(
+              'workspace',
+              successes.length,
+              workspaces
+            );
             return createSuccessResponse({ archived: successes.length, results }, message);
           } else if (successes.length > 0) {
             // Partial success
             const message = confirmationBuilder.formatPartialSuccess(
               'workspace',
               successes.map((s) => ({ id: s.id, name: s.workspace?.name || `Workspace ${s.id}` })),
-              failures.map((f) => ({ id: f.id, name: `Workspace ${f.id}`, error: f.error || 'Unknown error' }))
+              failures.map((f) => ({
+                id: f.id,
+                name: `Workspace ${f.id}`,
+                error: f.error || 'Unknown error',
+              }))
             );
             return createSuccessResponse(
               { successful: successes.length, failed: failures.length, results },
@@ -208,7 +255,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
     );
   }
 
-  private registerBulkUpdateWorkspaces(server: McpServer, clientOrFactory: BusinessMapClient | BusinessMapClientFactory): void {
+  private registerBulkUpdateWorkspaces(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
     server.registerTool(
       'bulk_update_workspaces',
       {
@@ -239,7 +289,11 @@ export class WorkspaceToolHandler implements BaseToolHandler {
             const message = confirmationBuilder.formatPartialSuccess(
               'workspace',
               successes.map((s) => ({ id: s.id, name: s.workspace?.name || `Workspace ${s.id}` })),
-              failures.map((f) => ({ id: f.id, name: `Workspace ${f.id}`, error: f.error || 'Unknown error' }))
+              failures.map((f) => ({
+                id: f.id,
+                name: `Workspace ${f.id}`,
+                error: f.error || 'Unknown error',
+              }))
             );
             return createSuccessResponse(
               { successful: successes.length, failed: failures.length, results },
