@@ -5,8 +5,8 @@
  * Spec: 003-schema-compression-lazy-loading
  *
  * Test Cases:
- * - T043: Test minimal profile registration (12 tools)
- * - T044: Test standard profile registration (32 tools, default)
+ * - T043: Test minimal profile registration (10 tools)
+ * - T044: Test standard profile registration (29 tools, default)
  * - T045: Test full profile registration (61 tools)
  * - T046: Test invalid profile error handling
  */
@@ -224,18 +224,18 @@ describe('Profile-Based Tool Registration', () => {
       /**
        * T043 (Mock): Verify minimal profile configuration
        */
-      it('should validate minimal profile has 12 tools configured', () => {
+      it('should validate minimal profile has 10 tools configured', () => {
         const metadata = PROFILE_METADATA.minimal;
-        expect(metadata.toolCount).toBe(12);
+        expect(metadata.toolCount).toBe(10);
         expect(metadata.name).toBe('Minimal');
       });
 
       /**
        * T044 (Mock): Verify standard profile configuration
        */
-      it('should validate standard profile has 32 tools configured', () => {
+      it('should validate standard profile has 29 tools configured', () => {
         const metadata = PROFILE_METADATA.standard;
-        expect(metadata.toolCount).toBe(32);
+        expect(metadata.toolCount).toBe(29);
         expect(metadata.name).toBe('Standard');
       });
 
@@ -296,14 +296,14 @@ describe('Profile-Based Tool Registration', () => {
     });
 
     it('should have correct tool count metadata', () => {
-      expect(PROFILE_METADATA.minimal.toolCount).toBe(12);
-      expect(PROFILE_METADATA.standard.toolCount).toBe(32);
+      expect(PROFILE_METADATA.minimal.toolCount).toBe(10);
+      expect(PROFILE_METADATA.standard.toolCount).toBe(29);
       expect(PROFILE_METADATA.full.toolCount).toBe(61);
     });
 
     it('should have estimated token counts for each profile', () => {
-      expect(PROFILE_METADATA.minimal.estimatedTokens).toBe(12 * 50);
-      expect(PROFILE_METADATA.standard.estimatedTokens).toBe(32 * 50);
+      expect(PROFILE_METADATA.minimal.estimatedTokens).toBe(10 * 50);
+      expect(PROFILE_METADATA.standard.estimatedTokens).toBe(29 * 50);
       expect(PROFILE_METADATA.full.estimatedTokens).toBe(61 * 50);
     });
   });
