@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/neilinger/businessmap-mcp/compare/v2.0.0...v2.1.0) (2025-11-21)
+
+
+### Features
+
+* **comments:** implement complete CRUD for card comments ([#32](https://github.com/neilinger/businessmap-mcp/issues/32)) ([08510e9](https://github.com/neilinger/businessmap-mcp/commit/08510e93227bfbc156fadfef99abe8a4ab867d2c)), closes [#26](https://github.com/neilinger/businessmap-mcp/issues/26) [#26](https://github.com/neilinger/businessmap-mcp/issues/26) [#26](https://github.com/neilinger/businessmap-mcp/issues/26)
+
 # [2.0.0](https://github.com/neilinger/businessmap-mcp/compare/v1.15.0...v2.0.0) (2025-11-19)
 
 
