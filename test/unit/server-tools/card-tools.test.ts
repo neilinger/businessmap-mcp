@@ -1231,4 +1231,339 @@ describe('CardToolHandler', () => {
       expect(result.content[0].text).toContain('Error bulk updating cards');
     });
   });
+
+  describe('create_card_comment tool', () => {
+    it('should register create_card_comment in write mode', () => {
+      cardHandler.registerTools(mockServer, mockClient, false);
+
+      expect(registeredTools.has('create_card_comment')).toBe(true);
+    });
+
+    it('should NOT register create_card_comment in read-only mode', () => {
+      cardHandler.registerTools(mockServer, mockClient, true);
+
+      expect(registeredTools.has('create_card_comment')).toBe(false);
+    });
+
+    it('should successfully create a comment with valid card_id and text', async () => {
+      mockClient.createCardComment = jest.fn();
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('create_card_comment');
+
+      const mockComment = {
+        comment_id: 1,
+        card_id: 100,
+        text: 'Test comment',
+      };
+      mockClient.createCardComment.mockResolvedValue(mockComment);
+
+      const result = await handler({
+        card_id: 100,
+        text: 'Test comment',
+      });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0].text).toContain('Comment created successfully');
+
+      const parsedContent = JSON.parse(result.content[0].text.split('\n')[1]);
+      expect(parsedContent.comment_id).toBe(1);
+      expect(parsedContent.text).toBe('Test comment');
+      expect(mockClient.createCardComment).toHaveBeenCalledWith(100, {
+        text: 'Test comment',
+        attachments_to_add: undefined,
+      });
+    });
+
+    it('should reject empty text (schema validation)', async () => {
+      mockClient.createCardComment = jest.fn();
+      mockClient.createCardComment.mockRejectedValue(new Error('Comment text cannot be empty'));
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('create_card_comment');
+
+      const result = await handler({
+        card_id: 100,
+        text: '',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error creating card comment');
+    });
+
+    it('should reject whitespace-only text (schema validation)', async () => {
+      mockClient.createCardComment = jest.fn();
+      mockClient.createCardComment.mockRejectedValue(new Error('Comment text cannot be empty'));
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('create_card_comment');
+
+      const result = await handler({
+        card_id: 100,
+        text: '   ',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error creating card comment');
+    });
+
+    it('should handle invalid card ID (404 from API)', async () => {
+      mockClient.createCardComment = jest.fn();
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('create_card_comment');
+
+      const error = new Error('Card not found');
+      mockClient.createCardComment.mockRejectedValue(error);
+
+      const result = await handler({
+        card_id: 999,
+        text: 'Test comment',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error creating card comment');
+      expect(result.content[0].text).toContain('Card not found');
+    });
+
+    it('should include optional attachments when provided', async () => {
+      mockClient.createCardComment = jest.fn();
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('create_card_comment');
+
+      mockClient.createCardComment.mockResolvedValue({
+        comment_id: 1,
+        card_id: 100,
+        text: 'Test comment',
+      });
+
+      const attachments = [
+        { file_name: 'test.txt', link: 'https://example.com/test.txt' },
+      ];
+
+      await handler({
+        card_id: 100,
+        text: 'Test comment',
+        attachments_to_add: attachments,
+      });
+
+      expect(mockClient.createCardComment).toHaveBeenCalledWith(100, {
+        text: 'Test comment',
+        attachments_to_add: attachments,
+      });
+    });
+  });
+
+  describe('update_card_comment tool', () => {
+    it('should register update_card_comment in write mode', () => {
+      cardHandler.registerTools(mockServer, mockClient, false);
+
+      expect(registeredTools.has('update_card_comment')).toBe(true);
+    });
+
+    it('should NOT register update_card_comment in read-only mode', () => {
+      cardHandler.registerTools(mockServer, mockClient, true);
+
+      expect(registeredTools.has('update_card_comment')).toBe(false);
+    });
+
+    it('should successfully update a comment with new text', async () => {
+      mockClient.updateCardComment = jest.fn();
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('update_card_comment');
+
+      const mockComment = {
+        comment_id: 1,
+        card_id: 100,
+        text: 'Updated comment',
+      };
+      mockClient.updateCardComment.mockResolvedValue(mockComment);
+
+      const result = await handler({
+        card_id: 100,
+        comment_id: 1,
+        text: 'Updated comment',
+      });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0].text).toContain('Comment updated successfully');
+
+      const parsedContent = JSON.parse(result.content[0].text.split('\n')[1]);
+      expect(parsedContent.comment_id).toBe(1);
+      expect(parsedContent.text).toBe('Updated comment');
+      expect(mockClient.updateCardComment).toHaveBeenCalledWith(100, 1, {
+        text: 'Updated comment',
+      });
+    });
+
+    it('should reject empty text when text is provided (schema validation)', async () => {
+      mockClient.updateCardComment = jest.fn();
+      mockClient.updateCardComment.mockRejectedValue(new Error('Comment text cannot be empty'));
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('update_card_comment');
+
+      const result = await handler({
+        card_id: 100,
+        comment_id: 1,
+        text: '',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error updating card comment');
+    });
+
+    it('should handle invalid comment ID (404 from API)', async () => {
+      mockClient.updateCardComment = jest.fn();
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('update_card_comment');
+
+      const error = new Error('Comment not found');
+      mockClient.updateCardComment.mockRejectedValue(error);
+
+      const result = await handler({
+        card_id: 100,
+        comment_id: 999,
+        text: 'Updated comment',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error updating card comment');
+      expect(result.content[0].text).toContain('Comment not found');
+    });
+
+    it('should require at least one field: text or attachments_to_add (schema validation)', async () => {
+      mockClient.updateCardComment = jest.fn();
+      mockClient.updateCardComment.mockRejectedValue(
+        new Error('At least one of text or attachments_to_add must be provided')
+      );
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('update_card_comment');
+
+      const result = await handler({
+        card_id: 100,
+        comment_id: 1,
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error updating card comment');
+    });
+
+    it('should allow update with only attachments', async () => {
+      mockClient.updateCardComment = jest.fn();
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('update_card_comment');
+
+      mockClient.updateCardComment.mockResolvedValue({
+        comment_id: 1,
+        card_id: 100,
+        text: 'Original text',
+      });
+
+      const attachments = [
+        { file_name: 'image.png', link: 'https://example.com/image.png' },
+      ];
+
+      await handler({
+        card_id: 100,
+        comment_id: 1,
+        attachments_to_add: attachments,
+      });
+
+      expect(mockClient.updateCardComment).toHaveBeenCalledWith(100, 1, {
+        attachments_to_add: attachments,
+      });
+    });
+
+    it('should allow update with both text and attachments', async () => {
+      mockClient.updateCardComment = jest.fn();
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('update_card_comment');
+
+      mockClient.updateCardComment.mockResolvedValue({
+        comment_id: 1,
+        card_id: 100,
+        text: 'Updated text',
+      });
+
+      const attachments = [
+        { file_name: 'doc.pdf', link: 'https://example.com/doc.pdf' },
+      ];
+
+      await handler({
+        card_id: 100,
+        comment_id: 1,
+        text: 'Updated text',
+        attachments_to_add: attachments,
+      });
+
+      expect(mockClient.updateCardComment).toHaveBeenCalledWith(100, 1, {
+        text: 'Updated text',
+        attachments_to_add: attachments,
+      });
+    });
+  });
+
+  describe('delete_card_comment tool', () => {
+    it('should register delete_card_comment in write mode', () => {
+      cardHandler.registerTools(mockServer, mockClient, false);
+
+      expect(registeredTools.has('delete_card_comment')).toBe(true);
+    });
+
+    it('should NOT register delete_card_comment in read-only mode', () => {
+      cardHandler.registerTools(mockServer, mockClient, true);
+
+      expect(registeredTools.has('delete_card_comment')).toBe(false);
+    });
+
+    it('should successfully delete a comment', async () => {
+      mockClient.deleteCardComment = jest.fn();
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('delete_card_comment');
+
+      mockClient.deleteCardComment.mockResolvedValue(undefined);
+
+      const result = await handler({
+        card_id: 100,
+        comment_id: 1,
+      });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0].text).toContain('Comment deleted successfully');
+
+      expect(mockClient.deleteCardComment).toHaveBeenCalledWith(100, 1);
+    });
+
+    it('should handle invalid comment ID (404 from API)', async () => {
+      mockClient.deleteCardComment = jest.fn();
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('delete_card_comment');
+
+      const error = new Error('Comment not found');
+      mockClient.deleteCardComment.mockRejectedValue(error);
+
+      const result = await handler({
+        card_id: 100,
+        comment_id: 999,
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error deleting card comment');
+      expect(result.content[0].text).toContain('Comment not found');
+    });
+
+    it('should handle already-deleted comment (404 from API)', async () => {
+      mockClient.deleteCardComment = jest.fn();
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('delete_card_comment');
+
+      const error = new Error('Comment has already been deleted');
+      mockClient.deleteCardComment.mockRejectedValue(error);
+
+      const result = await handler({
+        card_id: 100,
+        comment_id: 1,
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error deleting card comment');
+      expect(result.content[0].text).toContain('already been deleted');
+    });
+  });
 });

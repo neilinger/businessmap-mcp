@@ -15,6 +15,14 @@
 - Q: Concurrent update handling - Should the system implement conflict detection or delegate to API behavior? → A: Delegate to API behavior (use whatever BusinessMap API does for concurrency)
 - Q: Special characters and formatting - Should the system sanitize/escape, validate, or pass through comment text as-is? → A: Pass through as-is without sanitization or content modification; rely on API for escaping and validation (client-side empty text validation is separate from content modification)
 
+### Session 2025-11-20
+
+- Q: Observability requirements - For production operation monitoring and troubleshooting, what level of observability should the comment operations provide? → A: No observability - operations run silently with no metrics or logs (avoids feature creep)
+- Q: Batch operations and concurrency - For handling multiple comment operations, should the system support batch operations or impose any concurrency limits? → A: Single operation only - each tool call handles one comment operation; no batch support or concurrency limits
+- Q: Performance throughput expectations - Beyond the 5-second timeout (SC-004), should the system have any throughput or rate expectations for comment operations? → A: No throughput targets - only the 5-second timeout per operation matters; no minimum operations-per-second requirement
+- Q: Audit trail requirements - Should the system maintain any audit trail or logging for comment operations (who created/modified/deleted what and when)? → A: No audit trail - rely entirely on BusinessMap API's backend audit logs; client does not track operation history
+- Q: Client-side rate limiting - Should the system implement client-side rate limiting to prevent accidental API abuse or excessive operation requests? → A: No preventive throttling - do not limit requests before sending; handle rate limit errors (429, RL02) via existing axios-retry with exponential backoff (consistent with idempotent operation retry pattern)
+
 ## User Scenarios & Testing [MANDATORY]
 
 ### User Story 1 - Add Clarifying Comment to Card (Priority: P1)
@@ -95,6 +103,7 @@ A user needs to remove outdated or incorrect comments from cards programmaticall
 - **FR-012**: All operations MUST pass through BusinessMap API authentication and authorization; system returns any permission errors from API to user without modification
 - **FR-013**: System MUST NOT log comment text content in client-side logs to protect confidential business information; only comment IDs and operation metadata may be logged
 - **FR-014**: All error messages MUST follow 3-part structured format: (1) Specific failure cause with precise description, (2) Error classification as transient (retry suggested) or permanent (user action required), (3) Actionable remediation describing next steps. This format must be enforced via pre-commit test validation.
+- **FR-015**: Each operation (create, update, delete) MUST handle exactly one comment per invocation; batch operations are explicitly out of scope
 
 **FR-014 Error Message Examples**:
 ```json
@@ -126,6 +135,13 @@ A user needs to remove outdated or incorrect comments from cards programmaticall
   "remediation": "Verify card ID exists and is accessible in your workspace"
 }
 ```
+
+### Non-Functional Requirements
+
+- **NFR-001**: System MUST NOT implement observability features (metrics, telemetry, structured logging beyond error returns) to avoid feature creep beyond core CRUD functionality
+- **NFR-002**: System has NO throughput or operations-per-second requirements; only the 5-second per-operation timeout (SC-004) applies for performance validation
+- **NFR-003**: System MUST NOT maintain client-side audit trail or operation history; all audit responsibilities are delegated to BusinessMap API backend
+- **NFR-004**: System MUST NOT implement preventive client-side rate limiting or request throttling; System MUST handle rate limit errors (429 status, RL02 error code) via existing axios-retry exponential backoff mechanism for idempotent operations per FR-011a
 
 ### Key Entities
 

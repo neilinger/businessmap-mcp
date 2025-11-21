@@ -319,3 +319,6 @@ Based on existing patterns and infrastructure:
 | Testing: Both unit + integration | Comprehensive coverage per user request | 2025-11-20 |
 | No client-side length limits | Spec clarification: delegate to API | 2025-11-20 |
 | Retry only idempotent operations | Spec requirement: no CREATE retry (prevent duplicates) | 2025-11-20 |
+| axios-retry verified (T001) | Config at src/client/businessmap-client.ts:76-92: 3 retries, exponential backoff, POST excluded. PATCH retries on 429 only (acceptable). | 2025-11-21 |
+| UPDATE endpoint verified (T003) | PATCH /cards/{cardId}/comments/{commentId} works. Response format: array `[{comment}]`. ~263ms latency. API sanitizes HTML. | 2025-11-21 |
+| DELETE endpoint verified (T004) | DELETE /cards/{cardId}/comments/{commentId} works. ~300ms latency. Returns 404 for non-existent. Idempotent (2nd delete succeeds). | 2025-11-21 |
