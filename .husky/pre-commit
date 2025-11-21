@@ -1,6 +1,6 @@
 # FR-014: Validate 3-part error format compliance
 echo "🔍 Validating FR-014 error format compliance..."
-npx ts-node scripts/validate-error-format.ts || exit 1
+./node_modules/.bin/tsx scripts/validate-error-format.ts || exit 1
 
 # Run lint-staged for code quality
-npx lint-staged
+./node_modules/.bin/lint-staged
