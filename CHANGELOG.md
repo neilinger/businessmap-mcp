@@ -19,10 +19,9 @@ See docs/migration/schema-compression.md for migration guide.
 
 # [1.15.0](https://github.com/neilinger/businessmap-mcp/compare/v1.14.0...v1.15.0) (2025-11-19)
 
-
 ### Features
 
-* Token Optimization Phase 2 - Schema Compression & Lazy Loading ([#30](https://github.com/neilinger/businessmap-mcp/issues/30)) ([298dd31](https://github.com/neilinger/businessmap-mcp/commit/298dd31e95e528af891ececba74b2a06fe9a727e)), closes [#3](https://github.com/neilinger/businessmap-mcp/issues/3)
+- Token Optimization Phase 2 - Schema Compression & Lazy Loading ([#30](https://github.com/neilinger/businessmap-mcp/issues/30)) ([298dd31](https://github.com/neilinger/businessmap-mcp/commit/298dd31e95e528af891ececba74b2a06fe9a727e)), closes [#3](https://github.com/neilinger/businessmap-mcp/issues/3)
 
 # [2.0.0](https://github.com/neilinger/businessmap-mcp/compare/v1.14.0...v2.0.0) (2025-11-19)
 
@@ -566,6 +565,7 @@ See `docs/ISSUE-7-FIX-SUMMARY.md` for detailed analysis.
 
 **Comments Management**
 
+- `create_card_comment` - Create new comment on a card with text content
 - `update_card_comment` - Update existing card comment text and formatting
 - `delete_card_comment` - Remove comment from card
 

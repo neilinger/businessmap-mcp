@@ -383,7 +383,8 @@ export interface Comment {
 }
 
 export interface CommentListResponse {
-  data: Comment[];
+  comments: Comment[];
+  count: number;
 }
 
 export interface CommentResponse {
@@ -471,6 +472,15 @@ export interface CreateSubtaskParams {
 // Update Comment params
 export interface UpdateCommentParams {
   text?: string;
+  attachments_to_add?: Array<{
+    file_name: string;
+    link: string;
+  }>;
+}
+
+// Create Comment params
+export interface CreateCommentParams {
+  text: string;
   attachments_to_add?: Array<{
     file_name: string;
     link: string;

@@ -1,1 +1,6 @@
-npx lint-staged
+# FR-014: Validate 3-part error format compliance
+echo "🔍 Validating FR-014 error format compliance..."
+./node_modules/.bin/tsx scripts/validate-error-format.ts || exit 1
+
+# Run lint-staged for code quality
+./node_modules/.bin/lint-staged

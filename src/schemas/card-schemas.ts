@@ -153,6 +153,57 @@ export const getCardCommentSchema = z.object({
   instance: SharedParams.shape.instance,
 });
 
+/**
+ * Schema for creating a new card comment
+ * @example { card_id: 12345, text: "Important update on this task" }
+ */
+export const createCardCommentSchema = z.object({
+  card_id: entityIdSchema,
+  text: z.string().min(1, 'Comment text cannot be empty'),
+  attachments_to_add: z
+    .array(
+      z.object({
+        file_name: z.string(),
+        link: z.string().url(),
+      })
+    )
+    .optional(),
+  instance: SharedParams.shape.instance,
+});
+
+/**
+ * Schema for updating an existing card comment
+ * @example { card_id: 12345, comment_id: 67890, text: "Updated comment text" }
+ */
+export const updateCardCommentSchema = z
+  .object({
+    card_id: entityIdSchema,
+    comment_id: entityIdSchema,
+    text: z.string().min(1, 'Comment text cannot be empty').optional(),
+    attachments_to_add: z
+      .array(
+        z.object({
+          file_name: z.string(),
+          link: z.string().url(),
+        })
+      )
+      .optional(),
+    instance: SharedParams.shape.instance,
+  })
+  .refine((data) => data.text !== undefined || data.attachments_to_add !== undefined, {
+    message: 'At least one of text or attachments_to_add must be provided',
+  });
+
+/**
+ * Schema for deleting a card comment
+ * @example { card_id: 12345, comment_id: 67890 }
+ */
+export const deleteCardCommentSchema = z.object({
+  card_id: entityIdSchema,
+  comment_id: entityIdSchema,
+  instance: SharedParams.shape.instance,
+});
+
 // Schema para get card types (sem parâmetros)
 export const getCardTypesSchema = z.object({
   instance: SharedParams.shape.instance,

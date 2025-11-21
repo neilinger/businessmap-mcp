@@ -1,297 +1,312 @@
 {
-  "total": 31663,
+  "total": 32606,
   "tools": [
     {
       "tool": "list_workspaces",
       "tokens": 193,
-      "timestamp": "2025-11-19T12:30:10.181Z"
+      "timestamp": "2025-11-21T12:53:25.792Z"
     },
     {
       "tool": "get_workspace",
       "tokens": 279,
-      "timestamp": "2025-11-19T12:30:10.182Z"
+      "timestamp": "2025-11-21T12:53:25.792Z"
     },
     {
       "tool": "create_workspace",
       "tokens": 505,
-      "timestamp": "2025-11-19T12:30:10.182Z"
+      "timestamp": "2025-11-21T12:53:25.793Z"
     },
     {
       "tool": "update_workspace",
       "tokens": 619,
-      "timestamp": "2025-11-19T12:30:10.183Z"
+      "timestamp": "2025-11-21T12:53:25.793Z"
     },
     {
       "tool": "archive_workspace",
       "tokens": 280,
-      "timestamp": "2025-11-19T12:30:10.183Z"
+      "timestamp": "2025-11-21T12:53:25.794Z"
     },
     {
       "tool": "bulk_archive_workspaces",
       "tokens": 435,
-      "timestamp": "2025-11-19T12:30:10.183Z"
+      "timestamp": "2025-11-21T12:53:25.794Z"
     },
     {
       "tool": "bulk_update_workspaces",
       "tokens": 106,
-      "timestamp": "2025-11-19T12:30:10.184Z"
+      "timestamp": "2025-11-21T12:53:25.794Z"
     },
     {
       "tool": "list_boards",
       "tokens": 1195,
-      "timestamp": "2025-11-19T12:30:10.185Z"
+      "timestamp": "2025-11-21T12:53:25.800Z"
     },
     {
       "tool": "search_board",
       "tokens": 620,
-      "timestamp": "2025-11-19T12:30:10.185Z"
+      "timestamp": "2025-11-21T12:53:25.800Z"
     },
     {
       "tool": "get_columns",
       "tokens": 279,
-      "timestamp": "2025-11-19T12:30:10.185Z"
+      "timestamp": "2025-11-21T12:53:25.800Z"
     },
     {
       "tool": "get_lanes",
       "tokens": 280,
-      "timestamp": "2025-11-19T12:30:10.186Z"
+      "timestamp": "2025-11-21T12:53:25.801Z"
     },
     {
       "tool": "get_lane",
       "tokens": 279,
-      "timestamp": "2025-11-19T12:30:10.186Z"
+      "timestamp": "2025-11-21T12:53:25.801Z"
     },
     {
       "tool": "get_current_board_structure",
       "tokens": 281,
-      "timestamp": "2025-11-19T12:30:10.186Z"
+      "timestamp": "2025-11-21T12:53:25.801Z"
     },
     {
       "tool": "create_board",
       "tokens": 730,
-      "timestamp": "2025-11-19T12:30:10.187Z"
+      "timestamp": "2025-11-21T12:53:25.802Z"
     },
     {
       "tool": "create_lane",
       "tokens": 863,
-      "timestamp": "2025-11-19T12:30:10.192Z"
+      "timestamp": "2025-11-21T12:53:25.802Z"
     },
     {
       "tool": "update_board",
       "tokens": 619,
-      "timestamp": "2025-11-19T12:30:10.193Z"
+      "timestamp": "2025-11-21T12:53:25.803Z"
     },
     {
       "tool": "delete_board",
       "tokens": 386,
-      "timestamp": "2025-11-19T12:30:10.193Z"
+      "timestamp": "2025-11-21T12:53:25.803Z"
     },
     {
       "tool": "bulk_delete_boards",
       "tokens": 433,
-      "timestamp": "2025-11-19T12:30:10.193Z"
+      "timestamp": "2025-11-21T12:53:25.804Z"
     },
     {
       "tool": "bulk_update_boards",
       "tokens": 105,
-      "timestamp": "2025-11-19T12:30:10.194Z"
+      "timestamp": "2025-11-21T12:53:25.804Z"
     },
     {
       "tool": "list_cards",
       "tokens": 5164,
-      "timestamp": "2025-11-19T12:30:10.198Z"
+      "timestamp": "2025-11-21T12:53:25.813Z"
     },
     {
       "tool": "get_card",
       "tokens": 279,
-      "timestamp": "2025-11-19T12:30:10.198Z"
+      "timestamp": "2025-11-21T12:53:25.813Z"
     },
     {
       "tool": "get_card_size",
       "tokens": 280,
-      "timestamp": "2025-11-19T12:30:10.198Z"
+      "timestamp": "2025-11-21T12:53:25.813Z"
     },
     {
       "tool": "get_card_comments",
       "tokens": 280,
-      "timestamp": "2025-11-19T12:30:10.198Z"
+      "timestamp": "2025-11-21T12:53:25.813Z"
     },
     {
       "tool": "get_card_comment",
       "tokens": 367,
-      "timestamp": "2025-11-19T12:30:10.198Z"
+      "timestamp": "2025-11-21T12:53:25.814Z"
     },
     {
       "tool": "get_card_custom_fields",
       "tokens": 282,
-      "timestamp": "2025-11-19T12:30:10.199Z"
+      "timestamp": "2025-11-21T12:53:25.814Z"
     },
     {
       "tool": "get_card_types",
       "tokens": 193,
-      "timestamp": "2025-11-19T12:30:10.199Z"
+      "timestamp": "2025-11-21T12:53:25.814Z"
     },
     {
       "tool": "get_card_history",
       "tokens": 367,
-      "timestamp": "2025-11-19T12:30:10.199Z"
+      "timestamp": "2025-11-21T12:53:25.814Z"
     },
     {
       "tool": "get_card_outcomes",
       "tokens": 281,
-      "timestamp": "2025-11-19T12:30:10.199Z"
+      "timestamp": "2025-11-21T12:53:25.815Z"
     },
     {
       "tool": "get_card_linked_cards",
       "tokens": 282,
-      "timestamp": "2025-11-19T12:30:10.199Z"
+      "timestamp": "2025-11-21T12:53:25.815Z"
     },
     {
       "tool": "get_card_subtasks",
       "tokens": 282,
-      "timestamp": "2025-11-19T12:30:10.199Z"
+      "timestamp": "2025-11-21T12:53:25.815Z"
     },
     {
       "tool": "get_card_subtask",
       "tokens": 371,
-      "timestamp": "2025-11-19T12:30:10.200Z"
+      "timestamp": "2025-11-21T12:53:25.815Z"
     },
     {
       "tool": "get_card_parents",
       "tokens": 280,
-      "timestamp": "2025-11-19T12:30:10.200Z"
+      "timestamp": "2025-11-21T12:53:25.816Z"
     },
     {
       "tool": "get_card_parent",
       "tokens": 369,
-      "timestamp": "2025-11-19T12:30:10.200Z"
+      "timestamp": "2025-11-21T12:53:25.816Z"
     },
     {
       "tool": "get_card_parent_graph",
       "tokens": 282,
-      "timestamp": "2025-11-19T12:30:10.200Z"
+      "timestamp": "2025-11-21T12:53:25.816Z"
     },
     {
       "tool": "get_card_children",
       "tokens": 281,
-      "timestamp": "2025-11-19T12:30:10.200Z"
+      "timestamp": "2025-11-21T12:53:25.816Z"
     },
     {
       "tool": "create_card",
       "tokens": 1758,
-      "timestamp": "2025-11-19T12:30:10.202Z"
+      "timestamp": "2025-11-21T12:53:25.821Z"
     },
     {
       "tool": "move_card",
       "tokens": 610,
-      "timestamp": "2025-11-19T12:30:10.202Z"
+      "timestamp": "2025-11-21T12:53:25.822Z"
     },
     {
       "tool": "update_card",
       "tokens": 3986,
-      "timestamp": "2025-11-19T12:30:10.207Z"
+      "timestamp": "2025-11-21T12:53:25.824Z"
     },
     {
       "tool": "delete_card",
       "tokens": 386,
-      "timestamp": "2025-11-19T12:30:10.208Z"
+      "timestamp": "2025-11-21T12:53:25.825Z"
     },
     {
       "tool": "set_card_size",
       "tokens": 416,
-      "timestamp": "2025-11-19T12:30:10.208Z"
+      "timestamp": "2025-11-21T12:53:25.825Z"
     },
     {
       "tool": "create_card_subtask",
       "tokens": 928,
-      "timestamp": "2025-11-19T12:30:10.209Z"
+      "timestamp": "2025-11-21T12:53:25.826Z"
     },
     {
       "tool": "add_card_parent",
       "tokens": 369,
-      "timestamp": "2025-11-19T12:30:10.209Z"
+      "timestamp": "2025-11-21T12:53:25.826Z"
     },
     {
       "tool": "remove_card_parent",
       "tokens": 369,
-      "timestamp": "2025-11-19T12:30:10.209Z"
+      "timestamp": "2025-11-21T12:53:25.826Z"
     },
     {
       "tool": "bulk_delete_cards",
       "tokens": 432,
-      "timestamp": "2025-11-19T12:30:10.210Z"
+      "timestamp": "2025-11-21T12:53:25.826Z"
     },
     {
       "tool": "bulk_update_cards",
       "tokens": 104,
-      "timestamp": "2025-11-19T12:30:10.210Z"
+      "timestamp": "2025-11-21T12:53:25.826Z"
+    },
+    {
+      "tool": "create_card_comment",
+      "tokens": 462,
+      "timestamp": "2025-11-21T12:53:25.827Z"
+    },
+    {
+      "tool": "update_card_comment",
+      "tokens": 121,
+      "timestamp": "2025-11-21T12:53:25.827Z"
+    },
+    {
+      "tool": "delete_card_comment",
+      "tokens": 360,
+      "timestamp": "2025-11-21T12:53:25.827Z"
     },
     {
       "tool": "list_custom_fields",
       "tokens": 440,
-      "timestamp": "2025-11-19T12:30:10.210Z"
+      "timestamp": "2025-11-21T12:53:25.827Z"
     },
     {
       "tool": "list_board_custom_fields",
       "tokens": 236,
-      "timestamp": "2025-11-19T12:30:10.210Z"
+      "timestamp": "2025-11-21T12:53:25.827Z"
     },
     {
       "tool": "get_custom_field",
       "tokens": 237,
-      "timestamp": "2025-11-19T12:30:10.210Z"
+      "timestamp": "2025-11-21T12:53:25.828Z"
     },
     {
       "tool": "create_custom_field",
       "tokens": 754,
-      "timestamp": "2025-11-19T12:30:10.211Z"
+      "timestamp": "2025-11-21T12:53:25.828Z"
     },
     {
       "tool": "update_custom_field",
       "tokens": 712,
-      "timestamp": "2025-11-19T12:30:10.213Z"
+      "timestamp": "2025-11-21T12:53:25.829Z"
     },
     {
       "tool": "delete_custom_field",
       "tokens": 238,
-      "timestamp": "2025-11-19T12:30:10.213Z"
+      "timestamp": "2025-11-21T12:53:25.829Z"
     },
     {
       "tool": "list_users",
       "tokens": 191,
-      "timestamp": "2025-11-19T12:30:10.213Z"
+      "timestamp": "2025-11-21T12:53:25.829Z"
     },
     {
       "tool": "get_user",
       "tokens": 233,
-      "timestamp": "2025-11-19T12:30:10.213Z"
+      "timestamp": "2025-11-21T12:53:25.829Z"
     },
     {
       "tool": "get_current_user",
       "tokens": 193,
-      "timestamp": "2025-11-19T12:30:10.214Z"
+      "timestamp": "2025-11-21T12:53:25.829Z"
     },
     {
       "tool": "health_check",
       "tokens": 192,
-      "timestamp": "2025-11-19T12:30:10.214Z"
+      "timestamp": "2025-11-21T12:53:25.829Z"
     },
     {
       "tool": "get_api_info",
       "tokens": 193,
-      "timestamp": "2025-11-19T12:30:10.214Z"
+      "timestamp": "2025-11-21T12:53:25.829Z"
     },
     {
       "tool": "get_workflow_cycle_time_columns",
       "tokens": 278,
-      "timestamp": "2025-11-19T12:30:10.215Z"
+      "timestamp": "2025-11-21T12:53:25.830Z"
     },
     {
       "tool": "get_workflow_effective_cycle_time_columns",
       "tokens": 281,
-      "timestamp": "2025-11-19T12:30:10.215Z"
+      "timestamp": "2025-11-21T12:53:25.830Z"
     }
   ],
-  "timestamp": "2025-11-19T12:30:10.054Z",
-  "averagePerTool": 546
+  "timestamp": "2025-11-21T12:53:25.667Z",
+  "averagePerTool": 535
 }

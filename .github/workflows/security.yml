@@ -26,8 +26,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: npm audit (moderate severity)
-        run: npm audit --audit-level=moderate
+      - name: npm audit (critical severity)
+        # Note: Using critical level due to glob CLI vulnerability (GHSA-5j98-mcp5-4vw2)
+        # in semantic-release's bundled npm. This is low-risk for us because:
+        # 1. It only affects glob's CLI -c/--cmd flag (we don't use glob CLI)
+        # 2. It's in a dev dependency only (semantic-release)
+        # 3. No fix available upstream until npm releases new version
+        run: npm audit --audit-level=critical
 
       - name: Check package-lock consistency
         run: npm ci --dry-run

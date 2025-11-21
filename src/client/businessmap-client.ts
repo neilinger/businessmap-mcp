@@ -73,44 +73,62 @@ export class BusinessMapClient {
       timeout: 30000,
     });
 
-    // Configure axios-retry for rate limit handling
+    // INTERCEPTOR ORDER (LIFO for errors - last added runs first):
+    // 1. Error transformer (ID 0) - added first, runs LAST after retries exhausted
+    // 2. Rate limit monitor (ID 1) - success only, no error handler
+    // 3. axios-retry (ID 2) - added last, runs FIRST to handle retries
+
+    // 1. Error transformer - transforms errors after axios-retry exhausts retries
+    this.http.interceptors.response.use(
+      (response) => response,
+      (error: AxiosError) => {
+        throw this.transformError(error);
+      }
+    );
+
+    // 2. Rate limit monitor - success responses only
+    this.http.interceptors.response.use((response) => {
+      const remaining = response.headers?.['x-ratelimitperhour-remaining'];
+      const limit = response.headers?.['x-ratelimitperhour-limit'];
+      if (remaining && limit) {
+        const usage = 1 - parseInt(remaining) / parseInt(limit);
+        if (usage >= 0.8) {
+          console.warn(
+            `Rate limit warning: ${Math.round(usage * 100)}% of hourly quota used (${remaining}/${limit} remaining)`
+          );
+        }
+      }
+      return response;
+    });
+
+    // 3. axios-retry - handles 429 retries before error transformation
     axiosRetry(this.http, {
       retries: 3,
-      retryDelay: axiosRetry.exponentialDelay,
+      shouldResetTimeout: true,
+      retryDelay: (retryCount, error) => {
+        const retryAfter = error.response?.headers?.['retry-after'];
+        if (retryAfter) {
+          const delaySeconds = parseInt(retryAfter, 10);
+          if (!isNaN(delaySeconds) && delaySeconds > 0) {
+            // Cap at 60 seconds to avoid very long waits, add 1 second buffer
+            return (Math.min(delaySeconds, 60) + 1) * 1000;
+          }
+        }
+        return axiosRetry.exponentialDelay(retryCount);
+      },
       retryCondition: (error) => {
-        // Retry on rate limit (429) or network errors
         return (
-          axiosRetry.isNetworkOrIdempotentRequestError(error) || error.response?.status === 429
+          axiosRetry.isNetworkOrIdempotentRequestError(error) ||
+          error.response?.status === 429
         );
       },
       onRetry: (retryCount, error) => {
         const retryAfter = error.response?.headers?.['retry-after'];
         console.warn(
-          `Rate limit hit (retry ${retryCount}/3)${retryAfter ? `, retry after ${retryAfter}s` : ''}`
+          `Rate limit hit (retry ${retryCount}/3)${retryAfter ? `, waiting ${retryAfter}s` : ''}`
         );
       },
     });
-
-    // Add response interceptor for error handling and rate limit monitoring
-    this.http.interceptors.response.use(
-      (response) => {
-        // Monitor rate limit headers
-        const remaining = response.headers?.['x-ratelimitperhour-remaining'];
-        const limit = response.headers?.['x-ratelimitperhour-limit'];
-        if (remaining && limit) {
-          const usage = 1 - parseInt(remaining) / parseInt(limit);
-          if (usage >= 0.8) {
-            console.warn(
-              `Rate limit warning: ${Math.round(usage * 100)}% of hourly quota used (${remaining}/${limit} remaining)`
-            );
-          }
-        }
-        return response;
-      },
-      (error: AxiosError) => {
-        throw this.transformError(error);
-      }
-    );
 
     // Initialize client modules
     this.workspaceClient = new WorkspaceClient();
@@ -329,6 +347,10 @@ export class BusinessMapClient {
 
   async getCardComment(cardId: number, commentId: number) {
     return this.cardClient.getCardComment(cardId, commentId);
+  }
+
+  async createCardComment(cardId: number, params: Parameters<CardClient['createCardComment']>[1]) {
+    return this.cardClient.createCardComment(cardId, params);
   }
 
   async updateCardComment(

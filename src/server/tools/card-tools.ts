@@ -4,8 +4,10 @@ import { BusinessMapClientFactory } from '../../client/client-factory.js';
 import {
   addCardParentSchema,
   cardSizeSchema,
+  createCardCommentSchema,
   createCardSchema,
   createCardSubtaskSchema,
+  deleteCardCommentSchema,
   deleteCardSchema,
   getCardChildrenSchema,
   getCardCommentSchema,
@@ -22,6 +24,7 @@ import {
   listCardsSchema,
   moveCardSchema,
   removeCardParentSchema,
+  updateCardCommentSchema,
   updateCardSchema,
 } from '../../schemas/index.js';
 import { bulkDeleteCardsSchema, bulkUpdateCardsSchema } from '../../schemas/bulk-schemas.js';
@@ -121,6 +124,15 @@ export class CardToolHandler implements BaseToolHandler {
       }
       if (shouldRegisterTool('bulk_update_cards', enabledTools)) {
         this.registerBulkUpdateCards(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('create_card_comment', enabledTools)) {
+        this.registerCreateCardComment(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('update_card_comment', enabledTools)) {
+        this.registerUpdateCardComment(server, clientOrFactory);
+      }
+      if (shouldRegisterTool('delete_card_comment', enabledTools)) {
+        this.registerDeleteCardComment(server, clientOrFactory);
       }
     }
   }
@@ -1046,6 +1058,86 @@ export class CardToolHandler implements BaseToolHandler {
           }
         } catch (error) {
           return createErrorResponse(error, 'bulk updating cards');
+        }
+      }
+    );
+  }
+
+  private registerCreateCardComment(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
+    server.registerTool(
+      'create_card_comment',
+      {
+        title: 'Create Card Comment',
+        description:
+          'Create a new comment on a card. Requires non-empty text. Optionally attach files by providing file_name and link.',
+        inputSchema: createCardCommentSchema.shape,
+      },
+      async ({ card_id, text, attachments_to_add, instance }: any) => {
+        try {
+          const client = await getClientForInstance(clientOrFactory, instance);
+          const comment = await client.createCardComment(card_id, {
+            text,
+            attachments_to_add,
+          });
+          return createSuccessResponse(comment, 'Comment created successfully:');
+        } catch (error) {
+          return createErrorResponse(error, 'creating card comment');
+        }
+      }
+    );
+  }
+
+  private registerUpdateCardComment(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
+    server.registerTool(
+      'update_card_comment',
+      {
+        title: 'Update Card Comment',
+        description:
+          'Update an existing comment on a card. Provide new text and/or additional attachments. Text cannot be empty.',
+        inputSchema: updateCardCommentSchema as any,
+      },
+      async ({ card_id, comment_id, text, attachments_to_add, instance }: any) => {
+        try {
+          const client = await getClientForInstance(clientOrFactory, instance);
+          const params: { text?: string; attachments_to_add?: any[] } = {};
+          if (text !== undefined) params.text = text;
+          if (attachments_to_add !== undefined) params.attachments_to_add = attachments_to_add;
+          const comment = await client.updateCardComment(card_id, comment_id, params);
+          return createSuccessResponse(comment, 'Comment updated successfully:');
+        } catch (error) {
+          return createErrorResponse(error, 'updating card comment');
+        }
+      }
+    );
+  }
+
+  private registerDeleteCardComment(
+    server: McpServer,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+  ): void {
+    server.registerTool(
+      'delete_card_comment',
+      {
+        title: 'Delete Card Comment',
+        description: 'Delete a comment from a card. This action cannot be undone.',
+        inputSchema: deleteCardCommentSchema.shape,
+      },
+      async ({ card_id, comment_id, instance }: any) => {
+        try {
+          const client = await getClientForInstance(clientOrFactory, instance);
+          await client.deleteCardComment(card_id, comment_id);
+          return createSuccessResponse(
+            { card_id, comment_id },
+            'Comment deleted successfully:'
+          );
+        } catch (error) {
+          return createErrorResponse(error, 'deleting card comment');
         }
       }
     );

@@ -15,6 +15,7 @@ import {
   CommentListResponse,
   CommentResponse,
   CreateCardParams,
+  CreateCommentParams,
   CreateSubtaskParams,
   LinkedCard,
   LinkedCardItem,
@@ -310,15 +311,20 @@ export class CardClient extends BaseClientModuleImpl {
    */
   async getCardComments(cardId: number): Promise<Comment[]> {
     const response = await this.http.get<CommentListResponse>(`/cards/${cardId}/comments`);
-    return response.data.data;
+    return response.data.comments ?? [];
   }
 
   /**
    * Get details of a specific comment
    */
   async getCardComment(cardId: number, commentId: number): Promise<Comment> {
-    const response = await this.http.get<CommentResponse>(`/cards/${cardId}/comments/${commentId}`);
-    return response.data.data;
+    const response = await this.http.get<any>(`/cards/${cardId}/comments/${commentId}`);
+    // API returns { data: Comment } but without comment_id - add it from path param
+    const comment = response.data.data || response.data;
+    return {
+      ...comment,
+      comment_id: commentId, // API doesn't return this for single comment, only for list
+    };
   }
 
   /**
@@ -343,6 +349,25 @@ export class CardClient extends BaseClientModuleImpl {
   async deleteCardComment(cardId: number, commentId: number): Promise<void> {
     this.checkReadOnlyMode('delete card comment');
     await this.http.delete(`/cards/${cardId}/comments/${commentId}`);
+  }
+
+  /**
+   * Create a new comment on a card
+   * @param cardId - The card ID to add comment to
+   * @param params - Comment parameters (text required, attachments optional)
+   * @returns Created comment response
+   */
+  async createCardComment(cardId: number, params: CreateCommentParams): Promise<Comment> {
+    this.checkReadOnlyMode('create card comment');
+    const trimmedText = params.text.trim();
+    if (!trimmedText) {
+      throw new Error('Comment text cannot be empty or whitespace-only');
+    }
+    const response = await this.http.post<CommentResponse>(`/cards/${cardId}/comments`, {
+      ...params,
+      text: trimmedText,
+    });
+    return response.data.data;
   }
 
   /**

@@ -152,6 +152,11 @@ export const FULL_PROFILE: ToolName[] = [
   'get_card_types',
   'get_card_comment',
 
+  // Card comment mutations
+  'create_card_comment',
+  'update_card_comment',
+  'delete_card_comment',
+
   // Card size operations
   'get_card_size',
   'set_card_size',
