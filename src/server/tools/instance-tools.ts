@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
 import { BusinessMapClientFactory } from '../../client/client-factory.js';
 import { InstanceConfigManager } from '../../config/instance-manager.js';

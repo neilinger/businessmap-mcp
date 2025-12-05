@@ -13,7 +13,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import {
   InstanceConfig,
   InstanceConfigError,
@@ -311,9 +311,9 @@ export class InstanceConfigManager {
       MultiInstanceConfigSchema.parse(config);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const formattedErrors = error.errors.map((err) => ({
-          path: err.path.join('.'),
-          message: err.message,
+        const formattedErrors = error.issues.map((issue) => ({
+          path: issue.path.join('.'),
+          message: issue.message,
         }));
 
         throw new InstanceConfigError('Configuration validation failed', 'VALIDATION_ERROR', {

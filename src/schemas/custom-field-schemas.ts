@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { SharedParams } from './shared-params.js';
 
 // Schema for obter detalhes de um custom field específico
