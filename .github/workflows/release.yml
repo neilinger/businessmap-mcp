@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22  # semantic-release v25 requires ^22.14.0 || >= 24.10.0
 
       - name: Install dependencies
         run: npm ci
@@ -55,9 +55,10 @@ jobs:
             echo "⚠️  Warning: Release exceeded 5-minute target (${ELAPSED}s)"
           fi
 
-# NPM_TOKEN Secret Configuration (T042):
-# 1. Generate automation token at https://www.npmjs.com/settings/YOUR_USERNAME/tokens
-# 2. Add to repository secrets: Settings → Secrets → Actions → New repository secret
-# 3. Name: NPM_TOKEN
-# 4. Value: npm_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-# 5. Recommended: Rotate every 90 days (T060a)
+# OIDC Trusted Publishing Configuration:
+# - No NPM_TOKEN required - using OpenID Connect for npm authentication
+# - Requires: id-token: write permission (line 17)
+# - Requires: semantic-release v25+ with @semantic-release/npm v13+
+# - Requires: provenance: true in .releaserc.json
+# - Package must be linked on npmjs.com (Package Settings → Manage Publishing Access)
+# - See: https://docs.npmjs.com/trusted-publishers/
