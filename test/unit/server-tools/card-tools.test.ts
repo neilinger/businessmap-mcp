@@ -973,6 +973,27 @@ describe('CardToolHandler', () => {
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Error creating card subtask');
     });
+
+    it('should exclude instance parameter from subtask data', async () => {
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('create_card_subtask');
+
+      mockClient.createCardSubtask.mockResolvedValue({ subtask_id: 100 });
+
+      await handler({
+        card_id: 1,
+        description: 'Subtask',
+        instance: 'test-instance',
+      });
+
+      expect(mockClient.createCardSubtask).toHaveBeenCalledWith(1, {
+        description: 'Subtask',
+      });
+      expect(mockClient.createCardSubtask).not.toHaveBeenCalledWith(
+        expect.any(Number),
+        expect.objectContaining({ instance: 'test-instance' })
+      );
+    });
   });
 
   describe('get_card_parents tool', () => {
