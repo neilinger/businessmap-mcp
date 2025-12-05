@@ -1,3 +1,30 @@
+# [3.0.0](https://github.com/neilinger/businessmap-mcp/compare/v2.1.0...v3.0.0) (2025-12-05)
+
+
+### Bug Fixes
+
+* **ci:** update release workflow to Node.js 22 for semantic-release v25 ([a95c69f](https://github.com/neilinger/businessmap-mcp/commit/a95c69fdb6abe92f842a1db35cde0e2182856846))
+* **ci:** upgrade semantic-release to v25 for OIDC support ([f1e4cba](https://github.com/neilinger/businessmap-mcp/commit/f1e4cbac6c2ef7cccd9d61b171b6f771aceb57e8))
+* **subtasks:** pass instance parameter to correct BusinessMap endpoint ([#33](https://github.com/neilinger/businessmap-mcp/issues/33)) ([#35](https://github.com/neilinger/businessmap-mcp/issues/35)) ([24b928b](https://github.com/neilinger/businessmap-mcp/commit/24b928b565c2fc68c55e288337e34493b71368b8))
+
+
+### Features
+
+* **ci:** migrate to npm OIDC Trusted Publishing ([48b8e49](https://github.com/neilinger/businessmap-mcp/commit/48b8e493a2d682ec7d74498565d4cfaceb4810b3))
+* **deps:** upgrade @semantic-release/npm to v13.1.2 ([282a3a6](https://github.com/neilinger/businessmap-mcp/commit/282a3a6602032387da78e8fa6053a819edcabb04))
+
+
+### BREAKING CHANGES
+
+* **deps:** Requires npm CLI 11.5.1+ for OIDC trusted publishing
+
+- Enables OIDC token exchange for npm publishing
+- Removes dependency on NPM_TOKEN for verifyConditions
+- Supports dry-run publish for auth verification
+- Compatible with existing provenance: true configuration
+
+Resolves npm classic token deprecation (Dec 9, 2025)
+
 # [2.1.0](https://github.com/neilinger/businessmap-mcp/compare/v2.0.0...v2.1.0) (2025-11-21)
 
 
