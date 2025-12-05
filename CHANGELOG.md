@@ -1,3 +1,15 @@
+# [3.1.0](https://github.com/neilinger/businessmap-mcp/compare/v3.0.0...v3.1.0) (2025-12-05)
+
+
+### Bug Fixes
+
+* **ci:** use --noCheck in release workflow to prevent OOM ([cec9810](https://github.com/neilinger/businessmap-mcp/commit/cec981062f42e0ba6937fbcd3bd734e07019a95e))
+
+
+### Features
+
+* **deps:** upgrade @modelcontextprotocol/sdk to v1.24.3 ([#40](https://github.com/neilinger/businessmap-mcp/issues/40)) ([2a75310](https://github.com/neilinger/businessmap-mcp/commit/2a75310b57281bb6056d180d9bae6a221b20330a))
+
 # [3.0.0](https://github.com/neilinger/businessmap-mcp/compare/v2.1.0...v3.0.0) (2025-12-05)
 
 
