@@ -30,6 +30,16 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+      - name: Cache TypeScript build info
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tsbuildinfo
+            dist
+          key: tsc-${{ matrix.node-version }}-${{ hashFiles('src/**/*.ts', 'tsconfig.json') }}
+          restore-keys: |
+            tsc-${{ matrix.node-version }}-
+
       - name: Install dependencies
         run: npm ci
 
@@ -37,7 +47,7 @@ jobs:
         run: npm run lint
 
       - name: Type check
-        run: npx tsc --noEmit
+        run: npx tsc -b --incremental
 
       - name: Format check
         run: npm run format -- --check
@@ -73,6 +83,16 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: Cache TypeScript build info
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tsbuildinfo
+            dist
+          key: tsc-lint-${{ hashFiles('src/**/*.ts', 'tsconfig.json') }}
+          restore-keys: |
+            tsc-lint-
+
       - name: Install dependencies
         run: npm ci
 
@@ -83,7 +103,7 @@ jobs:
         run: npm run lint
 
       - name: TypeScript strict mode
-        run: npx tsc --noEmit --strict
+        run: npx tsc -b --incremental
 
   pre-commit-validation:
     name: Pre-commit Validation
@@ -128,6 +148,16 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+
+      - name: Cache TypeScript build info
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tsbuildinfo
+            dist
+          key: tsc-integration-${{ matrix.node-version }}-${{ hashFiles('src/**/*.ts', 'tsconfig.json') }}
+          restore-keys: |
+            tsc-integration-${{ matrix.node-version }}-
 
       - name: Install dependencies
         run: npm ci
