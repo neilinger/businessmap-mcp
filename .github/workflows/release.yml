@@ -36,7 +36,9 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        # Use --noCheck to skip type-checking (MCP SDK causes OOM during type-check)
+        # Type-checking is delegated to CI build job and local development
+        run: npx tsc --noCheck
 
       - name: Release
         env:
