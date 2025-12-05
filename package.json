@@ -98,6 +98,7 @@
     "prettier": "^3.0.0",
     "semantic-release": "^25.0.2",
     "ts-jest": "^29.4.5",
+    "tsc-files": "^1.1.4",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   },
