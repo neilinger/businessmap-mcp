@@ -1,10 +1,10 @@
 /**
- * Prototype: utility-schemas using zod/v3 import
+ * Prototype: utility-schemas using zod/v4 import
  *
- * Tests whether using zod/v3 import resolves type compatibility
- * with MCP SDK v1.24.3.
+ * Tests whether using zod/v4 import resolves type compatibility
+ * with MCP SDK v1.24.3. (Updated: v4 is the latest stable version)
  */
-import { z } from 'zod/v3';
+import { z } from 'zod/v4';
 
 // Direct schema definition for SDK compatibility
 export const instanceParamV3 = z

@@ -1,17 +1,17 @@
 /**
- * Prototype: Testing Both .shape Pattern and Direct Pattern with zod/v3
+ * Prototype: Testing Both .shape Pattern and Direct Pattern with zod/v4
  *
  * This file tests:
- * 1. The current .shape pattern with zod/v3 import
- * 2. The new direct Zod schema pattern with zod/v3 import
+ * 1. The current .shape pattern with zod/v4 import
+ * 2. The new direct Zod schema pattern with zod/v4 import
  *
- * KEY FINDING: Both patterns work when using `zod/v3` import.
+ * KEY FINDING: Both patterns work when using `zod/v4` import.
  * The issue is NOT about .shape vs direct objects - it's about
  * which Zod package you import from.
  *
- * Investigation for Issue #41
+ * Investigation for Issue #41 (Updated: v4 is the latest stable version)
  */
-import { z } from 'zod/v3';
+import { z } from 'zod/v4';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
 import { BusinessMapClientFactory } from '../../client/client-factory.js';
