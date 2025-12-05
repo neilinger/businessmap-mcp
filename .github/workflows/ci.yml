@@ -8,7 +8,8 @@ on:
 
 env:
   # Prevent TypeScript OOM on GitHub Actions runners (7GB RAM)
-  NODE_OPTIONS: '--max-old-space-size=4096'
+  # Use 6GB heap to allow for tsc memory usage (~4.5GB observed)
+  NODE_OPTIONS: '--max-old-space-size=6144'
 
 jobs:
   test:
