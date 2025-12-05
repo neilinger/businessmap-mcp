@@ -66,14 +66,14 @@
     "access": "public"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.0",
+    "@modelcontextprotocol/sdk": "^1.24.3",
     "@toolprint/mcp-logger": "^0.0.7",
     "axios": "^1.12.0",
     "axios-retry": "^4.5.0",
     "dotenv": "^16.3.1",
     "lru-cache": "^11.0.0",
     "p-limit": "^6.1.0",
-    "zod": "^3.22.0"
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
@@ -98,6 +98,7 @@
     "prettier": "^3.0.0",
     "semantic-release": "^25.0.2",
     "ts-jest": "^29.4.5",
+    "tsc-files": "^1.1.4",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   },

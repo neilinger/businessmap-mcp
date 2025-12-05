@@ -308,10 +308,10 @@ export const customFieldSchema = z.object({
 
 export const subtaskSchema = z.object({
   description: z.string(),
-  owner_user_id: z.number(),
-  is_finished: z.number(),
+  owner_user_id: z.coerce.number(),
+  is_finished: z.coerce.number(),
   deadline: z.string(),
-  position: z.number(),
+  position: z.coerce.number(),
   attachments_to_add: z.array(fileAttachmentSchema),
   instance: SharedParams.shape.instance,
 });

@@ -2,7 +2,7 @@
   "*.{ts,tsx}": [
     "eslint --fix",
     "prettier --write",
-    "bash -c 'tsc --noEmit'"
+    "bash -c 'NODE_OPTIONS=\"--max-old-space-size=768\" npx tsc-files --noEmit'"
   ],
   "*.{json,md}": [
     "prettier --write"
