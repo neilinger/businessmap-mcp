@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+  # Prevent TypeScript OOM on GitHub Actions runners (7GB RAM)
+  NODE_OPTIONS: '--max-old-space-size=4096'
+
 jobs:
   test:
     name: Test (Node ${{ matrix.node-version }})
