@@ -214,7 +214,7 @@ export class CardClient extends BaseClientModuleImpl {
    */
   async updateCard(params: UpdateCardParams): Promise<Card> {
     this.checkReadOnlyMode('update card');
-    const { card_id, ...updateData } = params;
+    const { card_id, subtasks_to_add, ...updateData } = params;
 
     // Ensure card_id is defined
     const cardId = card_id ?? params.id;
@@ -244,7 +244,33 @@ export class CardClient extends BaseClientModuleImpl {
     }
 
     const response = await this.http.patch<ApiResponse<Card>>(`/cards/${cardId}`, updateData);
-    return response.data.data;
+    const updatedCard = response.data.data;
+
+    // Handle subtasks_to_add by creating each subtask via dedicated endpoint
+    // The BusinessMap API ignores subtasks_to_add in PATCH /cards/{id} requests
+    // See: https://github.com/user/repo/issues/31
+    if (subtasks_to_add && subtasks_to_add.length > 0) {
+      for (const subtask of subtasks_to_add) {
+        try {
+          await this.createCardSubtask(cardId, {
+            description: subtask.description,
+            owner_user_id: subtask.owner_user_id,
+            is_finished: subtask.is_finished,
+            deadline: subtask.deadline ?? undefined,
+            position: subtask.position,
+            attachments_to_add: subtask.attachments_to_add,
+          });
+        } catch (error) {
+          console.error(
+            `[card-client] Failed to create subtask for card ${cardId}:`,
+            error instanceof Error ? error.message : 'Unknown error'
+          );
+          // Continue creating other subtasks even if one fails
+        }
+      }
+    }
+
+    return updatedCard;
   }
 
   /**

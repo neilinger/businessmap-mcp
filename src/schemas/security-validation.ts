@@ -138,7 +138,9 @@ export const securePositiveInt = (options?: {
     errorMessage,
   } = options || {};
 
-  return z
+  // Use z.coerce.number() to handle string inputs from MCP clients
+  // Common pattern: MCP/JSON may send "4" instead of 4
+  return z.coerce
     .number()
     .int({ message: errorMessage || 'Must be an integer' })
     .min(min, { message: errorMessage || `Must be at least ${min}` })
