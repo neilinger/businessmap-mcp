@@ -1,3 +1,10 @@
+## [3.1.2](https://github.com/neilinger/businessmap-mcp/compare/v3.1.1...v3.1.2) (2025-12-05)
+
+
+### Bug Fixes
+
+* migrate Zod imports to zod/v4 for SDK compatibility (resolves [#41](https://github.com/neilinger/businessmap-mcp/issues/41)) ([#42](https://github.com/neilinger/businessmap-mcp/issues/42)) ([997b761](https://github.com/neilinger/businessmap-mcp/commit/997b761fe8c5c753551cfcabc1a40dc0605dfdcd))
+
 ## [3.1.1](https://github.com/neilinger/businessmap-mcp/compare/v3.1.0...v3.1.1) (2025-12-05)
 
 
