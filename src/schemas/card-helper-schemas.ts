@@ -144,9 +144,16 @@ export const columnChecklistItemSchema = z.object({
 });
 
 // Type exports
-// Note: Some types (Subtask, CardLink, Sticker) are not exported here
-// to avoid conflicts with shared-card-schemas.ts which exports different
-// schemas with the same type names (e.g., SubtaskSchema vs subtaskSchema)
+//
+// Naming Convention:
+// - Types in this file use the `*Type` suffix (e.g., SubtaskType, CardLinkType)
+// - Types in card-*-schemas.ts use the `*Input` suffix (e.g., CreateCardInput)
+//
+// The `*Type` suffix is used here to avoid naming conflicts with
+// shared-card-schemas.ts which exports different schemas with similar names
+// (e.g., SubtaskSchema vs subtaskSchema have different field structures).
+// - shared-card-schemas.ts: Simplified schemas for common operations (T011-T015)
+// - card-helper-schemas.ts: Full API schemas matching BusinessMap API structure
 export type BlockReasonType = z.infer<typeof blockReasonSchema>;
 export type StickerType = z.infer<typeof stickerSchema>;
 export type CustomFieldValueType = z.infer<typeof customFieldValueSchema>;

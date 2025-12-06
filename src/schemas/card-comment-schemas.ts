@@ -8,7 +8,7 @@
  */
 
 import { z } from 'zod/v4';
-import { entityIdSchema } from './security-validation.js';
+import { entityIdSchema, SECURITY_LIMITS } from './security-validation.js';
 import { SharedParams } from './shared-params.js';
 
 /**
@@ -34,7 +34,10 @@ export const getCardCommentSchema = z.object({
  */
 export const createCardCommentSchema = z.object({
   card_id: entityIdSchema,
-  text: z.string().min(1, 'Comment text cannot be empty'),
+  text: z
+    .string()
+    .min(1, 'Comment text cannot be empty')
+    .max(SECURITY_LIMITS.MAX_COMMENT_LENGTH, 'Comment text too long'),
   attachments_to_add: z
     .array(
       z.object({
@@ -54,7 +57,11 @@ export const updateCardCommentSchema = z
   .object({
     card_id: entityIdSchema,
     comment_id: entityIdSchema,
-    text: z.string().min(1, 'Comment text cannot be empty').optional(),
+    text: z
+      .string()
+      .min(1, 'Comment text cannot be empty')
+      .max(SECURITY_LIMITS.MAX_COMMENT_LENGTH, 'Comment text too long')
+      .optional(),
     attachments_to_add: z
       .array(
         z.object({

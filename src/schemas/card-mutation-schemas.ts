@@ -4,6 +4,11 @@
  * Contains schemas for creating, updating, moving, and deleting cards.
  * Extracted from card-schemas.ts to reduce TypeScript compilation memory usage.
  *
+ * Note: This file is 350+ lines due to the complexity of createCardSchema,
+ * which has many nested groups (placement, metadata, owners, dates, status,
+ * collections, etc.). Keeping create/update/delete together maintains semantic
+ * cohesion and avoids an excessive number of small files.
+ *
  * @module card-mutation-schemas
  */
 
