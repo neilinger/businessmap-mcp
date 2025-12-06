@@ -1,3 +1,10 @@
+## [3.1.4](https://github.com/neilinger/businessmap-mcp/compare/v3.1.3...v3.1.4) (2025-12-06)
+
+
+### Bug Fixes
+
+* **test:** add missing lane_id to integration tests ([#46](https://github.com/neilinger/businessmap-mcp/issues/46)) ([#47](https://github.com/neilinger/businessmap-mcp/issues/47)) ([c6ca22a](https://github.com/neilinger/businessmap-mcp/commit/c6ca22a3bb3a6027cd73cce88b2fbcc108c40ba6))
+
 ## [3.1.3](https://github.com/neilinger/businessmap-mcp/compare/v3.1.2...v3.1.3) (2025-12-06)
 
 
