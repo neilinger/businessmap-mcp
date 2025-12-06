@@ -115,6 +115,7 @@ describe('Issue #21: Subtask Creation on Newly Created Cards', () => {
     let client: BusinessMapClient;
     let testCardId: number;
     let testColumnId: number;
+    let testLaneId: number;
 
     beforeAll(async () => {
       // Initialize client using test infrastructure
@@ -137,6 +138,7 @@ describe('Issue #21: Subtask Creation on Newly Created Cards', () => {
 
           if (columns && columns.length > 0 && lanes && lanes.length > 0) {
             testColumnId = columns[0].column_id;
+            testLaneId = lanes[0].lane_id;
             console.log(`Using board ${board.board_id}, column ${testColumnId}`);
             foundBoard = true;
             break;
@@ -168,6 +170,7 @@ describe('Issue #21: Subtask Creation on Newly Created Cards', () => {
       const cardData = {
         title: `[Issue #21] Test Card ${Date.now()}`,
         column_id: testColumnId,
+        lane_id: testLaneId,
         description: 'Automated test for subtask creation bug',
       };
 
