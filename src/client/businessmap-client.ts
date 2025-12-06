@@ -103,11 +103,12 @@ export class BusinessMapClient {
           typeof responseData?.error === 'string' ? responseData.error : responseData?.error?.code;
         const errorMessage =
           typeof responseData?.error === 'object' ? responseData.error?.message : '';
+        const errorMsgLower = errorMessage?.toLowerCase() ?? '';
         const isRateLimit =
           error.response?.status === 429 ||
           errorCode === 'RL02' ||
-          errorMessage?.toLowerCase().includes('rate limit') ||
-          errorMessage?.toLowerCase().includes('request limit');
+          errorMsgLower.includes('rate limit') ||
+          errorMsgLower.includes('request limit');
 
         return axiosRetry.isNetworkOrIdempotentRequestError(error) || isRateLimit;
       },
