@@ -1,17 +1,5 @@
-echo "⏱️  Running integration tests (may take 30+ seconds)..."
+# Pre-push hook - lightweight checks only
+# Integration tests run via: npm run pr:create (before PR creation)
 
-START=$(date +%s)
-
-npm run test:integration
-EXIT_CODE=$?
-
-END=$(date +%s)
-ELAPSED=$((END - START))
-
-if [ $EXIT_CODE -eq 0 ]; then
-  echo "✅ Completed in ${ELAPSED}s"
-else
-  echo "❌ Failed in ${ELAPSED}s"
-fi
-
-exit $EXIT_CODE
+echo "ℹ️  Pre-push: Integration tests run locally before PR creation"
+echo "   Use: npm run pr:create"
