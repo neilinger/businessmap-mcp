@@ -31,4 +31,12 @@ export default {
   setupFilesAfterEnv: ['<rootDir>/test/integration/infrastructure/setup.ts'],
   collectCoverageFrom: ['src/**/*.ts'],
   coveragePathIgnorePatterns: ['/node_modules/', '/dist/'],
+
+  // Issue #44: Run integration tests sequentially to reduce API rate limit pressure
+  // BusinessMap API has a 30 req/minute limit - parallel tests exhaust this quickly
+  maxWorkers: 1,
+
+  // Extend default timeout to 90s to allow for rate-limit retries
+  // axios-retry uses retry-after header which can be up to 60 seconds
+  testTimeout: 90000,
 };
