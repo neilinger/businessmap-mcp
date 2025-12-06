@@ -73,35 +73,12 @@ export class BusinessMapClient {
       timeout: 30000,
     });
 
-    // INTERCEPTOR ORDER (LIFO for errors - last added runs first):
-    // 1. Error transformer (ID 0) - added first, runs LAST after retries exhausted
-    // 2. Rate limit monitor (ID 1) - success only, no error handler
-    // 3. axios-retry (ID 2) - added last, runs FIRST to handle retries
+    // INTERCEPTOR ORDER:
+    // axios-retry must be configured FIRST so its interceptor catches errors
+    // before our error transformer. axios-retry will retry on rate limits,
+    // then pass final errors to our transformer.
 
-    // 1. Error transformer - transforms errors after axios-retry exhausts retries
-    this.http.interceptors.response.use(
-      (response) => response,
-      (error: AxiosError) => {
-        throw this.transformError(error);
-      }
-    );
-
-    // 2. Rate limit monitor - success responses only
-    this.http.interceptors.response.use((response) => {
-      const remaining = response.headers?.['x-ratelimitperhour-remaining'];
-      const limit = response.headers?.['x-ratelimitperhour-limit'];
-      if (remaining && limit) {
-        const usage = 1 - parseInt(remaining) / parseInt(limit);
-        if (usage >= 0.8) {
-          console.warn(
-            `Rate limit warning: ${Math.round(usage * 100)}% of hourly quota used (${remaining}/${limit} remaining)`
-          );
-        }
-      }
-      return response;
-    });
-
-    // 3. axios-retry - handles 429 retries before error transformation
+    // 1. axios-retry - handles retries for rate limits and network errors
     axiosRetry(this.http, {
       retries: 3,
       shouldResetTimeout: true,
@@ -117,10 +94,23 @@ export class BusinessMapClient {
         return axiosRetry.exponentialDelay(retryCount);
       },
       retryCondition: (error) => {
-        return (
-          axiosRetry.isNetworkOrIdempotentRequestError(error) ||
-          error.response?.status === 429
-        );
+        // Check for standard 429 status OR BusinessMap's rate limit responses
+        // The API may return RL02 code or rate limit message in various formats
+        const responseData = error.response?.data as {
+          error?: string | { code?: string | number; message?: string };
+        };
+        const errorCode =
+          typeof responseData?.error === 'string' ? responseData.error : responseData?.error?.code;
+        const errorMessage =
+          typeof responseData?.error === 'object' ? responseData.error?.message : '';
+        const errorMsgLower = errorMessage?.toLowerCase() ?? '';
+        const isRateLimit =
+          error.response?.status === 429 ||
+          errorCode === 'RL02' ||
+          errorMsgLower.includes('rate limit') ||
+          errorMsgLower.includes('request limit');
+
+        return axiosRetry.isNetworkOrIdempotentRequestError(error) || isRateLimit;
       },
       onRetry: (retryCount, error) => {
         const retryAfter = error.response?.headers?.['retry-after'];
@@ -129,6 +119,29 @@ export class BusinessMapClient {
         );
       },
     });
+
+    // 2. Rate limit monitor - success responses only (logs quota warnings)
+    this.http.interceptors.response.use((response) => {
+      const remaining = response.headers?.['x-ratelimitperhour-remaining'];
+      const limit = response.headers?.['x-ratelimitperhour-limit'];
+      if (remaining && limit) {
+        const usage = 1 - parseInt(remaining) / parseInt(limit);
+        if (usage >= 0.8) {
+          console.warn(
+            `Rate limit warning: ${Math.round(usage * 100)}% of hourly quota used (${remaining}/${limit} remaining)`
+          );
+        }
+      }
+      return response;
+    });
+
+    // 3. Error transformer - transforms errors AFTER axios-retry exhausts retries
+    this.http.interceptors.response.use(
+      (response) => response,
+      (error: AxiosError) => {
+        throw this.transformError(error);
+      }
+    );
 
     // Initialize client modules
     this.workspaceClient = new WorkspaceClient();
