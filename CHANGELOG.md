@@ -1,3 +1,10 @@
+## [3.1.3](https://github.com/neilinger/businessmap-mcp/compare/v3.1.2...v3.1.3) (2025-12-06)
+
+
+### Bug Fixes
+
+* **test:** improve rate limit resilience in integration tests ([#44](https://github.com/neilinger/businessmap-mcp/issues/44)) ([#45](https://github.com/neilinger/businessmap-mcp/issues/45)) ([6858e03](https://github.com/neilinger/businessmap-mcp/commit/6858e0374dc0a72be8f94c2c5a77aaf3163e6883))
+
 ## [3.1.2](https://github.com/neilinger/businessmap-mcp/compare/v3.1.1...v3.1.2) (2025-12-05)
 
 
