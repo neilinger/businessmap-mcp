@@ -40,6 +40,7 @@ if (shouldSkip) {
     let testCardId: number;
     let parentCardId: number;
     let testColumnId: number;
+    let testLaneId: number;
 
     beforeEach(async () => {
       // Initialize client using test infrastructure
@@ -61,6 +62,7 @@ if (shouldSkip) {
 
           if (columns && columns.length > 0 && lanes && lanes.length > 0) {
             testColumnId = columns[0].column_id;
+            testLaneId = lanes[0].lane_id;
             foundBoard = true;
             break;
           }
@@ -77,6 +79,7 @@ if (shouldSkip) {
       const parentCard = await client.createCard({
         title: `[Issue-18] Parent Card ${Date.now()}`,
         column_id: testColumnId,
+        lane_id: testLaneId,
       });
       parentCardId = parentCard.card_id;
 
@@ -84,6 +87,7 @@ if (shouldSkip) {
       const testCard = await client.createCard({
         title: `[Issue-18] Test Card ${Date.now()}`,
         column_id: testColumnId,
+        lane_id: testLaneId,
       });
       testCardId = testCard.card_id;
     });

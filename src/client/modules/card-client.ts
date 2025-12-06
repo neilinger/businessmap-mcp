@@ -194,11 +194,20 @@ export class CardClient extends BaseClientModuleImpl {
 
   /**
    * Create a new card
+   *
+   * NOTE: The BusinessMap API wraps the response in an array even for single card creation.
+   * This method extracts the first card from the array to return a single Card object.
    */
   async createCard(params: CreateCardParams): Promise<Card> {
     this.checkReadOnlyMode('create card');
-    const response = await this.http.post<ApiResponse<Card>>('/cards', params);
-    return response.data.data;
+    const response = await this.http.post<ApiResponse<Card | Card[]>>('/cards', params);
+    // Handle both single object and array responses from the API
+    const data = response.data.data;
+    if (Array.isArray(data) && data.length > 0) {
+      // Non-null assertion safe: length check guarantees element exists
+      return data[0]!;
+    }
+    return data as Card;
   }
 
   /**
