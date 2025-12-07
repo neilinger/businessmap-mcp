@@ -12,6 +12,7 @@ import {
   WorkflowClient,
   WorkspaceClient,
 } from './modules/index.js';
+import { validateSecureUrl } from '../utils/secure-url.js';
 
 /**
  * BusinessMap API Client
@@ -63,6 +64,10 @@ export class BusinessMapClient {
 
   constructor(config: BusinessMapConfig) {
     this.config = config;
+
+    // SECURITY: Validate HTTPS before creating HTTP client (Issue #55)
+    validateSecureUrl(config.apiUrl);
+
     this.http = axios.create({
       baseURL: config.apiUrl,
       headers: {

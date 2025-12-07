@@ -44,8 +44,8 @@
           "api_url": {
             "type": "string",
             "format": "uri",
-            "pattern": "^https?://[^\\s/$.?#].[^\\s]*$",
-            "description": "BusinessMap API URL (must be unique across instances)",
+            "pattern": "^https://[^\\s/$.?#].[^\\s]*$",
+            "description": "BusinessMap API URL (must use HTTPS, must be unique across instances)",
             "examples": [
               "https://company.kanbanize.com/api/v2",
               "https://company-staging.kanbanize.com/api/v2"
@@ -55,10 +55,7 @@
             "type": "string",
             "pattern": "^[A-Z_][A-Z0-9_]*$",
             "description": "Environment variable name containing the API token",
-            "examples": [
-              "BUSINESSMAP_API_TOKEN_PROD",
-              "BUSINESSMAP_API_TOKEN_STAGING"
-            ]
+            "examples": ["BUSINESSMAP_API_TOKEN_PROD", "BUSINESSMAP_API_TOKEN_STAGING"]
           },
           "default_workspace_id": {
             "type": "integer",

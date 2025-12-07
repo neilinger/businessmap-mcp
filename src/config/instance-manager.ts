@@ -25,13 +25,29 @@ import {
   MultiInstanceConfig,
   TokenLoadError,
 } from '../types/instance-config.js';
+import { validateSecureUrl } from '../utils/secure-url.js';
 
 /**
  * Zod schema for runtime validation of InstanceConfig.
  */
 const InstanceConfigSchema = z.object({
   name: z.string().min(1, 'Instance name cannot be empty'),
-  apiUrl: z.string().url('API URL must be a valid URL'),
+  apiUrl: z
+    .string()
+    .url('API URL must be a valid URL')
+    .refine(
+      (url) => {
+        try {
+          validateSecureUrl(url);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      {
+        message: 'API URL must use HTTPS (set ALLOW_INSECURE_LOCALHOST=true for local development)',
+      }
+    ),
   apiTokenEnv: z.string().min(1, 'API token environment variable name cannot be empty'),
   readOnlyMode: z.boolean().optional(),
   defaultWorkspaceId: z.number().int().positive().optional(),
