@@ -1,3 +1,10 @@
+## [3.1.5](https://github.com/neilinger/businessmap-mcp/compare/v3.1.4...v3.1.5) (2025-12-07)
+
+
+### Bug Fixes
+
+* **security:** enforce HTTPS-only for API connections ([#55](https://github.com/neilinger/businessmap-mcp/issues/55)) ([#76](https://github.com/neilinger/businessmap-mcp/issues/76)) ([6ba137d](https://github.com/neilinger/businessmap-mcp/commit/6ba137d8f9b13097d533d7b3a3e0ecb3482cddfd))
+
 ## [3.1.4](https://github.com/neilinger/businessmap-mcp/compare/v3.1.3...v3.1.4) (2025-12-06)
 
 ### Bug Fixes
