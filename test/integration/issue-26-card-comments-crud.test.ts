@@ -12,6 +12,8 @@
  * npm run test:integration -- --testPathPattern="issue-26-card-comments-crud"
  */
 
+/* eslint-disable no-console */
+
 import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { BusinessMapClient } from '../../src/client/businessmap-client.js';
 import {
@@ -19,6 +21,7 @@ import {
   createTestClient,
   getAvailableTestInstances,
 } from './infrastructure/client-factory.js';
+import { TestCardFactory } from './infrastructure/test-card-factory/index.js';
 
 // Set global timeout to 90s to allow for rate limit retries (retry-after can be 60+ seconds)
 jest.setTimeout(90000);
@@ -48,10 +51,10 @@ if (shouldSkip) {
 
 // Track created resources for cleanup
 const createdCommentIds: Array<{ cardId: number; commentId: number }> = [];
-let createdTestCardId: number | null = null;
 
 (shouldSkip ? describe.skip : describe)('Issue #26: Card Comments CRUD', () => {
   let client: BusinessMapClient;
+  let factory: TestCardFactory;
   let testCardId: number;
 
   beforeAll(async () => {
@@ -71,6 +74,9 @@ let createdTestCardId: number | null = null;
     await client.initialize();
     console.log('BusinessMapClient initialized with axios-retry enabled');
 
+    // Initialize factory for board discovery and card creation
+    factory = new TestCardFactory(client, 'issue-26');
+
     // Use provided test card ID or auto-discover
     if (TEST_CARD_ID) {
       testCardId = TEST_CARD_ID;
@@ -86,51 +92,14 @@ let createdTestCardId: number | null = null;
       }
     }
 
-    // Auto-discover or create a test card
+    // Auto-discover or create a test card using factory
     if (!testCardId) {
-      console.log('Setting up test card...');
-      const boards = await client.getBoards({ if_assigned: 1 });
-      if (!boards || boards.length === 0) {
-        throw new Error('No accessible boards found. Set BUSINESSMAP_TEST_CARD_ID env var.');
-      }
-      console.log(`Found ${boards.length} accessible boards`);
-
-      // Find a board with a suitable structure and create a test card
-      // This avoids checking all boards for existing cards (rate limiting)
-      let foundCard = false;
-      for (const board of boards) {
-        try {
-          console.log(`Trying board ${board.board_id} (${board.name || 'unnamed'})...`);
-          const columns = await client.getColumns(board.board_id);
-          const lanes = await client.getLanes(board.board_id);
-
-          if (columns && columns.length > 0 && lanes && lanes.length > 0) {
-            console.log(`  Using column ${columns[0].column_id}, lane ${lanes[0].lane_id}`);
-            const testCardResponse = await client.createCard({
-              title: `[Integration Test] Test card ${Date.now()}`,
-              column_id: columns[0].column_id,
-              lane_id: lanes[0].lane_id,
-            });
-            // API returns array, extract the card
-            const testCard = Array.isArray(testCardResponse) ? testCardResponse[0] : testCardResponse;
-            testCardId = testCard.card_id;
-            createdTestCardId = testCardId;
-            console.log(`Created test card ${testCardId} in board ${board.board_id}`);
-            foundCard = true;
-            break;
-          } else {
-            console.log(`  Board ${board.board_id} has no columns or lanes`);
-          }
-        } catch (e) {
-          console.log(`  Board ${board.board_id} error: ${e instanceof Error ? e.message : 'unknown'}`);
-        }
-      }
-
-      if (!foundCard) {
-        throw new Error(
-          'Unable to create test card in any board. Please set BUSINESSMAP_TEST_CARD_ID env var.'
-        );
-      }
+      console.log('Setting up test card using factory...');
+      const result = await factory.discoverAndCreateCard({
+        title: `[Integration Test] Test card ${Date.now()}`,
+      });
+      testCardId = result.cardId;
+      console.log(`Created test card ${testCardId} in board ${result.boardId}`);
     }
 
     // Create initial test comment for subsequent tests
@@ -152,15 +121,9 @@ let createdTestCardId: number | null = null;
       }
     }
 
-    // Clean up test card if we created one
-    if (createdTestCardId) {
-      try {
-        await client.deleteCard(createdTestCardId);
-        console.log(`Deleted test card ${createdTestCardId}`);
-      } catch {
-        console.log(`Note: Test card ${createdTestCardId} may need manual cleanup`);
-      }
-    }
+    // Clean up test card using factory
+    await factory.cleanupAllTrackedCards();
+    console.log('Test card cleaned up');
   }, 60000);
 
   // ============================================
@@ -270,9 +233,7 @@ let createdTestCardId: number | null = null;
       console.log(`DELETE took ${duration.toFixed(0)}ms`);
 
       // Verify 404 on GET
-      await expect(
-        client.getCardComment(testCardId, toDelete.comment_id)
-      ).rejects.toThrow();
+      await expect(client.getCardComment(testCardId, toDelete.comment_id)).rejects.toThrow();
 
       // SC-004: Operation should complete within 5 seconds
       expect(duration).toBeLessThan(5000);
@@ -332,9 +293,7 @@ let createdTestCardId: number | null = null;
 
       // Verify gone
       console.log('CRUD Lifecycle: VERIFY GONE');
-      await expect(
-        client.getCardComment(testCardId, created.comment_id)
-      ).rejects.toThrow();
+      await expect(client.getCardComment(testCardId, created.comment_id)).rejects.toThrow();
 
       console.log('CRUD Lifecycle: COMPLETE');
     });
@@ -374,7 +333,9 @@ let createdTestCardId: number | null = null;
       for (const op of operations) {
         const ms = timings[op];
         if (ms > 10000) {
-          console.log(`  RATE_LIMITED ${op}: ${ms.toFixed(0)}ms (axios-retry waited for rate limit)`);
+          console.log(
+            `  RATE_LIMITED ${op}: ${ms.toFixed(0)}ms (axios-retry waited for rate limit)`
+          );
           rateLimitDetected = true;
         } else {
           const status = ms < 5000 ? 'PASS' : 'FAIL';
@@ -384,7 +345,9 @@ let createdTestCardId: number | null = null;
         }
       }
       if (rateLimitDetected) {
-        console.log('  Note: Rate limiting detected - this is expected behavior when API quota is exhausted');
+        console.log(
+          '  Note: Rate limiting detected - this is expected behavior when API quota is exhausted'
+        );
       }
     });
   });
@@ -394,9 +357,7 @@ let createdTestCardId: number | null = null;
   // ============================================
   describe('Error handling', () => {
     it('should provide clear error for invalid card ID on CREATE', async () => {
-      await expect(
-        client.createCardComment(999999999, { text: 'Should fail' })
-      ).rejects.toThrow();
+      await expect(client.createCardComment(999999999, { text: 'Should fail' })).rejects.toThrow();
     });
 
     it('should list all comments for a card', async () => {
