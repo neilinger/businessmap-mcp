@@ -354,16 +354,5 @@ describe('Test Card Factory Infrastructure', () => {
 
       expect(mockClient.deleteCard).toHaveBeenCalledWith(123, expect.any(Object));
     });
-
-    it('should export cleanupOrphanedCards function', async () => {
-      const mockClient = createMockClient();
-      const { cleanupOrphanedCards } = await import(
-        '../integration/infrastructure/test-card-factory/index.js'
-      );
-
-      // Should not throw even if no tracking file exists
-      const result = await cleanupOrphanedCards(mockClient);
-      expect(result).toBeDefined();
-    });
   });
 });

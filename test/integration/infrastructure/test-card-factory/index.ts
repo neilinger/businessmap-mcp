@@ -7,7 +7,7 @@
  * This modular design separates concerns:
  * - `types.ts` - Type definitions for board discovery and card management
  * - `errors.ts` - Custom error classes following project patterns
- * - `tracker.ts` - Persistent resource tracking with orphan recovery
+ * - `tracker.ts` - In-memory resource tracking for cleanup
  * - `factory.ts` - Main factory for board discovery and card creation
  *
  * @module test-card-factory
@@ -32,15 +32,6 @@
  * await factory.cleanupAllTrackedCards({ archiveFirst: true });
  * ```
  *
- * @example
- * ```typescript
- * import { TestCardTracker } from './test-card-factory';
- *
- * // Cleanup orphaned cards from previous crashes
- * beforeAll(async () => {
- *   await TestCardTracker.cleanupOrphanedCards(client);
- * });
- * ```
  */
 
 // Export types
@@ -127,27 +118,4 @@ export async function cleanupTestCard(
   const tracker = new TestCardTracker(client, undefined, options.verbose);
   tracker.track(cardId, boardId);
   await tracker.cleanupAll(options);
-}
-
-/**
- * Cleanup orphaned cards from previous test runs.
- *
- * Should be called in beforeAll() to ensure previous crash-orphans
- * don't interfere with new tests.
- *
- * @param client - Initialized BusinessMapClient
- * @param options - Cleanup options
- *
- * @example
- * ```typescript
- * beforeAll(async () => {
- *   await cleanupOrphanedCards(client);
- * });
- * ```
- */
-export async function cleanupOrphanedCards(
-  client: BusinessMapClient,
-  options: CleanupOptions = {}
-) {
-  return TestCardTracker.cleanupOrphanedCards(client, options);
 }
