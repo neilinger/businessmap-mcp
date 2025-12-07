@@ -12,6 +12,7 @@
 import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import { BusinessMapClient } from '../../src/client/businessmap-client.js';
 import { checkTestCredentials, createTestClient } from './infrastructure/client-factory.js';
+import { testError } from './infrastructure/error-messages.js';
 
 // Set global timeout to 90s for rate limit retries
 jest.setTimeout(90000);
@@ -126,7 +127,7 @@ describe('Issue #21: Subtask Creation on Newly Created Cards', () => {
       // Find a board with columns to create test cards
       const boards = await client.getBoards({ if_assigned: 1 });
       if (!boards || boards.length === 0) {
-        throw new Error('No accessible boards found for testing');
+        throw testError('NO_BOARDS');
       }
 
       // Find a board with usable columns
@@ -149,7 +150,7 @@ describe('Issue #21: Subtask Creation on Newly Created Cards', () => {
       }
 
       if (!foundBoard) {
-        throw new Error('No board with columns found for testing');
+        throw testError('NO_COLUMNS');
       }
     });
 

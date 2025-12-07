@@ -12,6 +12,7 @@
  * npm run test:integration -- --testPathPattern="issue-26-card-comments-crud"
  */
 
+/* eslint-disable no-console */
 import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { BusinessMapClient } from '../../src/client/businessmap-client.js';
 import {
@@ -19,6 +20,7 @@ import {
   createTestClient,
   getAvailableTestInstances,
 } from './infrastructure/client-factory.js';
+import { testError } from './infrastructure/error-messages.js';
 
 // Set global timeout to 90s to allow for rate limit retries (retry-after can be 60+ seconds)
 jest.setTimeout(90000);
@@ -91,7 +93,7 @@ let createdTestCardId: number | null = null;
       console.log('Setting up test card...');
       const boards = await client.getBoards({ if_assigned: 1 });
       if (!boards || boards.length === 0) {
-        throw new Error('No accessible boards found. Set BUSINESSMAP_TEST_CARD_ID env var.');
+        throw testError('NO_BOARDS');
       }
       console.log(`Found ${boards.length} accessible boards`);
 
@@ -112,7 +114,9 @@ let createdTestCardId: number | null = null;
               lane_id: lanes[0].lane_id,
             });
             // API returns array, extract the card
-            const testCard = Array.isArray(testCardResponse) ? testCardResponse[0] : testCardResponse;
+            const testCard = Array.isArray(testCardResponse)
+              ? testCardResponse[0]
+              : testCardResponse;
             testCardId = testCard.card_id;
             createdTestCardId = testCardId;
             console.log(`Created test card ${testCardId} in board ${board.board_id}`);
@@ -122,14 +126,14 @@ let createdTestCardId: number | null = null;
             console.log(`  Board ${board.board_id} has no columns or lanes`);
           }
         } catch (e) {
-          console.log(`  Board ${board.board_id} error: ${e instanceof Error ? e.message : 'unknown'}`);
+          console.log(
+            `  Board ${board.board_id} error: ${e instanceof Error ? e.message : 'unknown'}`
+          );
         }
       }
 
       if (!foundCard) {
-        throw new Error(
-          'Unable to create test card in any board. Please set BUSINESSMAP_TEST_CARD_ID env var.'
-        );
+        throw testError('CARD_CREATION_FAILED', 'in any board');
       }
     }
 
@@ -270,9 +274,7 @@ let createdTestCardId: number | null = null;
       console.log(`DELETE took ${duration.toFixed(0)}ms`);
 
       // Verify 404 on GET
-      await expect(
-        client.getCardComment(testCardId, toDelete.comment_id)
-      ).rejects.toThrow();
+      await expect(client.getCardComment(testCardId, toDelete.comment_id)).rejects.toThrow();
 
       // SC-004: Operation should complete within 5 seconds
       expect(duration).toBeLessThan(5000);
@@ -332,9 +334,7 @@ let createdTestCardId: number | null = null;
 
       // Verify gone
       console.log('CRUD Lifecycle: VERIFY GONE');
-      await expect(
-        client.getCardComment(testCardId, created.comment_id)
-      ).rejects.toThrow();
+      await expect(client.getCardComment(testCardId, created.comment_id)).rejects.toThrow();
 
       console.log('CRUD Lifecycle: COMPLETE');
     });
@@ -374,7 +374,9 @@ let createdTestCardId: number | null = null;
       for (const op of operations) {
         const ms = timings[op];
         if (ms > 10000) {
-          console.log(`  RATE_LIMITED ${op}: ${ms.toFixed(0)}ms (axios-retry waited for rate limit)`);
+          console.log(
+            `  RATE_LIMITED ${op}: ${ms.toFixed(0)}ms (axios-retry waited for rate limit)`
+          );
           rateLimitDetected = true;
         } else {
           const status = ms < 5000 ? 'PASS' : 'FAIL';
@@ -384,7 +386,9 @@ let createdTestCardId: number | null = null;
         }
       }
       if (rateLimitDetected) {
-        console.log('  Note: Rate limiting detected - this is expected behavior when API quota is exhausted');
+        console.log(
+          '  Note: Rate limiting detected - this is expected behavior when API quota is exhausted'
+        );
       }
     });
   });
@@ -394,9 +398,7 @@ let createdTestCardId: number | null = null;
   // ============================================
   describe('Error handling', () => {
     it('should provide clear error for invalid card ID on CREATE', async () => {
-      await expect(
-        client.createCardComment(999999999, { text: 'Should fail' })
-      ).rejects.toThrow();
+      await expect(client.createCardComment(999999999, { text: 'Should fail' })).rejects.toThrow();
     });
 
     it('should list all comments for a card', async () => {
