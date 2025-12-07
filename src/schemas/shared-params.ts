@@ -64,11 +64,19 @@ export type SharedParamsType = z.infer<typeof SharedParams>;
 /**
  * Schema for card placement within lanes and positions
  *
- * @property lane_id - Optional lane identifier for card placement
+ * @property lane_id - Optional in schema but may be required by specific board configurations.
+ *   Always fetch board structure before creating cards to ensure compliance.
+ *   @see get_lanes MCP tool to fetch available lanes for a board
+ *   @see BusinessMapClient.getLanes() for programmatic access
+ *   @throws {ApiError} 400 - If board configuration requires lane_id but it's not provided
  * @property position - Optional position within the lane
  */
 export const PlacementSchema = z.object({
-  lane_id: entityIdSchema.optional().describe('The ID of the lane where the card should be placed'),
+  lane_id: entityIdSchema
+    .optional()
+    .describe(
+      'The ID of the lane where the card should be placed. Optional in schema but may be required by board configuration. Use get_lanes tool or BusinessMapClient.getLanes() to fetch available lanes.'
+    ),
   position: positionSchema
     .optional()
     .describe('The position of the card within the lane (0-based index)'),

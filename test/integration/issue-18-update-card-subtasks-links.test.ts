@@ -14,6 +14,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { BusinessMapClient } from '../../src/client/businessmap-client.js';
 import { checkTestCredentials, createTestClient } from './infrastructure/client-factory.js';
+import { testError } from './infrastructure/error-messages.js';
 import { TestCardFactory } from './infrastructure/test-card-factory/index.js';
 
 // Set global timeout to 90s for rate limit retries
@@ -109,7 +110,7 @@ if (shouldSkip) {
     it('[REGRESSION-003] updateCard applies tag_ids_to_add', async () => {
       const boards = await client.getBoards({ if_assigned: 1 });
       const board = boards[0];
-      if (!board) throw new Error('No boards found');
+      if (!board) throw testError('NO_BOARDS');
 
       // Try to get available tags (may not exist)
       const tags = (board as Record<string, unknown>).available_tags as
@@ -134,7 +135,7 @@ if (shouldSkip) {
     it('[REGRESSION-004] updateCard applies all params simultaneously', async () => {
       const boards = await client.getBoards({ if_assigned: 1 });
       const board = boards[0];
-      if (!board) throw new Error('No boards found');
+      if (!board) throw testError('NO_BOARDS');
 
       const tags = (board as Record<string, unknown>).available_tags as
         | Array<{ tag_id: number }>

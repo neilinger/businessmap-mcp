@@ -12,6 +12,7 @@
 
 import { jest } from '@jest/globals';
 import { BusinessMapClient } from '../../../src/client/businessmap-client.js';
+import { safetyError } from '../infrastructure/error-messages.js';
 
 // Test configuration
 const API_URL = process.env.BUSINESSMAP_API_URL || 'https://demo.kanbanize.com/api/v2';
@@ -58,7 +59,7 @@ async function cleanup() {
             console.error(
               `❌ SAFETY VIOLATION: workspace_id ${resource.id} <= ${SAFE_WORKSPACE_MIN_ID}`
             );
-            throw new Error(`Unsafe workspace archive: ${resource.id}`);
+            throw safetyError('archive', 'workspace', resource.id);
           }
           // Archive workspace (PATCH with is_archived=1 - verified working)
           await client.archiveWorkspace(resource.id);
@@ -66,7 +67,7 @@ async function cleanup() {
         case 'board':
           if (resource.id <= SAFE_BOARD_MIN_ID) {
             console.error(`❌ SAFETY VIOLATION: board_id ${resource.id} <= ${SAFE_BOARD_MIN_ID}`);
-            throw new Error(`Unsafe board delete: ${resource.id}`);
+            throw safetyError('delete', 'board', resource.id);
           }
           // Delete board with archive-first (verified working)
           await client.deleteBoard(resource.id, { archive_first: true });

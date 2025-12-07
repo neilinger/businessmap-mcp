@@ -286,7 +286,10 @@ export const updateCardSchema = z.object({
   title: optionalTitle,
   description: optionalDescription,
   column_id: optionalEntityId,
-  lane_id: optionalEntityId,
+  lane_id: optionalEntityId.describe(
+    'The ID of the lane where the card should be moved. Optional in schema but may be required by board configuration. ' +
+      'Use get_lanes tool or BusinessMapClient.getLanes() to fetch available lanes.'
+  ),
   position: optionalPosition,
   owner_user_id: optionalEntityId,
   assignee_user_id: optionalEntityId,
@@ -317,11 +320,21 @@ export const updateCardSchema = z.object({
 
 /**
  * Schema for moving a card to a different column/lane
+ *
+ * Note: lane_id is optional in schema but may be required by specific board configurations.
+ * Always fetch board structure before moving cards to ensure compliance with board setup.
+ *
+ * @see get_lanes MCP tool to fetch available lanes for a board
+ * @see BusinessMapClient.getLanes() for programmatic access
+ * @throws {ApiError} 400 - If board configuration requires lane_id but it's not provided
  */
 export const moveCardSchema = z.object({
   card_id: entityIdSchema.describe('The ID of the card to move'),
   column_id: entityIdSchema.describe('The target column ID'),
-  lane_id: optionalEntityId.describe('Optional target lane ID'),
+  lane_id: optionalEntityId.describe(
+    'Optional target lane ID. Optional in schema but may be required by board configuration. ' +
+      'Use get_lanes tool or BusinessMapClient.getLanes() to fetch available lanes for the board.'
+  ),
   position: optionalPosition.describe('Optional position in the column'),
   instance: SharedParams.shape.instance,
 });

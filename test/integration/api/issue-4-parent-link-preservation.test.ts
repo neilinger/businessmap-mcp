@@ -22,6 +22,7 @@
 import { jest } from '@jest/globals';
 import { BusinessMapClient } from '../../../src/client/businessmap-client.js';
 import { LinkedCard } from '../../../src/types/index.js';
+import { testError } from '../infrastructure/error-messages.js';
 
 // Test configuration
 const API_URL = process.env.BUSINESSMAP_API_URL || 'https://demo.kanbanize.com/api/v2';
@@ -130,7 +131,7 @@ let testWorkflow2Id: number;
     const workflows = boardStructure.workflows || [];
 
     if (workflows.length < 1) {
-      throw new Error('Board must have at least one workflow for testing');
+      throw testError('NO_WORKFLOWS');
     }
 
     // Get first workflow and its columns
@@ -138,7 +139,7 @@ let testWorkflow2Id: number;
     const workflow1Columns = workflow1.columns || [];
 
     if (workflow1Columns.length < 2) {
-      throw new Error('Workflow must have at least 2 columns for move testing');
+      throw testError('INSUFFICIENT_COLUMNS', 'for move testing');
     }
 
     testColumn1Id = workflow1Columns[0].column_id;

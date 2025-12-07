@@ -1,88 +1,85 @@
-## [3.1.3](https://github.com/neilinger/businessmap-mcp/compare/v3.1.2...v3.1.3) (2025-12-06)
-
+## [3.1.4](https://github.com/neilinger/businessmap-mcp/compare/v3.1.3...v3.1.4) (2025-12-06)
 
 ### Bug Fixes
 
-* **test:** improve rate limit resilience in integration tests ([#44](https://github.com/neilinger/businessmap-mcp/issues/44)) ([#45](https://github.com/neilinger/businessmap-mcp/issues/45)) ([6858e03](https://github.com/neilinger/businessmap-mcp/commit/6858e0374dc0a72be8f94c2c5a77aaf3163e6883))
+- **test:** add missing lane_id to integration tests ([#46](https://github.com/neilinger/businessmap-mcp/issues/46)) ([#47](https://github.com/neilinger/businessmap-mcp/issues/47)) ([c6ca22a](https://github.com/neilinger/businessmap-mcp/commit/c6ca22a3bb3a6027cd73cce88b2fbcc108c40ba6))
+
+## [3.1.3](https://github.com/neilinger/businessmap-mcp/compare/v3.1.2...v3.1.3) (2025-12-06)
+
+### Bug Fixes
+
+- **test:** improve rate limit resilience in integration tests ([#44](https://github.com/neilinger/businessmap-mcp/issues/44)) ([#45](https://github.com/neilinger/businessmap-mcp/issues/45)) ([6858e03](https://github.com/neilinger/businessmap-mcp/commit/6858e0374dc0a72be8f94c2c5a77aaf3163e6883))
 
 ## [3.1.2](https://github.com/neilinger/businessmap-mcp/compare/v3.1.1...v3.1.2) (2025-12-05)
 
-
 ### Bug Fixes
 
-* migrate Zod imports to zod/v4 for SDK compatibility (resolves [#41](https://github.com/neilinger/businessmap-mcp/issues/41)) ([#42](https://github.com/neilinger/businessmap-mcp/issues/42)) ([997b761](https://github.com/neilinger/businessmap-mcp/commit/997b761fe8c5c753551cfcabc1a40dc0605dfdcd))
+- migrate Zod imports to zod/v4 for SDK compatibility (resolves [#41](https://github.com/neilinger/businessmap-mcp/issues/41)) ([#42](https://github.com/neilinger/businessmap-mcp/issues/42)) ([997b761](https://github.com/neilinger/businessmap-mcp/commit/997b761fe8c5c753551cfcabc1a40dc0605dfdcd))
 
 ## [3.1.1](https://github.com/neilinger/businessmap-mcp/compare/v3.1.0...v3.1.1) (2025-12-05)
 
-
 ### Bug Fixes
 
-* **build:** use --noCheck in npm build script ([7d2d5e5](https://github.com/neilinger/businessmap-mcp/commit/7d2d5e5cdd7e3bea1e7328d41b83585876d338ab))
+- **build:** use --noCheck in npm build script ([7d2d5e5](https://github.com/neilinger/businessmap-mcp/commit/7d2d5e5cdd7e3bea1e7328d41b83585876d338ab))
 
 # [3.1.0](https://github.com/neilinger/businessmap-mcp/compare/v3.0.0...v3.1.0) (2025-12-05)
 
-
 ### Bug Fixes
 
-* **ci:** use --noCheck in release workflow to prevent OOM ([cec9810](https://github.com/neilinger/businessmap-mcp/commit/cec981062f42e0ba6937fbcd3bd734e07019a95e))
-
+- **ci:** use --noCheck in release workflow to prevent OOM ([cec9810](https://github.com/neilinger/businessmap-mcp/commit/cec981062f42e0ba6937fbcd3bd734e07019a95e))
 
 ### Features
 
-* **deps:** upgrade @modelcontextprotocol/sdk to v1.24.3 ([#40](https://github.com/neilinger/businessmap-mcp/issues/40)) ([2a75310](https://github.com/neilinger/businessmap-mcp/commit/2a75310b57281bb6056d180d9bae6a221b20330a))
+- **deps:** upgrade @modelcontextprotocol/sdk to v1.24.3 ([#40](https://github.com/neilinger/businessmap-mcp/issues/40)) ([2a75310](https://github.com/neilinger/businessmap-mcp/commit/2a75310b57281bb6056d180d9bae6a221b20330a))
 
 # [3.0.0](https://github.com/neilinger/businessmap-mcp/compare/v2.1.0...v3.0.0) (2025-12-05)
 
-
 ### Bug Fixes
 
-* **ci:** update release workflow to Node.js 22 for semantic-release v25 ([a95c69f](https://github.com/neilinger/businessmap-mcp/commit/a95c69fdb6abe92f842a1db35cde0e2182856846))
-* **ci:** upgrade semantic-release to v25 for OIDC support ([f1e4cba](https://github.com/neilinger/businessmap-mcp/commit/f1e4cbac6c2ef7cccd9d61b171b6f771aceb57e8))
-* **subtasks:** pass instance parameter to correct BusinessMap endpoint ([#33](https://github.com/neilinger/businessmap-mcp/issues/33)) ([#35](https://github.com/neilinger/businessmap-mcp/issues/35)) ([24b928b](https://github.com/neilinger/businessmap-mcp/commit/24b928b565c2fc68c55e288337e34493b71368b8))
-
+- **ci:** update release workflow to Node.js 22 for semantic-release v25 ([a95c69f](https://github.com/neilinger/businessmap-mcp/commit/a95c69fdb6abe92f842a1db35cde0e2182856846))
+- **ci:** upgrade semantic-release to v25 for OIDC support ([f1e4cba](https://github.com/neilinger/businessmap-mcp/commit/f1e4cbac6c2ef7cccd9d61b171b6f771aceb57e8))
+- **subtasks:** pass instance parameter to correct BusinessMap endpoint ([#33](https://github.com/neilinger/businessmap-mcp/issues/33)) ([#35](https://github.com/neilinger/businessmap-mcp/issues/35)) ([24b928b](https://github.com/neilinger/businessmap-mcp/commit/24b928b565c2fc68c55e288337e34493b71368b8))
 
 ### Features
 
-* **ci:** migrate to npm OIDC Trusted Publishing ([48b8e49](https://github.com/neilinger/businessmap-mcp/commit/48b8e493a2d682ec7d74498565d4cfaceb4810b3))
-* **deps:** upgrade @semantic-release/npm to v13.1.2 ([282a3a6](https://github.com/neilinger/businessmap-mcp/commit/282a3a6602032387da78e8fa6053a819edcabb04))
-
+- **ci:** migrate to npm OIDC Trusted Publishing ([48b8e49](https://github.com/neilinger/businessmap-mcp/commit/48b8e493a2d682ec7d74498565d4cfaceb4810b3))
+- **deps:** upgrade @semantic-release/npm to v13.1.2 ([282a3a6](https://github.com/neilinger/businessmap-mcp/commit/282a3a6602032387da78e8fa6053a819edcabb04))
 
 ### BREAKING CHANGES
 
-* **deps:** Requires npm CLI 11.5.1+ for OIDC trusted publishing
+- **deps:** Requires npm CLI 11.5.1+ for OIDC trusted publishing
 
-- Enables OIDC token exchange for npm publishing
-- Removes dependency on NPM_TOKEN for verifyConditions
-- Supports dry-run publish for auth verification
-- Compatible with existing provenance: true configuration
+* Enables OIDC token exchange for npm publishing
+* Removes dependency on NPM_TOKEN for verifyConditions
+* Supports dry-run publish for auth verification
+* Compatible with existing provenance: true configuration
 
 Resolves npm classic token deprecation (Dec 9, 2025)
 
 # [2.1.0](https://github.com/neilinger/businessmap-mcp/compare/v2.0.0...v2.1.0) (2025-11-21)
 
-
 ### Features
 
-* **comments:** implement complete CRUD for card comments ([#32](https://github.com/neilinger/businessmap-mcp/issues/32)) ([08510e9](https://github.com/neilinger/businessmap-mcp/commit/08510e93227bfbc156fadfef99abe8a4ab867d2c)), closes [#26](https://github.com/neilinger/businessmap-mcp/issues/26) [#26](https://github.com/neilinger/businessmap-mcp/issues/26) [#26](https://github.com/neilinger/businessmap-mcp/issues/26)
+- **comments:** implement complete CRUD for card comments ([#32](https://github.com/neilinger/businessmap-mcp/issues/32)) ([08510e9](https://github.com/neilinger/businessmap-mcp/commit/08510e93227bfbc156fadfef99abe8a4ab867d2c)), closes [#26](https://github.com/neilinger/businessmap-mcp/issues/26) [#26](https://github.com/neilinger/businessmap-mcp/issues/26) [#26](https://github.com/neilinger/businessmap-mcp/issues/26)
 
 # [2.0.0](https://github.com/neilinger/businessmap-mcp/compare/v1.15.0...v2.0.0) (2025-11-19)
 
-
 ### chore
 
-* correct version to 2.0.0 for breaking changes ([56c274b](https://github.com/neilinger/businessmap-mcp/commit/56c274b948c020f0b4710cd4849cc6e28dd9bee9))
-
+- correct version to 2.0.0 for breaking changes ([56c274b](https://github.com/neilinger/businessmap-mcp/commit/56c274b948c020f0b4710cd4849cc6e28dd9bee9))
 
 ### BREAKING CHANGES
 
-* footer in squash commit message.
+- footer in squash commit message.
 
 This release contains breaking changes:
+
 - Schema structure changes (required-only properties)
 - create_card, update_card, list_cards schemas modified
 - See CHANGELOG.md and migration guide for details
+
 * Schema structure changes require v1.x → v2.0 migration.
-See docs/migration/schema-compression.md for migration guide.
+  See docs/migration/schema-compression.md for migration guide.
 
 # [1.15.0](https://github.com/neilinger/businessmap-mcp/compare/v1.14.0...v1.15.0) (2025-11-19)
 
