@@ -1,7 +1,5 @@
-import { createLoggerSync } from '@toolprint/mcp-logger';
+import { logger } from '../../utils/logger.js';
 import { BaseClientModuleImpl } from './base-client.js';
-
-const logger = createLoggerSync({ level: 'info' });
 
 export class UtilityClient extends BaseClientModuleImpl {
   /**
@@ -15,7 +13,7 @@ export class UtilityClient extends BaseClientModuleImpl {
     } catch (error) {
       // Log the actual error for debugging
       logger.error('Health check failed', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return false;
     }

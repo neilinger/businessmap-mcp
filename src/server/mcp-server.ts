@@ -131,10 +131,9 @@ export class BusinessMapMcpServer {
       });
     } catch (error) {
       // Fallback to full profile if there's any error
-      logger.error(
-        'Error loading tool profile, falling back to full profile',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Error loading tool profile, falling back to full profile', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       profile = 'full';
       enabledTools = []; // Empty array means all tools enabled (backward compatibility)
     }

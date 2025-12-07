@@ -1,6 +1,7 @@
 import { AxiosInstance } from 'axios';
 import { LRUCache } from 'lru-cache';
 import { BusinessMapConfig } from '../../types/index.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * Base interface for client modules
@@ -45,7 +46,7 @@ export class CacheManager {
             this.invalidationGeneration.delete(key);
           } catch (err) {
             // Log but don't crash - cache eviction should be resilient
-            console.error('Cache cleanup error:', err);
+            logger.error('Cache cleanup error:', { error: err });
           }
         });
       },

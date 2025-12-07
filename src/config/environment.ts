@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { createLoggerSync } from '@toolprint/mcp-logger';
+import { logger } from '../utils/logger.js';
 import { BusinessMapConfig } from '../types/index.js';
 import { validateSecureUrl } from '../utils/secure-url.js';
 
@@ -14,8 +14,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const packageJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8'));
 const PACKAGE_VERSION = packageJson.version;
-
-const logger = createLoggerSync({ level: 'info' });
 
 export interface EnvironmentConfig {
   businessMap: BusinessMapConfig;

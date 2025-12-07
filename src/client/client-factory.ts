@@ -22,6 +22,7 @@ import {
   InstanceResolutionResult,
   InstanceResolutionStrategy,
 } from '../types/instance-config.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Cache entry for a BusinessMapClient instance.
@@ -257,9 +258,8 @@ export class BusinessMapClientFactory {
       try {
         await client.initialize();
       } catch (error) {
-        const message = `Failed to initialize client for instance '${resolution.instance.name}': ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const message = `Failed to initialize client for instance '${resolution.instance.name}': ${errorMessage}`;
 
         if (this.options.throwOnInitError) {
           throw new InstanceConfigError(message, 'CLIENT_INIT_ERROR', {
@@ -270,7 +270,11 @@ export class BusinessMapClientFactory {
         }
 
         // Log error but don't throw
-        console.error(message);
+        logger.error('Failed to initialize client for instance', {
+          instanceName: resolution.instance.name,
+          apiUrl: resolution.instance.apiUrl,
+          error: errorMessage,
+        });
       }
     }
 
