@@ -15,6 +15,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { BusinessMapClient } from '../../src/client/businessmap-client.js';
 import { checkTestCredentials, createTestClient } from './infrastructure/client-factory.js';
 import { testError } from './infrastructure/error-messages.js';
+import { TestCardFactory } from './infrastructure/test-card-factory/index.js';
 
 // Set global timeout to 90s for rate limit retries
 jest.setTimeout(90000);
@@ -38,77 +39,34 @@ if (shouldSkip) {
   'Issue #18: update_card with subtasks_to_add and links',
   () => {
     let client: BusinessMapClient;
+    let factory: TestCardFactory;
     let testCardId: number;
     let parentCardId: number;
-    let testColumnId: number;
-    let testLaneId: number;
 
     beforeEach(async () => {
-      // Initialize client using test infrastructure
+      // Initialize client and factory
       client = createTestClient();
       await client.initialize();
 
-      // Find a board with columns to create test cards
-      const boards = await client.getBoards({ if_assigned: 1 });
-      if (!boards || boards.length === 0) {
-        throw testError('NO_BOARDS');
-      }
-
-      // Find a board with usable columns
-      let foundBoard = false;
-      for (const board of boards) {
-        try {
-          const columns = await client.getColumns(board.board_id);
-          const lanes = await client.getLanes(board.board_id);
-
-          if (columns && columns.length > 0 && lanes && lanes.length > 0) {
-            testColumnId = columns[0].column_id;
-            testLaneId = lanes[0].lane_id;
-            foundBoard = true;
-            break;
-          }
-        } catch {
-          // Try next board
-        }
-      }
-
-      if (!foundBoard) {
-        throw testError('NO_COLUMNS');
-      }
+      // Use factory for board discovery and card creation
+      factory = new TestCardFactory(client, 'issue-18');
 
       // Create parent card for link tests
-      const parentCard = await client.createCard({
+      const parentResult = await factory.discoverAndCreateCard({
         title: `[Issue-18] Parent Card ${Date.now()}`,
-        column_id: testColumnId,
-        lane_id: testLaneId,
       });
-      parentCardId = parentCard.card_id;
+      parentCardId = parentResult.cardId;
 
       // Create test card
-      const testCard = await client.createCard({
+      const testResult = await factory.discoverAndCreateCard({
         title: `[Issue-18] Test Card ${Date.now()}`,
-        column_id: testColumnId,
-        lane_id: testLaneId,
       });
-      testCardId = testCard.card_id;
+      testCardId = testResult.cardId;
     });
 
     afterEach(async () => {
-      // Cleanup
-      if (testCardId) {
-        try {
-          await client.deleteCard(testCardId, { archive_first: true });
-        } catch {
-          // Ignore cleanup errors
-        }
-      }
-      if (parentCardId) {
-        try {
-          await client.deleteCard(parentCardId, { archive_first: true });
-        } catch {
-          // Ignore cleanup errors
-        }
-      }
+      // Cleanup using factory
+      await factory.cleanupAllTrackedCards({ archiveFirst: true });
     });
 
     it('[REGRESSION-001] updateCard applies subtasks_to_add', async () => {

@@ -13,6 +13,7 @@
  */
 
 /* eslint-disable no-console */
+
 import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { BusinessMapClient } from '../../src/client/businessmap-client.js';
 import {
@@ -20,7 +21,7 @@ import {
   createTestClient,
   getAvailableTestInstances,
 } from './infrastructure/client-factory.js';
-import { testError } from './infrastructure/error-messages.js';
+import { TestCardFactory } from './infrastructure/test-card-factory/index.js';
 
 // Set global timeout to 90s to allow for rate limit retries (retry-after can be 60+ seconds)
 jest.setTimeout(90000);
@@ -50,10 +51,10 @@ if (shouldSkip) {
 
 // Track created resources for cleanup
 const createdCommentIds: Array<{ cardId: number; commentId: number }> = [];
-let createdTestCardId: number | null = null;
 
 (shouldSkip ? describe.skip : describe)('Issue #26: Card Comments CRUD', () => {
   let client: BusinessMapClient;
+  let factory: TestCardFactory;
   let testCardId: number;
 
   beforeAll(async () => {
@@ -73,6 +74,9 @@ let createdTestCardId: number | null = null;
     await client.initialize();
     console.log('BusinessMapClient initialized with axios-retry enabled');
 
+    // Initialize factory for board discovery and card creation
+    factory = new TestCardFactory(client, 'issue-26');
+
     // Use provided test card ID or auto-discover
     if (TEST_CARD_ID) {
       testCardId = TEST_CARD_ID;
@@ -88,53 +92,14 @@ let createdTestCardId: number | null = null;
       }
     }
 
-    // Auto-discover or create a test card
+    // Auto-discover or create a test card using factory
     if (!testCardId) {
-      console.log('Setting up test card...');
-      const boards = await client.getBoards({ if_assigned: 1 });
-      if (!boards || boards.length === 0) {
-        throw testError('NO_BOARDS');
-      }
-      console.log(`Found ${boards.length} accessible boards`);
-
-      // Find a board with a suitable structure and create a test card
-      // This avoids checking all boards for existing cards (rate limiting)
-      let foundCard = false;
-      for (const board of boards) {
-        try {
-          console.log(`Trying board ${board.board_id} (${board.name || 'unnamed'})...`);
-          const columns = await client.getColumns(board.board_id);
-          const lanes = await client.getLanes(board.board_id);
-
-          if (columns && columns.length > 0 && lanes && lanes.length > 0) {
-            console.log(`  Using column ${columns[0].column_id}, lane ${lanes[0].lane_id}`);
-            const testCardResponse = await client.createCard({
-              title: `[Integration Test] Test card ${Date.now()}`,
-              column_id: columns[0].column_id,
-              lane_id: lanes[0].lane_id,
-            });
-            // API returns array, extract the card
-            const testCard = Array.isArray(testCardResponse)
-              ? testCardResponse[0]
-              : testCardResponse;
-            testCardId = testCard.card_id;
-            createdTestCardId = testCardId;
-            console.log(`Created test card ${testCardId} in board ${board.board_id}`);
-            foundCard = true;
-            break;
-          } else {
-            console.log(`  Board ${board.board_id} has no columns or lanes`);
-          }
-        } catch (e) {
-          console.log(
-            `  Board ${board.board_id} error: ${e instanceof Error ? e.message : 'unknown'}`
-          );
-        }
-      }
-
-      if (!foundCard) {
-        throw testError('CARD_CREATION_FAILED', 'in any board');
-      }
+      console.log('Setting up test card using factory...');
+      const result = await factory.discoverAndCreateCard({
+        title: `[Integration Test] Test card ${Date.now()}`,
+      });
+      testCardId = result.cardId;
+      console.log(`Created test card ${testCardId} in board ${result.boardId}`);
     }
 
     // Create initial test comment for subsequent tests
@@ -156,15 +121,9 @@ let createdTestCardId: number | null = null;
       }
     }
 
-    // Clean up test card if we created one
-    if (createdTestCardId) {
-      try {
-        await client.deleteCard(createdTestCardId);
-        console.log(`Deleted test card ${createdTestCardId}`);
-      } catch {
-        console.log(`Note: Test card ${createdTestCardId} may need manual cleanup`);
-      }
-    }
+    // Clean up test card using factory
+    await factory.cleanupAllTrackedCards();
+    console.log('Test card cleaned up');
   }, 60000);
 
   // ============================================

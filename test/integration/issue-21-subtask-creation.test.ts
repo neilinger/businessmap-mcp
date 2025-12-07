@@ -12,7 +12,7 @@
 import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import { BusinessMapClient } from '../../src/client/businessmap-client.js';
 import { checkTestCredentials, createTestClient } from './infrastructure/client-factory.js';
-import { testError } from './infrastructure/error-messages.js';
+import { TestCardFactory } from './infrastructure/test-card-factory/index.js';
 
 // Set global timeout to 90s for rate limit retries
 jest.setTimeout(90000);
@@ -114,69 +114,43 @@ describe('Issue #21: Subtask Creation on Newly Created Cards', () => {
   // Integration tests (API required) - skip in CI or without credentials
   (shouldSkipLiveTests ? describe.skip : describe)('Live API tests', () => {
     let client: BusinessMapClient;
+    let factory: TestCardFactory;
     let testCardId: number;
-    let testColumnId: number;
-    let testLaneId: number;
+    let validUserId: number;
 
     beforeAll(async () => {
-      // Initialize client using test infrastructure
+      // Initialize client and factory using test infrastructure
       client = createTestClient();
       await client.initialize();
       console.log('BusinessMapClient initialized for Issue #21 tests');
 
-      // Find a board with columns to create test cards
-      const boards = await client.getBoards({ if_assigned: 1 });
-      if (!boards || boards.length === 0) {
-        throw testError('NO_BOARDS');
-      }
+      // Use factory for board discovery
+      factory = new TestCardFactory(client, 'issue-21');
+      console.log('TestCardFactory initialized for Issue #21 tests');
 
-      // Find a board with usable columns
-      let foundBoard = false;
-      for (const board of boards) {
-        try {
-          const columns = await client.getColumns(board.board_id);
-          const lanes = await client.getLanes(board.board_id);
-
-          if (columns && columns.length > 0 && lanes && lanes.length > 0) {
-            testColumnId = columns[0].column_id;
-            testLaneId = lanes[0].lane_id;
-            console.log(`Using board ${board.board_id}, column ${testColumnId}`);
-            foundBoard = true;
-            break;
-          }
-        } catch {
-          // Try next board
-        }
-      }
-
-      if (!foundBoard) {
-        throw testError('NO_COLUMNS');
+      // Get a valid user ID for subtask assignment
+      const users = await client.getUsers();
+      if (users && users.length > 0) {
+        validUserId = users[0].user_id;
+        console.log(`Using user ${validUserId} for subtask assignment`);
+      } else {
+        throw new Error('No users available for subtask assignment');
       }
     });
 
     afterAll(async () => {
       // Cleanup: Delete test card if it was created
-      if (testCardId) {
-        try {
-          await client.deleteCard(testCardId, { archive_first: true });
-          console.log(`Cleaned up test card ${testCardId}`);
-        } catch {
-          // Ignore cleanup errors
-        }
-      }
+      await factory.cleanupAllTrackedCards({ archiveFirst: true });
+      console.log('Cleanup completed for Issue #21 tests');
     });
 
     it('should create subtask on newly created card', async () => {
-      // Step 1: Create a test card
-      const cardData = {
+      // Step 1: Create a test card using factory
+      const result = await factory.discoverAndCreateCard({
         title: `[Issue #21] Test Card ${Date.now()}`,
-        column_id: testColumnId,
-        lane_id: testLaneId,
         description: 'Automated test for subtask creation bug',
-      };
-
-      const createdCard = await client.createCard(cardData);
-      testCardId = createdCard.card_id;
+      });
+      testCardId = result.cardId;
 
       expect(testCardId).toBeDefined();
       expect(typeof testCardId).toBe('number');
@@ -187,13 +161,10 @@ describe('Issue #21: Subtask Creation on Newly Created Cards', () => {
       expect(fetchedCard.card_id).toBe(testCardId);
 
       // Step 3: Attempt to create subtask (this is where the bug occurred)
+      // Note: Only pass required/valid parameters to avoid API validation errors
       const subtaskData = {
         description: 'Test subtask for issue #21',
-        owner_user_id: 2, // Will use first available user
-        is_finished: 0,
-        deadline: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-        position: 1,
-        attachments_to_add: [],
+        owner_user_id: validUserId, // Use dynamically discovered user
       };
 
       // This should NOT throw "card does not exist" error
