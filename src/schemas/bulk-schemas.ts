@@ -78,13 +78,24 @@ export const bulkUpdateBoardsSchemaShape = bulkUpdateBoardsBaseSchema.shape;
 // Bulk delete cards
 export const bulkDeleteCardsSchema = bulkDeleteBaseSchema;
 
-// Bulk update cards
+/**
+ * Bulk update cards schema
+ *
+ * Note: lane_id is optional but may be required by specific board configurations.
+ * Always fetch board structure before performing bulk moves to ensure compliance.
+ *
+ * @see get_lanes MCP tool to fetch available lanes for a board
+ * @see BusinessMapClient.getLanes() for programmatic access
+ */
 export const bulkUpdateCardsSchema = bulkUpdateBaseSchema
   .extend({
     title: optionalTitle.describe('New title for all cards'),
     description: optionalDescription.describe('New description for all cards'),
     column_id: optionalEntityId.describe('Move all cards to this column'),
-    lane_id: optionalEntityId.describe('Move all cards to this lane'),
+    lane_id: optionalEntityId.describe(
+      'Move all cards to this lane. Optional in schema but may be required by board configuration. ' +
+        'Use get_lanes tool or BusinessMapClient.getLanes() to fetch available lanes.'
+    ),
     priority: optionalPriority.describe('Priority level (0-10)'),
     owner_user_id: optionalEntityId.describe('Assign all cards to this user'),
   })

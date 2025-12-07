@@ -53,7 +53,8 @@ export const idArrayFilters = {
   })
     .optional()
     .describe(
-      'A list of the lane ids for which you want to get the results. Applied only if state parameter is active'
+      'A list of the lane IDs for which you want to filter results. Applied only if state parameter is active. ' +
+        'Note: lane_id values may be required by specific board configurations. Use get_lanes tool or BusinessMapClient.getLanes() to fetch available lanes.'
     ),
   workflow_ids: secureArray(entityIdSchema, {
     minItems: 0,
