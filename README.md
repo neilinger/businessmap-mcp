@@ -33,10 +33,23 @@ npm install -g @neilinger/businessmap-mcp
 The server requires the following environment variables:
 
 - `BUSINESSMAP_API_TOKEN`: Your BusinessMap API token
-- `BUSINESSMAP_API_URL`: Your BusinessMap API URL (e.g., `https://your-account.kanbanize.com/api/v2`)
+- `BUSINESSMAP_API_URL`: Your BusinessMap API URL (e.g., `https://your-account.kanbanize.com/api/v2`) - **Must use HTTPS**
 - `BUSINESSMAP_READ_ONLY_MODE`: Set to `"true"` for read-only mode, `"false"` to allow modifications (optional, defaults to `"false"`)
 - `BUSINESSMAP_DEFAULT_WORKSPACE_ID`: Set the BusinessMap workspace ID (optional)
 - `BUSINESSMAP_TOOL_PROFILE`: Token optimization profile for tool registration (optional, defaults to `"standard"`)
+- `ALLOW_INSECURE_LOCALHOST`: Set to `"true"` to allow HTTP connections to localhost for local development (optional, defaults to `"false"`)
+
+#### Security: HTTPS Enforcement
+
+All API connections **require HTTPS**. HTTP connections are rejected with a clear error message to prevent API tokens from being transmitted in plaintext.
+
+**For local development only:** Set `ALLOW_INSECURE_LOCALHOST=true` to allow HTTP connections to localhost addresses (localhost, 127.0.0.1, ::1). This flag has no effect on non-localhost URLs - they always require HTTPS.
+
+```bash
+# Development only - never use in production
+ALLOW_INSECURE_LOCALHOST=true
+BUSINESSMAP_API_URL=http://localhost:3000/api/v2
+```
 
 #### Tool Profile Configuration
 

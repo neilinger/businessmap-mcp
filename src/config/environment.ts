@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { createLoggerSync } from '@toolprint/mcp-logger';
 import { BusinessMapConfig } from '../types/index.js';
+import { validateSecureUrl } from '../utils/secure-url.js';
 
 // Load environment variables
 dotenv.config();
@@ -109,6 +110,9 @@ export function validateConfig(): void {
   } catch {
     throw new Error('BUSINESSMAP_API_URL must be a valid URL');
   }
+
+  // Validate HTTPS security (Issue #55)
+  validateSecureUrl(config.businessMap.apiUrl);
 
   // Validate API token is not empty (legacy mode only)
   if (!config.businessMap.apiToken.trim()) {
