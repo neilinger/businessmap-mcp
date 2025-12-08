@@ -95,6 +95,7 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+*.bak
 
 # Git worktrees
 trees/
