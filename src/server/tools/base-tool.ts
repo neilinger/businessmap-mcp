@@ -52,7 +52,7 @@ export function createErrorResponse(error: unknown, operation: string) {
  *
  * TODO: Add unit tests for BUSINESSMAP_PRETTY_JSON flag behavior
  */
-export function createSuccessResponse(data: any, message?: string) {
+export function createSuccessResponse(data: unknown, message?: string) {
   const prettyJson = config.formatting.prettyJson;
   const jsonString = prettyJson ? JSON.stringify(data, null, 2) : JSON.stringify(data);
 

@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
 import { getCurrentUserSchema, getUserSchema, listUsersSchema } from '@schemas/user-schemas.js';
@@ -39,7 +40,7 @@ export class UserToolHandler implements BaseToolHandler {
         description: 'List users',
         inputSchema: listUsersSchema.shape,
       },
-      async ({ instance }: any) => {
+      async ({ instance }: z.infer<typeof listUsersSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const users = await client.getUsers();
@@ -62,7 +63,7 @@ export class UserToolHandler implements BaseToolHandler {
         description: 'Get user details',
         inputSchema: getUserSchema.shape,
       },
-      async ({ user_id, instance }: any) => {
+      async ({ user_id, instance }: z.infer<typeof getUserSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const user = await client.getUser(user_id);
@@ -85,7 +86,7 @@ export class UserToolHandler implements BaseToolHandler {
         description: 'Get current user',
         inputSchema: getCurrentUserSchema.shape,
       },
-      async ({ instance }: any) => {
+      async ({ instance }: z.infer<typeof getCurrentUserSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const currentUser = await client.getCurrentUser();

@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
 import {
@@ -148,7 +149,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'List cards',
         inputSchema: listCardsSchema.shape,
       },
-      async (params: any) => {
+      async (params: z.infer<typeof listCardsSchema>) => {
         try {
           const { instance, board_id, date_filters, ...otherFilters } = params;
           const client = await getClientForInstance(clientOrFactory, instance);
@@ -238,7 +239,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card details',
         inputSchema: getCardSchema.shape,
       },
-      async ({ card_id, instance }: any) => {
+      async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const card = await client.getCard(card_id);
@@ -261,7 +262,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card size',
         inputSchema: getCardSchema.shape,
       },
-      async ({ card_id, instance }: any) => {
+      async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const card = await client.getCard(card_id);
@@ -292,7 +293,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Create card',
         inputSchema: createCardSchema.shape,
       },
-      async (params: any) => {
+      async (params: z.infer<typeof createCardSchema>) => {
         try {
           const {
             instance,
@@ -410,7 +411,13 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Move card',
         inputSchema: moveCardSchema.shape,
       },
-      async ({ card_id, column_id, lane_id, position, instance }: any) => {
+      async ({
+        card_id,
+        column_id,
+        lane_id,
+        position,
+        instance,
+      }: z.infer<typeof moveCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const card = await client.moveCard(card_id, column_id, lane_id, position);
@@ -433,11 +440,11 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Update card',
         inputSchema: updateCardSchema.shape,
       },
-      async (params: any) => {
+      async (params: z.infer<typeof updateCardSchema>) => {
         try {
           const { instance, ...cardData } = params;
           const client = await getClientForInstance(clientOrFactory, instance);
-          const card = await client.updateCard(cardData);
+          const card = await client.updateCard(cardData as Parameters<typeof client.updateCard>[0]);
           return createSuccessResponse(card, 'Card updated successfully:');
         } catch (error) {
           return createErrorResponse(error, 'updating card');
@@ -457,7 +464,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Delete card',
         inputSchema: deleteCardSchema.shape,
       },
-      async ({ card_id, archive_first, instance }: any) => {
+      async ({ card_id, archive_first, instance }: z.infer<typeof deleteCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           await client.deleteCard(card_id, { archive_first });
@@ -480,7 +487,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Set card size',
         inputSchema: cardSizeSchema.shape,
       },
-      async ({ card_id, size, instance }: any) => {
+      async ({ card_id, size, instance }: z.infer<typeof cardSizeSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const card = await client.updateCard({ card_id, size });
@@ -510,7 +517,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card comments',
         inputSchema: getCardSchema.shape,
       },
-      async ({ card_id, instance }: any) => {
+      async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const comments = await client.getCardComments(card_id);
@@ -536,7 +543,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get comment details',
         inputSchema: getCardCommentSchema.shape,
       },
-      async ({ card_id, comment_id, instance }: any) => {
+      async ({ card_id, comment_id, instance }: z.infer<typeof getCardCommentSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const comment = await client.getCardComment(card_id, comment_id);
@@ -559,7 +566,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card custom fields',
         inputSchema: getCardSchema.shape,
       },
-      async ({ card_id, instance }: any) => {
+      async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const customFields = await client.getCardCustomFields(card_id);
@@ -585,7 +592,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card types',
         inputSchema: getCardTypesSchema.shape,
       },
-      async ({ instance }: any) => {
+      async ({ instance }: z.infer<typeof getCardTypesSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const cardTypes = await client.getCardTypes();
@@ -611,7 +618,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card history',
         inputSchema: getCardHistorySchema.shape,
       },
-      async ({ card_id, outcome_id, instance }: any) => {
+      async ({ card_id, outcome_id, instance }: z.infer<typeof getCardHistorySchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const history = await client.getCardHistory(card_id, outcome_id);
@@ -637,7 +644,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card outcomes',
         inputSchema: getCardOutcomesSchema.shape,
       },
-      async ({ card_id, instance }: any) => {
+      async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const outcomes = await client.getCardOutcomes(card_id);
@@ -663,7 +670,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card linked cards',
         inputSchema: getCardLinkedCardsSchema.shape,
       },
-      async ({ card_id, instance }: any) => {
+      async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const linkedCards = await client.getCardLinkedCards(card_id);
@@ -689,7 +696,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card subtasks',
         inputSchema: getCardSubtasksSchema.shape,
       },
-      async ({ card_id, instance }: any) => {
+      async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const subtasks = await client.getCardSubtasks(card_id);
@@ -715,7 +722,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get subtask details',
         inputSchema: getCardSubtaskSchema.shape,
       },
-      async ({ card_id, subtask_id, instance }: any) => {
+      async ({ card_id, subtask_id, instance }: z.infer<typeof getCardSubtaskSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const subtask = await client.getCardSubtask(card_id, subtask_id);
@@ -738,7 +745,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Create subtask',
         inputSchema: createCardSubtaskSchema.shape,
       },
-      async (params: any) => {
+      async (params: z.infer<typeof createCardSubtaskSchema>) => {
         try {
           const { instance, card_id, ...subtaskData } = params;
           const client = await getClientForInstance(clientOrFactory, instance);
@@ -762,7 +769,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card parents',
         inputSchema: getCardParentsSchema.shape,
       },
-      async ({ card_id, instance }: any) => {
+      async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const parents = await client.getCardParents(card_id);
@@ -788,7 +795,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card parent',
         inputSchema: getCardParentSchema.shape,
       },
-      async ({ card_id, parent_card_id, instance }: any) => {
+      async ({ card_id, parent_card_id, instance }: z.infer<typeof addCardParentSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const parent = await client.getCardParent(card_id, parent_card_id);
@@ -811,7 +818,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Add card parent',
         inputSchema: addCardParentSchema.shape,
       },
-      async ({ card_id, parent_card_id, instance }: any) => {
+      async ({ card_id, parent_card_id, instance }: z.infer<typeof addCardParentSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const result = await client.addCardParent(card_id, parent_card_id);
@@ -834,7 +841,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Remove card parent',
         inputSchema: removeCardParentSchema.shape,
       },
-      async ({ card_id, parent_card_id, instance }: any) => {
+      async ({ card_id, parent_card_id, instance }: z.infer<typeof addCardParentSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           await client.removeCardParent(card_id, parent_card_id);
@@ -860,7 +867,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card parent graph',
         inputSchema: getCardParentGraphSchema.shape,
       },
-      async ({ card_id, instance }: any) => {
+      async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const parentGraph = await client.getCardParentGraph(card_id);
@@ -886,7 +893,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Get card children',
         inputSchema: getCardChildrenSchema.shape,
       },
-      async ({ card_id, instance }: any) => {
+      async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const children = await client.getCardChildren(card_id);
@@ -912,7 +919,11 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Delete multiple cards',
         inputSchema: bulkDeleteCardsSchema.shape,
       },
-      async ({ resource_ids, analyze_dependencies = true, instance }: any) => {
+      async ({
+        resource_ids,
+        analyze_dependencies = true,
+        instance,
+      }: z.infer<typeof bulkDeleteCardsSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const analyzer = new DependencyAnalyzer(client);
@@ -1001,9 +1012,9 @@ export class CardToolHandler implements BaseToolHandler {
       {
         title: 'Bulk Update Cards',
         description: 'Update multiple cards',
-        inputSchema: bulkUpdateCardsSchema as any,
+        inputSchema: bulkUpdateCardsSchema.shape,
       },
-      async (params: any) => {
+      async (params: z.infer<typeof bulkUpdateCardsSchema>) => {
         const {
           resource_ids,
           title,
@@ -1016,18 +1027,25 @@ export class CardToolHandler implements BaseToolHandler {
         } = params;
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
-          const updates: any = {};
+          const updates: Partial<{
+            title: string;
+            description: string;
+            column_id: number;
+            lane_id: number;
+            priority: string;
+            owner_user_id: number;
+          }> = {};
           if (title !== undefined) updates.title = title;
           if (description !== undefined) updates.description = description;
           if (column_id !== undefined) updates.column_id = column_id;
           if (lane_id !== undefined) updates.lane_id = lane_id;
-          if (priority !== undefined) updates.priority = priority;
+          if (priority !== undefined) updates.priority = String(priority);
           if (owner_user_id !== undefined) updates.owner_user_id = owner_user_id;
 
           const results = await client.bulkUpdateCards(resource_ids, updates);
 
-          const successes = results.filter((r: any) => r.success);
-          const failures = results.filter((r: any) => !r.success);
+          const successes = results.filter((r) => r.success);
+          const failures = results.filter((r) => !r.success);
 
           if (failures.length === 0) {
             return createSuccessResponse(
@@ -1038,8 +1056,8 @@ export class CardToolHandler implements BaseToolHandler {
             const confirmationBuilder = new ConfirmationBuilder();
             const message = confirmationBuilder.formatPartialSuccess(
               'card',
-              successes.map((s: any) => ({ id: s.id, name: s.card?.title || `Card ${s.id}` })),
-              failures.map((f: any) => ({
+              successes.map((s) => ({ id: s.id, name: s.card?.title || `Card ${s.id}` })),
+              failures.map((f) => ({
                 id: f.id,
                 name: `Card ${f.id}`,
                 error: f.error || 'Unknown error',
@@ -1074,7 +1092,12 @@ export class CardToolHandler implements BaseToolHandler {
           'Create a new comment on a card. Requires non-empty text. Optionally attach files by providing file_name and link.',
         inputSchema: createCardCommentSchema.shape,
       },
-      async ({ card_id, text, attachments_to_add, instance }: any) => {
+      async ({
+        card_id,
+        text,
+        attachments_to_add,
+        instance,
+      }: z.infer<typeof createCardCommentSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const comment = await client.createCardComment(card_id, {
@@ -1099,12 +1122,21 @@ export class CardToolHandler implements BaseToolHandler {
         title: 'Update Card Comment',
         description:
           'Update an existing comment on a card. Provide new text and/or additional attachments. Text cannot be empty.',
-        inputSchema: updateCardCommentSchema as any,
+        inputSchema: updateCardCommentSchema.shape,
       },
-      async ({ card_id, comment_id, text, attachments_to_add, instance }: any) => {
+      async ({
+        card_id,
+        comment_id,
+        text,
+        attachments_to_add,
+        instance,
+      }: z.infer<typeof updateCardCommentSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
-          const params: { text?: string; attachments_to_add?: any[] } = {};
+          const params: {
+            text?: string;
+            attachments_to_add?: Array<{ file_name: string; link: string }>;
+          } = {};
           if (text !== undefined) params.text = text;
           if (attachments_to_add !== undefined) params.attachments_to_add = attachments_to_add;
           const comment = await client.updateCardComment(card_id, comment_id, params);
@@ -1127,7 +1159,7 @@ export class CardToolHandler implements BaseToolHandler {
         description: 'Delete a comment from a card. This action cannot be undone.',
         inputSchema: deleteCardCommentSchema.shape,
       },
-      async ({ card_id, comment_id, instance }: any) => {
+      async ({ card_id, comment_id, instance }: z.infer<typeof getCardCommentSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           await client.deleteCardComment(card_id, comment_id);

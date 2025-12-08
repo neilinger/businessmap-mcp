@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod/v4';
 import { logger } from '@utils/logger.js';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -37,7 +38,11 @@ export class WorkflowToolHandler implements BaseToolHandler {
         description: 'Get cycle time columns',
         inputSchema: getWorkflowCycleTimeColumnsSchema.shape,
       },
-      async ({ board_id, workflow_id, instance }: any) => {
+      async ({
+        board_id,
+        workflow_id,
+        instance,
+      }: z.infer<typeof getWorkflowCycleTimeColumnsSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const columns = await client.getWorkflowCycleTimeColumns(board_id, workflow_id);
@@ -60,7 +65,11 @@ export class WorkflowToolHandler implements BaseToolHandler {
         description: 'Get effective cycle time columns',
         inputSchema: getWorkflowCycleTimeColumnsSchema.shape,
       },
-      async ({ board_id, workflow_id, instance }: any) => {
+      async ({
+        board_id,
+        workflow_id,
+        instance,
+      }: z.infer<typeof getWorkflowCycleTimeColumnsSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           logger.debug('Fetching effective cycle time columns', {
