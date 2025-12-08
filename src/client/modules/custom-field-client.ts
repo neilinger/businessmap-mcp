@@ -1,4 +1,4 @@
-import { ApiResponse, CustomField } from '../../types/index.js';
+import { ApiResponse, CustomField } from '@defs/index.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
 /**

@@ -1,8 +1,8 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { logger } from '../../utils/logger.js';
-import { BusinessMapClient } from '../../client/businessmap-client.js';
-import { BusinessMapClientFactory } from '../../client/client-factory.js';
-import { config } from '../../config/environment.js';
+import { logger } from '@utils/logger.js';
+import { BusinessMapClient } from '@client/businessmap-client.js';
+import { BusinessMapClientFactory } from '@client/client-factory.js';
+import { config } from '@config/environment.js';
 
 /**
  * Base interface for tool handlers

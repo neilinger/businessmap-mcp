@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { logger } from '../../utils/logger.js';
-import { BusinessMapClient } from '../../client/businessmap-client.js';
-import { BusinessMapClientFactory } from '../../client/client-factory.js';
+import { logger } from '@utils/logger.js';
+import { BusinessMapClient } from '@client/businessmap-client.js';
+import { BusinessMapClientFactory } from '@client/client-factory.js';
 import {
   createBoardSchema,
   createLaneSchema,
@@ -12,10 +12,10 @@ import {
   listBoardsSchema,
   searchBoardSchema,
   updateBoardSchema,
-} from '../../schemas/index.js';
-import { bulkDeleteBoardsSchema, bulkUpdateBoardsSchema } from '../../schemas/bulk-schemas.js';
-import { DependencyAnalyzer } from '../../services/dependency-analyzer.js';
-import { ConfirmationBuilder } from '../../services/confirmation-builder.js';
+} from '@schemas/index.js';
+import { bulkDeleteBoardsSchema, bulkUpdateBoardsSchema } from '@schemas/bulk-schemas.js';
+import { DependencyAnalyzer } from '@services/dependency-analyzer.js';
+import { ConfirmationBuilder } from '@services/confirmation-builder.js';
 import {
   BaseToolHandler,
   createErrorResponse,

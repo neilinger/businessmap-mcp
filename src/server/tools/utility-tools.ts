@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { BusinessMapClient } from '../../client/businessmap-client.js';
-import { BusinessMapClientFactory } from '../../client/client-factory.js';
-import { getApiInfoSchema, healthCheckSchema } from '../../schemas/utility-schemas.js';
+import { BusinessMapClient } from '@client/businessmap-client.js';
+import { BusinessMapClientFactory } from '@client/client-factory.js';
+import { getApiInfoSchema, healthCheckSchema } from '@schemas/utility-schemas.js';
 import {
   BaseToolHandler,
   createErrorResponse,

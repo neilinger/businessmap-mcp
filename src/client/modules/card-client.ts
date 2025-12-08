@@ -32,10 +32,10 @@ import {
   UpdateCardParams,
   UpdateCommentParams,
   UpdateSubtaskParams,
-} from '../../types/index.js';
+} from '@defs/index.js';
 import { BULK_OPERATION_DEFAULTS } from '../constants.js';
 import { BaseClientModuleImpl } from './base-client.js';
-import { logger } from '../../utils/logger.js';
+import { logger } from '@utils/logger.js';
 
 /**
  * Filters for querying cards.

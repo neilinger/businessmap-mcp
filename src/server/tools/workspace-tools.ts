@@ -1,19 +1,16 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { BusinessMapClient } from '../../client/businessmap-client.js';
-import { BusinessMapClientFactory } from '../../client/client-factory.js';
+import { BusinessMapClient } from '@client/businessmap-client.js';
+import { BusinessMapClientFactory } from '@client/client-factory.js';
 import {
   archiveWorkspaceSchema,
   createWorkspaceSchema,
   getWorkspaceSchema,
   listWorkspacesSchema,
   updateWorkspaceSchema,
-} from '../../schemas/workspace-schemas.js';
-import {
-  bulkArchiveWorkspacesSchema,
-  bulkUpdateWorkspacesSchema,
-} from '../../schemas/bulk-schemas.js';
-import { DependencyAnalyzer } from '../../services/dependency-analyzer.js';
-import { ConfirmationBuilder } from '../../services/confirmation-builder.js';
+} from '@schemas/workspace-schemas.js';
+import { bulkArchiveWorkspacesSchema, bulkUpdateWorkspacesSchema } from '@schemas/bulk-schemas.js';
+import { DependencyAnalyzer } from '@services/dependency-analyzer.js';
+import { ConfirmationBuilder } from '@services/confirmation-builder.js';
 import {
   BaseToolHandler,
   createErrorResponse,
