@@ -30,6 +30,7 @@ export type ToolName = string;
  * - Core retrieval (get_card, get_workspace)
  * - Essential mutations (create_card, update_card, move_card)
  * - Search and health utilities
+ * - Instance management (multi-instance mode)
  */
 export const MINIMAL_PROFILE: ToolName[] = [
   // Core listing operations
@@ -49,6 +50,10 @@ export const MINIMAL_PROFILE: ToolName[] = [
   // Search and utilities
   'search_board',
   'health_check',
+
+  // Instance management (multi-instance mode)
+  'list_instances',
+  'get_instance_info',
 ];
 
 /**
