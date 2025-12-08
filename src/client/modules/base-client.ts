@@ -129,6 +129,11 @@ export class CacheManager {
 
   /**
    * Invalidate cache entries by key pattern
+   *
+   * SECURITY: Safe from ReDoS because regex is tested against application-controlled
+   * cache keys, not user input. Keys follow format: "prefix:identifier"
+   * See: https://github.com/neilinger/businessmap-mcp/issues/57
+   *
    * Also clears pending requests to prevent race condition
    * Optimized with prefix-based index for O(k) instead of O(n) performance
    */
