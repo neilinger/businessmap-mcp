@@ -13,6 +13,7 @@ import {
   WorkspaceClient,
 } from './modules/index.js';
 import { validateSecureUrl } from '../utils/secure-url.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * BusinessMap API Client
@@ -119,7 +120,7 @@ export class BusinessMapClient {
       },
       onRetry: (retryCount, error) => {
         const retryAfter = error.response?.headers?.['retry-after'];
-        console.warn(
+        logger.warn(
           `Rate limit hit (retry ${retryCount}/3)${retryAfter ? `, waiting ${retryAfter}s` : ''}`
         );
       },
@@ -132,7 +133,7 @@ export class BusinessMapClient {
       if (remaining && limit) {
         const usage = 1 - parseInt(remaining) / parseInt(limit);
         if (usage >= 0.8) {
-          console.warn(
+          logger.warn(
             `Rate limit warning: ${Math.round(usage * 100)}% of hourly quota used (${remaining}/${limit} remaining)`
           );
         }

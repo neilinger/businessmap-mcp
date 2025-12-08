@@ -3,6 +3,8 @@
  * Issue #55: Enforce HTTPS-only for API connections
  */
 
+import { logger } from './logger.js';
+
 const LOCALHOST_HOSTS = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
 
 /**
@@ -22,8 +24,8 @@ export function validateSecureUrl(url: string): void {
     const allowInsecureLocalhost = process.env.ALLOW_INSECURE_LOCALHOST === 'true';
 
     if (isLocal && allowInsecureLocalhost && parsedUrl.protocol === 'http:') {
-      console.warn(
-        '⚠️ SECURITY WARNING: HTTP connection to localhost. ' +
+      logger.warn(
+        'SECURITY WARNING: HTTP connection to localhost. ' +
           'Ensure ALLOW_INSECURE_LOCALHOST is not set in production.'
       );
     } else if (isLocal && !allowInsecureLocalhost) {

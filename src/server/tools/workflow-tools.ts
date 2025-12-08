@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { createLoggerSync } from '@toolprint/mcp-logger';
+import { logger } from '../../utils/logger.js';
 import { BusinessMapClient } from '../../client/businessmap-client.js';
 import { BusinessMapClientFactory } from '../../client/client-factory.js';
 import { getWorkflowCycleTimeColumnsSchema } from '../../schemas/workflow-schemas.js';
@@ -10,8 +10,6 @@ import {
   getClientForInstance,
   shouldRegisterTool,
 } from './base-tool.js';
-
-const logger = createLoggerSync({ level: 'debug' });
 
 export class WorkflowToolHandler implements BaseToolHandler {
   registerTools(

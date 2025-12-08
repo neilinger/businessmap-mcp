@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { createLoggerSync } from '@toolprint/mcp-logger';
+import { logger } from './utils/logger.js';
 import { config, validateConfig } from './config/environment.js';
 import { BusinessMapMcpServer } from './server/mcp-server.js';
-
-const logger = createLoggerSync({ level: 'info' });
 
 async function main() {
   try {
@@ -19,7 +17,7 @@ async function main() {
       name: config.server.name,
       version: config.server.version,
       apiUrl: config.businessMap.apiUrl,
-      readOnlyMode: config.businessMap.readOnlyMode
+      readOnlyMode: config.businessMap.readOnlyMode,
     });
 
     // Initialize BusinessMap client with retry logic
@@ -42,14 +40,14 @@ async function main() {
             attempt: retryCount,
             maxRetries,
             message,
-            retryingInSeconds: retryDelay / 1000
+            retryingInSeconds: retryDelay / 1000,
           });
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
         } else {
           logger.error('Failed to connect to BusinessMap API', {
             attempts: maxRetries,
             message,
-            hint: 'Please check your API URL and token configuration'
+            hint: 'Please check your API URL and token configuration',
           });
           throw error;
         }
@@ -64,11 +62,11 @@ async function main() {
 
     logger.info('Server initialized', {
       capabilities: ['tools', 'resources', 'prompts'],
-      transport: 'stdio'
+      transport: 'stdio',
     });
   } catch (error) {
     logger.error('Failed to start server', {
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
     process.exit(1);
   }
@@ -88,7 +86,7 @@ process.on('SIGTERM', () => {
 // Start the server
 main().catch((error) => {
   logger.error('Unhandled error', {
-    error: error instanceof Error ? error.message : 'Unknown error'
+    error: error instanceof Error ? error.message : 'Unknown error',
   });
   process.exit(1);
 });

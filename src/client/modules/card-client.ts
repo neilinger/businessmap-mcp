@@ -35,6 +35,7 @@ import {
 } from '../../types/index.js';
 import { BULK_OPERATION_DEFAULTS } from '../constants.js';
 import { BaseClientModuleImpl } from './base-client.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * Filters for querying cards.
@@ -245,10 +246,10 @@ export class CardClient extends BaseClientModuleImpl {
       } catch (error) {
         // If getCard fails, log warning but proceed with update
         // This allows update to succeed even if fetch fails (transient error)
-        console.warn(
-          `[card-client] Failed to fetch card ${cardId} for linked_cards preservation:`,
-          error instanceof Error ? error.message : 'Unknown error'
-        );
+        logger.warn('[card-client] Failed to fetch card for linked_cards preservation', {
+          cardId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
       }
     }
 
@@ -270,10 +271,10 @@ export class CardClient extends BaseClientModuleImpl {
             attachments_to_add: subtask.attachments_to_add,
           });
         } catch (error) {
-          console.error(
-            `[card-client] Failed to create subtask for card ${cardId}:`,
-            error instanceof Error ? error.message : 'Unknown error'
-          );
+          logger.error('[card-client] Failed to create subtask for card', {
+            cardId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
           // Continue creating other subtasks even if one fails
         }
       }
