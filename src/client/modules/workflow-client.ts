@@ -1,4 +1,4 @@
-import { ApiResponse, WorkflowCycleTimeColumn } from '../../types/index.js';
+import { ApiResponse, WorkflowCycleTimeColumn } from '@defs/index.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
 export class WorkflowClient extends BaseClientModuleImpl {

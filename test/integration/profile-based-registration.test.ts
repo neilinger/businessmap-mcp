@@ -48,9 +48,6 @@ describe('Profile-Based Tool Registration', () => {
     describe('REAL mode - Full profile testing with API', () => {
       /**
        * T043: Test minimal profile registration
-       *
-       * NOTE: Expected 12 tools per spec, but get_board is not implemented
-       * Actual count: 11 tools (see issue for get_board implementation)
        */
       it('should register minimal profile tools correctly', async () => {
         process.env.BUSINESSMAP_TOOL_PROFILE = 'minimal';
@@ -60,9 +57,7 @@ describe('Profile-Based Tool Registration', () => {
 
         const tools = getRegisteredTools(server);
 
-        // FIXME: Should be 12 tools, but get_board is not implemented
-        // See PROFILE_METADATA.minimal.toolCount for expected count
-        expect(tools.length).toBe(11);
+        expect(tools.length).toBe(PROFILE_METADATA.minimal.toolCount);
 
         // Verify core minimal tools are present
         expect(tools).toContain('list_boards');
@@ -90,9 +85,6 @@ describe('Profile-Based Tool Registration', () => {
 
       /**
        * T044: Test standard profile registration
-       *
-       * NOTE: Expected 32 tools per spec, but get_board is not implemented
-       * Actual count: 31 tools
        */
       it('should register standard profile tools correctly', async () => {
         process.env.BUSINESSMAP_TOOL_PROFILE = 'standard';
@@ -102,8 +94,7 @@ describe('Profile-Based Tool Registration', () => {
 
         const tools = getRegisteredTools(server);
 
-        // FIXME: Should be 32 tools, but get_board is not implemented
-        expect(tools.length).toBe(31);
+        expect(tools.length).toBe(PROFILE_METADATA.standard.toolCount);
 
         // Verify all minimal tools are present
         expect(tools).toContain('list_boards');
@@ -139,8 +130,7 @@ describe('Profile-Based Tool Registration', () => {
 
         const tools = getRegisteredTools(server);
 
-        // FIXME: Should be 32 tools, but get_board is not implemented
-        expect(tools.length).toBe(31);
+        expect(tools.length).toBe(PROFILE_METADATA.standard.toolCount);
 
         // Verify it behaves like standard profile
         expect(tools).toContain('create_board');
@@ -150,9 +140,6 @@ describe('Profile-Based Tool Registration', () => {
 
       /**
        * T045: Test full profile registration
-       *
-       * NOTE: Expected 61 tools per spec, but get_board is not implemented
-       * Actual count: 60 tools
        */
       it('should register full profile tools correctly', async () => {
         process.env.BUSINESSMAP_TOOL_PROFILE = 'full';
@@ -162,8 +149,7 @@ describe('Profile-Based Tool Registration', () => {
 
         const tools = getRegisteredTools(server);
 
-        // FIXME: Should be 61 tools, but get_board is not implemented
-        expect(tools.length).toBe(60);
+        expect(tools.length).toBe(PROFILE_METADATA.full.toolCount);
 
         // Verify all minimal tools are present
         expect(tools).toContain('list_boards');
@@ -202,8 +188,7 @@ describe('Profile-Based Tool Registration', () => {
 
         const tools = getRegisteredTools(server);
 
-        // Should fallback to full profile (60 tools)
-        expect(tools.length).toBe(60);
+        expect(tools.length).toBe(PROFILE_METADATA.full.toolCount);
 
         // Verify it has full profile tools
         expect(tools).toContain('bulk_delete_cards');
@@ -224,18 +209,18 @@ describe('Profile-Based Tool Registration', () => {
       /**
        * T043 (Mock): Verify minimal profile configuration
        */
-      it('should validate minimal profile has 10 tools configured', () => {
+      it('should validate minimal profile has 12 tools configured', () => {
         const metadata = PROFILE_METADATA.minimal;
-        expect(metadata.toolCount).toBe(10);
+        expect(metadata.toolCount).toBe(12);
         expect(metadata.name).toBe('Minimal');
       });
 
       /**
        * T044 (Mock): Verify standard profile configuration
        */
-      it('should validate standard profile has 29 tools configured', () => {
+      it('should validate standard profile has 31 tools configured', () => {
         const metadata = PROFILE_METADATA.standard;
-        expect(metadata.toolCount).toBe(29);
+        expect(metadata.toolCount).toBe(31);
         expect(metadata.name).toBe('Standard');
       });
 
@@ -251,9 +236,9 @@ describe('Profile-Based Tool Registration', () => {
       /**
        * T045 (Mock): Verify full profile configuration
        */
-      it('should validate full profile has 61 tools configured', () => {
+      it('should validate full profile has 63 tools configured', () => {
         const metadata = PROFILE_METADATA.full;
-        expect(metadata.toolCount).toBe(61);
+        expect(metadata.toolCount).toBe(63);
         expect(metadata.name).toBe('Full');
       });
 
@@ -296,15 +281,15 @@ describe('Profile-Based Tool Registration', () => {
     });
 
     it('should have correct tool count metadata', () => {
-      expect(PROFILE_METADATA.minimal.toolCount).toBe(10);
-      expect(PROFILE_METADATA.standard.toolCount).toBe(29);
-      expect(PROFILE_METADATA.full.toolCount).toBe(61);
+      expect(PROFILE_METADATA.minimal.toolCount).toBe(12);
+      expect(PROFILE_METADATA.standard.toolCount).toBe(31);
+      expect(PROFILE_METADATA.full.toolCount).toBe(63);
     });
 
     it('should have estimated token counts for each profile', () => {
-      expect(PROFILE_METADATA.minimal.estimatedTokens).toBe(10 * 50);
-      expect(PROFILE_METADATA.standard.estimatedTokens).toBe(29 * 50);
-      expect(PROFILE_METADATA.full.estimatedTokens).toBe(61 * 50);
+      expect(PROFILE_METADATA.minimal.estimatedTokens).toBe(12 * 50);
+      expect(PROFILE_METADATA.standard.estimatedTokens).toBe(31 * 50);
+      expect(PROFILE_METADATA.full.estimatedTokens).toBe(63 * 50);
     });
   });
 });

@@ -9,6 +9,20 @@ export default {
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^@client/(.+?)\\.js$': '<rootDir>/src/client/$1',
+    '^@client/(.+)$': '<rootDir>/src/client/$1',
+    '^@config/(.+?)\\.js$': '<rootDir>/src/config/$1',
+    '^@config/(.+)$': '<rootDir>/src/config/$1',
+    '^@schemas/(.+?)\\.js$': '<rootDir>/src/schemas/$1',
+    '^@schemas/(.+)$': '<rootDir>/src/schemas/$1',
+    '^@services/(.+?)\\.js$': '<rootDir>/src/services/$1',
+    '^@services/(.+)$': '<rootDir>/src/services/$1',
+    '^@defs/(.+?)\\.js$': '<rootDir>/src/types/$1',
+    '^@defs/(.+)$': '<rootDir>/src/types/$1',
+    '^@utils/(.+?)\\.js$': '<rootDir>/src/utils/$1',
+    '^@utils/(.+)$': '<rootDir>/src/utils/$1',
+    '^@server/(.+?)\\.js$': '<rootDir>/src/server/$1',
+    '^@server/(.+)$': '<rootDir>/src/server/$1',
   },
   transform: {
     '^.+\\.tsx?$': [
@@ -17,6 +31,16 @@ export default {
         useESM: true,
         tsconfig: {
           module: 'es2020',
+          baseUrl: '.',
+          paths: {
+            '@client/*': ['src/client/*'],
+            '@config/*': ['src/config/*'],
+            '@schemas/*': ['src/schemas/*'],
+            '@services/*': ['src/services/*'],
+            '@defs/*': ['src/types/*'],
+            '@utils/*': ['src/utils/*'],
+            '@server/*': ['src/server/*'],
+          },
         },
       },
     ],

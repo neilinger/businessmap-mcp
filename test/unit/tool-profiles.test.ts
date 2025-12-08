@@ -39,7 +39,7 @@ describe('tool-profiles', () => {
 
   describe('PROFILE CONSTANTS', () => {
     test('MINIMAL_PROFILE has expected tool count', () => {
-      expect(MINIMAL_PROFILE).toHaveLength(10);
+      expect(MINIMAL_PROFILE).toHaveLength(12);
     });
 
     test('MINIMAL_PROFILE includes core tools', () => {
@@ -159,7 +159,7 @@ describe('tool-profiles', () => {
     test('returns minimal tools array for "minimal" profile', () => {
       const tools = getToolsForProfile('minimal');
       expect(tools).toEqual(MINIMAL_PROFILE);
-      expect(tools).toHaveLength(10);
+      expect(tools).toHaveLength(12);
     });
 
     test('returns standard tools array for "standard" profile', () => {

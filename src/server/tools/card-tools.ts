@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { BusinessMapClient } from '../../client/businessmap-client.js';
-import { BusinessMapClientFactory } from '../../client/client-factory.js';
+import { BusinessMapClient } from '@client/businessmap-client.js';
+import { BusinessMapClientFactory } from '@client/client-factory.js';
 import {
   addCardParentSchema,
   cardSizeSchema,
@@ -26,10 +26,10 @@ import {
   removeCardParentSchema,
   updateCardCommentSchema,
   updateCardSchema,
-} from '../../schemas/index.js';
-import { bulkDeleteCardsSchema, bulkUpdateCardsSchema } from '../../schemas/bulk-schemas.js';
-import { DependencyAnalyzer } from '../../services/dependency-analyzer.js';
-import { ConfirmationBuilder } from '../../services/confirmation-builder.js';
+} from '@schemas/index.js';
+import { bulkDeleteCardsSchema, bulkUpdateCardsSchema } from '@schemas/bulk-schemas.js';
+import { DependencyAnalyzer } from '@services/dependency-analyzer.js';
+import { ConfirmationBuilder } from '@services/confirmation-builder.js';
 import {
   BaseToolHandler,
   createErrorResponse,
@@ -1131,10 +1131,7 @@ export class CardToolHandler implements BaseToolHandler {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           await client.deleteCardComment(card_id, comment_id);
-          return createSuccessResponse(
-            { card_id, comment_id },
-            'Comment deleted successfully:'
-          );
+          return createSuccessResponse({ card_id, comment_id }, 'Comment deleted successfully:');
         } catch (error) {
           return createErrorResponse(error, 'deleting card comment');
         }

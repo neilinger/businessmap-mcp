@@ -13,8 +13,8 @@
  */
 import { z } from 'zod/v4';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { BusinessMapClient } from '../../client/businessmap-client.js';
-import { BusinessMapClientFactory } from '../../client/client-factory.js';
+import { BusinessMapClient } from '@client/businessmap-client.js';
+import { BusinessMapClientFactory } from '@client/client-factory.js';
 import {
   BaseToolHandler,
   createErrorResponse,
@@ -22,7 +22,7 @@ import {
   getClientForInstance,
   shouldRegisterTool,
 } from './base-tool.js';
-import { healthCheckSchemaV3, getApiInfoSchemaV3 } from '../../schemas/utility-schemas-v3.js';
+import { healthCheckSchemaV3, getApiInfoSchemaV3 } from '@schemas/utility-schemas-v3.js';
 
 // Direct schema definition (new pattern - inline Zod schemas)
 const instanceParam = z

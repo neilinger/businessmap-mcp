@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { BusinessMapClient } from '../../client/businessmap-client.js';
-import { BusinessMapClientFactory } from '../../client/client-factory.js';
+import { BusinessMapClient } from '@client/businessmap-client.js';
+import { BusinessMapClientFactory } from '@client/client-factory.js';
 import {
   BaseToolHandler,
   createErrorResponse,
@@ -15,7 +15,7 @@ import {
   listBoardCustomFieldsSchema,
   listCustomFieldsSchema,
   updateCustomFieldSchema,
-} from '../../schemas/custom-field-schemas.js';
+} from '@schemas/custom-field-schemas.js';
 
 export class CustomFieldToolHandler implements BaseToolHandler {
   registerTools(

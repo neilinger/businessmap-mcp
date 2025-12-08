@@ -3,6 +3,16 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@client/*": ["src/client/*"],
+      "@config/*": ["src/config/*"],
+      "@schemas/*": ["src/schemas/*"],
+      "@services/*": ["src/services/*"],
+      "@defs/*": ["src/types/*"],
+      "@utils/*": ["src/utils/*"],
+      "@server/*": ["src/server/*"]
+    },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "allowJs": true,

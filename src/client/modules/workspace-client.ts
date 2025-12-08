@@ -1,5 +1,5 @@
 import pLimit from 'p-limit';
-import { ApiResponse, CreateWorkspaceParams, Workspace } from '../../types/index.js';
+import { ApiResponse, CreateWorkspaceParams, Workspace } from '@defs/index.js';
 import { BULK_OPERATION_DEFAULTS } from '../constants.js';
 import { BaseClientModuleImpl } from './base-client.js';
 

@@ -1,4 +1,4 @@
-import { ApiResponse, CurrentUser, User } from '../../types/index.js';
+import { ApiResponse, CurrentUser, User } from '@defs/index.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
 /**

@@ -1,7 +1,7 @@
 import { AxiosInstance } from 'axios';
 import { LRUCache } from 'lru-cache';
-import { BusinessMapConfig } from '../../types/index.js';
-import { logger } from '../../utils/logger.js';
+import { BusinessMapConfig } from '@defs/index.js';
+import { logger } from '@utils/logger.js';
 
 /**
  * Base interface for client modules

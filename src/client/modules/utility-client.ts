@@ -1,4 +1,4 @@
-import { logger } from '../../utils/logger.js';
+import { logger } from '@utils/logger.js';
 import { BaseClientModuleImpl } from './base-client.js';
 
 export class UtilityClient extends BaseClientModuleImpl {
