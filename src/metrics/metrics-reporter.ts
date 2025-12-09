@@ -136,7 +136,7 @@ export function reportAllMetrics(tools: ToolDefinition[]): MetricsReport {
 
       toolMetrics.push(metrics);
       total += tokenCount;
-    } catch (error) {
+    } catch (error: unknown) {
       throw new Error(
         `Failed to generate metrics for tool ${tool.name}: ${error instanceof Error ? error.message : String(error)}`
       );
@@ -169,7 +169,7 @@ export function reportAllMetrics(tools: ToolDefinition[]): MetricsReport {
 export function formatAsJson(report: MetricsReport, pretty: boolean = false): string {
   try {
     return JSON.stringify(report, null, pretty ? 2 : undefined);
-  } catch (error) {
+  } catch (error: unknown) {
     throw new Error(
       `Failed to serialize metrics report: ${error instanceof Error ? error.message : String(error)}`
     );
@@ -211,8 +211,7 @@ export function compareMetrics(
   }
 
   const reduction = baseline.total - optimized.total;
-  const reductionPercent =
-    baseline.total > 0 ? Math.round((reduction / baseline.total) * 100) : 0;
+  const reductionPercent = baseline.total > 0 ? Math.round((reduction / baseline.total) * 100) : 0;
 
   return {
     baselineTotal: baseline.total,

@@ -234,7 +234,7 @@ export class BusinessMapClientFactory {
   private resolveInstance(instanceId?: string): InstanceResolutionResult {
     try {
       return this.configManager.getActiveInstance(instanceId);
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof InstanceConfigError) {
         throw error;
       }
@@ -257,7 +257,7 @@ export class BusinessMapClientFactory {
     if (this.options.autoInitialize) {
       try {
         await client.initialize();
-      } catch (error) {
+      } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         const message = `Failed to initialize client for instance '${resolution.instance.name}': ${errorMessage}`;
 

@@ -64,7 +64,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const customFields = await client.listCustomFields({ page, page_size, field_type });
           return createSuccessResponse(customFields);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'listing custom fields');
         }
       }
@@ -87,7 +87,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const customFields = await client.listBoardCustomFields(board_id);
           return createSuccessResponse(customFields);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'listing board custom fields');
         }
       }
@@ -110,7 +110,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const customField = await client.getCustomField(custom_field_id);
           return createSuccessResponse(customField);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching custom field');
         }
       }
@@ -134,7 +134,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const customField = await client.createCustomField(fieldParams);
           return createSuccessResponse(customField, 'Custom field created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating custom field');
         }
       }
@@ -157,7 +157,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const customField = await client.updateCustomField(custom_field_id, params);
           return createSuccessResponse(customField, 'Custom field updated successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'updating custom field');
         }
       }

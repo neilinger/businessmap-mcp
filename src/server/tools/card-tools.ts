@@ -221,7 +221,7 @@ export class CardToolHandler implements BaseToolHandler {
 
           const cards = await client.getCards(board_id, flattenedFilters);
           return createSuccessResponse(cards);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching cards');
         }
       }
@@ -244,7 +244,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const card = await client.getCard(card_id);
           return createSuccessResponse(card);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching card');
         }
       }
@@ -275,7 +275,7 @@ export class CardToolHandler implements BaseToolHandler {
               },
             ],
           };
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching card size');
         }
       }
@@ -393,7 +393,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const card = await client.createCard(flattenedData);
           return createSuccessResponse(card, 'Card created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating card');
         }
       }
@@ -422,7 +422,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const card = await client.moveCard(card_id, column_id, lane_id, position);
           return createSuccessResponse(card, 'Card moved successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'moving card');
         }
       }
@@ -446,7 +446,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const card = await client.updateCard(cardData as Parameters<typeof client.updateCard>[0]);
           return createSuccessResponse(card, 'Card updated successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'updating card');
         }
       }
@@ -469,7 +469,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           await client.deleteCard(card_id, { archive_first });
           return createSuccessResponse({ card_id }, 'Card deleted successfully. ID:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'deleting card');
         }
       }
@@ -499,7 +499,7 @@ export class CardToolHandler implements BaseToolHandler {
               },
             ],
           };
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'setting card size');
         }
       }
@@ -525,7 +525,7 @@ export class CardToolHandler implements BaseToolHandler {
             comments,
             count: comments.length,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card comments');
         }
       }
@@ -548,7 +548,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const comment = await client.getCardComment(card_id, comment_id);
           return createSuccessResponse(comment);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card comment');
         }
       }
@@ -574,7 +574,7 @@ export class CardToolHandler implements BaseToolHandler {
             customFields,
             count: customFields.length,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card custom fields');
         }
       }
@@ -600,7 +600,7 @@ export class CardToolHandler implements BaseToolHandler {
             cardTypes,
             count: cardTypes.length,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card types');
         }
       }
@@ -626,7 +626,7 @@ export class CardToolHandler implements BaseToolHandler {
             history,
             count: history.length,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card history');
         }
       }
@@ -652,7 +652,7 @@ export class CardToolHandler implements BaseToolHandler {
             outcomes,
             count: outcomes.length,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card outcomes');
         }
       }
@@ -678,7 +678,7 @@ export class CardToolHandler implements BaseToolHandler {
             linkedCards,
             count: linkedCards.length,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card linked cards');
         }
       }
@@ -704,7 +704,7 @@ export class CardToolHandler implements BaseToolHandler {
             subtasks,
             count: subtasks.length,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card subtasks');
         }
       }
@@ -727,7 +727,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const subtask = await client.getCardSubtask(card_id, subtask_id);
           return createSuccessResponse(subtask);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card subtask');
         }
       }
@@ -751,7 +751,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const subtask = await client.createCardSubtask(card_id, subtaskData);
           return createSuccessResponse(subtask, 'Subtask created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating card subtask');
         }
       }
@@ -777,7 +777,7 @@ export class CardToolHandler implements BaseToolHandler {
             parents,
             count: parents.length,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card parents');
         }
       }
@@ -800,7 +800,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const parent = await client.getCardParent(card_id, parent_card_id);
           return createSuccessResponse(parent);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card parent');
         }
       }
@@ -823,7 +823,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const result = await client.addCardParent(card_id, parent_card_id);
           return createSuccessResponse(result, 'Card parent added successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'adding card parent');
         }
       }
@@ -849,7 +849,7 @@ export class CardToolHandler implements BaseToolHandler {
             { card_id, parent_card_id },
             'Card parent removed successfully:'
           );
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'removing card parent');
         }
       }
@@ -875,7 +875,7 @@ export class CardToolHandler implements BaseToolHandler {
             parentGraph,
             count: parentGraph.length,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card parent graph');
         }
       }
@@ -901,7 +901,7 @@ export class CardToolHandler implements BaseToolHandler {
             children,
             count: children.length,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting card children');
         }
       }
@@ -996,7 +996,7 @@ export class CardToolHandler implements BaseToolHandler {
               'bulk deleting cards'
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'bulk deleting cards');
         }
       }
@@ -1073,7 +1073,7 @@ export class CardToolHandler implements BaseToolHandler {
               'bulk updating cards'
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'bulk updating cards');
         }
       }
@@ -1105,7 +1105,7 @@ export class CardToolHandler implements BaseToolHandler {
             attachments_to_add,
           });
           return createSuccessResponse(comment, 'Comment created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating card comment');
         }
       }
@@ -1141,7 +1141,7 @@ export class CardToolHandler implements BaseToolHandler {
           if (attachments_to_add !== undefined) params.attachments_to_add = attachments_to_add;
           const comment = await client.updateCardComment(card_id, comment_id, params);
           return createSuccessResponse(comment, 'Comment updated successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'updating card comment');
         }
       }
@@ -1164,7 +1164,7 @@ export class CardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           await client.deleteCardComment(card_id, comment_id);
           return createSuccessResponse({ card_id, comment_id }, 'Comment deleted successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'deleting card comment');
         }
       }

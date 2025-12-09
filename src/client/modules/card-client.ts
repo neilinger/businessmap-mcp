@@ -243,7 +243,7 @@ export class CardClient extends BaseClientModuleImpl {
         updateData.linked_cards = currentCard.linked_cards;
 
         // Preserve linked_cards during updates
-      } catch (error) {
+      } catch (error: unknown) {
         // If getCard fails, log warning but proceed with update
         // This allows update to succeed even if fetch fails (transient error)
         logger.warn('[card-client] Failed to fetch card for linked_cards preservation', {
@@ -270,7 +270,7 @@ export class CardClient extends BaseClientModuleImpl {
             position: subtask.position,
             attachments_to_add: subtask.attachments_to_add,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           logger.error('[card-client] Failed to create subtask for card', {
             cardId,
             error: error instanceof Error ? error.message : 'Unknown error',
@@ -311,7 +311,7 @@ export class CardClient extends BaseClientModuleImpl {
     try {
       const currentCard = await this.getCard(cardId);
       linkedCards = currentCard.linked_cards;
-    } catch (error) {
+    } catch (error: unknown) {
       // Failed to fetch card for preservation - proceed with move anyway
     }
 
@@ -612,7 +612,7 @@ export class CardClient extends BaseClientModuleImpl {
         try {
           await this.deleteCard(id);
           return { id, success: true };
-        } catch (error) {
+        } catch (error: unknown) {
           return {
             id,
             success: false,
@@ -685,7 +685,7 @@ export class CardClient extends BaseClientModuleImpl {
         try {
           const card = await this.updateCard({ card_id: id, ...updates });
           return { id, success: true, card };
-        } catch (error) {
+        } catch (error: unknown) {
           return {
             id,
             success: false,

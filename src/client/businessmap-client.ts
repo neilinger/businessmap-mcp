@@ -203,7 +203,7 @@ export class BusinessMapClient {
       // Try to fetch API info to verify authentication
       try {
         await this.utilityClient.getApiInfo();
-      } catch (error) {
+      } catch (error: unknown) {
         if (error instanceof Error && error.message.includes('401')) {
           throw new Error(
             'Authentication failed - please verify your API token has the correct permissions'
@@ -215,7 +215,7 @@ export class BusinessMapClient {
       }
 
       this.isInitialized = true;
-    } catch (error) {
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Failed to initialize BusinessMap client: ${message}`);
     }

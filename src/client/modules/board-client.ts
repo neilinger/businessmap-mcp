@@ -227,7 +227,7 @@ export class BoardClient extends BaseClientModuleImpl {
         try {
           await this.deleteBoard(id);
           return { id, success: true };
-        } catch (error) {
+        } catch (error: unknown) {
           return {
             id,
             success: false,
@@ -300,7 +300,7 @@ export class BoardClient extends BaseClientModuleImpl {
         try {
           const board = await this.updateBoard(id, updates);
           return { id, success: true, board };
-        } catch (error) {
+        } catch (error: unknown) {
           return {
             id,
             success: false,

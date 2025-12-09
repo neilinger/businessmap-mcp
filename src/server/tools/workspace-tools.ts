@@ -69,7 +69,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspaces = await client.getWorkspaces();
           return createSuccessResponse(workspaces);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching workspaces');
         }
       }
@@ -92,7 +92,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.getWorkspace(workspace_id);
           return createSuccessResponse(workspace);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching workspace');
         }
       }
@@ -115,7 +115,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.createWorkspace({ name, description });
           return createSuccessResponse(workspace, 'Workspace created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating workspace');
         }
       }
@@ -143,7 +143,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.updateWorkspace(workspace_id, { name, description });
           return createSuccessResponse(workspace, 'Workspace updated successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'updating workspace');
         }
       }
@@ -166,7 +166,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.archiveWorkspace(workspace_id);
           return createSuccessResponse(workspace, 'Workspace archived successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'archiving workspace');
         }
       }
@@ -255,7 +255,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
               'bulk archiving workspaces'
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'bulk archiving workspaces');
         }
       }
@@ -312,7 +312,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
               'bulk updating workspaces'
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'bulk updating workspaces');
         }
       }

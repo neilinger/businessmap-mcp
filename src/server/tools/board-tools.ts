@@ -90,7 +90,7 @@ export class BoardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const boards = await client.getBoards(restParams);
           return createSuccessResponse(boards);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching boards');
         }
       }
@@ -126,7 +126,7 @@ export class BoardToolHandler implements BaseToolHandler {
 
           // If neither ID nor name provided, list all boards
           return await this.getAllBoards(client, workspace_id);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'searching for board');
         }
       }
@@ -140,7 +140,7 @@ export class BoardToolHandler implements BaseToolHandler {
         client.getBoardStructure(boardId),
       ]);
       return createSuccessResponse({ ...board, structure }, 'Board found directly:');
-    } catch (directError) {
+    } catch (directError: unknown) {
       logger.warn('Direct board lookup failed', {
         boardId,
         error: directError instanceof Error ? directError.message : 'Unknown error',
@@ -218,7 +218,7 @@ export class BoardToolHandler implements BaseToolHandler {
       }
       const structure = await client.getBoardStructure(board.board_id);
       return createSuccessResponse({ ...board, structure }, successMessage);
-    } catch (structureError) {
+    } catch (structureError: unknown) {
       logger.warn('Structure lookup failed', {
         boardId: board.board_id,
         error: structureError instanceof Error ? structureError.message : 'Unknown error',
@@ -256,7 +256,7 @@ export class BoardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const columns = await client.getColumns(board_id);
           return createSuccessResponse(columns);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching board columns');
         }
       }
@@ -279,7 +279,7 @@ export class BoardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const lanes = await client.getLanes(board_id);
           return createSuccessResponse(lanes);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching board lanes');
         }
       }
@@ -302,7 +302,7 @@ export class BoardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const lane = await client.getLane(lane_id);
           return createSuccessResponse(lane);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching lane details');
         }
       }
@@ -329,7 +329,7 @@ export class BoardToolHandler implements BaseToolHandler {
             description,
           });
           return createSuccessResponse(board, 'Board created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating board');
         }
       }
@@ -365,7 +365,7 @@ export class BoardToolHandler implements BaseToolHandler {
             position,
           });
           return createSuccessResponse(lane, 'Lane created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating lane');
         }
       }
@@ -388,7 +388,7 @@ export class BoardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const board = await client.updateBoard(board_id, { name, description });
           return createSuccessResponse(board, 'Board updated successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'updating board');
         }
       }
@@ -411,7 +411,7 @@ export class BoardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           await client.deleteBoard(board_id, { archive_first });
           return createSuccessResponse({ board_id }, 'Board deleted successfully. ID:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'deleting board');
         }
       }
@@ -434,7 +434,7 @@ export class BoardToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const structure = await client.getCurrentBoardStructure(board_id);
           return createSuccessResponse(structure, 'Board structure retrieved successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting current board structure');
         }
       }
@@ -529,7 +529,7 @@ export class BoardToolHandler implements BaseToolHandler {
               'bulk deleting boards'
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'bulk deleting boards');
         }
       }
@@ -587,7 +587,7 @@ export class BoardToolHandler implements BaseToolHandler {
               'bulk updating boards'
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'bulk updating boards');
         }
       }

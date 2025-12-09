@@ -47,7 +47,7 @@ export class WorkflowToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const columns = await client.getWorkflowCycleTimeColumns(board_id, workflow_id);
           return createSuccessResponse(columns);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching workflow cycle time columns');
         }
       }
@@ -86,7 +86,7 @@ export class WorkflowToolHandler implements BaseToolHandler {
             columns,
             `Retrieved ${columns.length} effective cycle time columns for board ${board_id}, workflow ${workflow_id}`
           );
-        } catch (error) {
+        } catch (error: unknown) {
           logger.error('Error fetching effective cycle time columns', {
             boardId: board_id,
             workflowId: workflow_id,

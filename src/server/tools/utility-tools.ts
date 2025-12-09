@@ -49,7 +49,7 @@ export class UtilityToolHandler implements BaseToolHandler {
               },
             ],
           };
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'health check failed');
         }
       }
@@ -72,7 +72,7 @@ export class UtilityToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const apiInfo = await client.getApiInfo();
           return createSuccessResponse(apiInfo);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching API info');
         }
       }

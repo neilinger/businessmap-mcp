@@ -45,7 +45,7 @@ export class UserToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const users = await client.getUsers();
           return createSuccessResponse(users);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching users');
         }
       }
@@ -68,7 +68,7 @@ export class UserToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const user = await client.getUser(user_id);
           return createSuccessResponse(user);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching user');
         }
       }
@@ -91,7 +91,7 @@ export class UserToolHandler implements BaseToolHandler {
           const client = await getClientForInstance(clientOrFactory, instance);
           const currentUser = await client.getCurrentUser();
           return createSuccessResponse(currentUser);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching current user');
         }
       }
