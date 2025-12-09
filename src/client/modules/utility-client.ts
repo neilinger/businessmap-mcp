@@ -10,7 +10,7 @@ export class UtilityClient extends BaseClientModuleImpl {
       // Use /me endpoint as health check since /health may not exist
       await this.http.get('/me');
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       // Log the actual error for debugging
       logger.error('Health check failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -27,7 +27,7 @@ export class UtilityClient extends BaseClientModuleImpl {
       // Tentativa de usar /info (que não existe na API oficial)
       const response = await this.http.get('/info');
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       // Fallback: verificar conectividade com /me
       logger.warn('Endpoint /info not available, testing connectivity via /me');
       try {

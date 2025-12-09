@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod/v4';
 import { logger } from '@utils/logger.js';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -83,13 +84,13 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'List boards',
         inputSchema: listBoardsSchema.shape,
       },
-      async (params: any) => {
+      async (params: z.infer<typeof listBoardsSchema>) => {
         try {
           const { instance, ...restParams } = params;
           const client = await getClientForInstance(clientOrFactory, instance);
           const boards = await client.getBoards(restParams);
           return createSuccessResponse(boards);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching boards');
         }
       }
@@ -107,7 +108,12 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Search board by ID/name',
         inputSchema: searchBoardSchema.shape,
       },
-      async ({ board_id, board_name, workspace_id, instance }: any) => {
+      async ({
+        board_id,
+        board_name,
+        workspace_id,
+        instance,
+      }: z.infer<typeof searchBoardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           if (board_id) {
@@ -120,7 +126,7 @@ export class BoardToolHandler implements BaseToolHandler {
 
           // If neither ID nor name provided, list all boards
           return await this.getAllBoards(client, workspace_id);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'searching for board');
         }
       }
@@ -134,7 +140,7 @@ export class BoardToolHandler implements BaseToolHandler {
         client.getBoardStructure(boardId),
       ]);
       return createSuccessResponse({ ...board, structure }, 'Board found directly:');
-    } catch (directError) {
+    } catch (directError: unknown) {
       logger.warn('Direct board lookup failed', {
         boardId,
         error: directError instanceof Error ? directError.message : 'Unknown error',
@@ -203,13 +209,16 @@ export class BoardToolHandler implements BaseToolHandler {
 
   private async getBoardWithStructure(
     client: BusinessMapClient,
-    board: any,
+    board: { board_id?: number; name?: string; workspace_id?: number },
     successMessage: string
   ) {
     try {
+      if (!board.board_id) {
+        return createErrorResponse(new Error('Board missing board_id'), 'board validation');
+      }
       const structure = await client.getBoardStructure(board.board_id);
       return createSuccessResponse({ ...board, structure }, successMessage);
-    } catch (structureError) {
+    } catch (structureError: unknown) {
       logger.warn('Structure lookup failed', {
         boardId: board.board_id,
         error: structureError instanceof Error ? structureError.message : 'Unknown error',
@@ -221,7 +230,9 @@ export class BoardToolHandler implements BaseToolHandler {
     }
   }
 
-  private formatBoardsList(boards: any[]) {
+  private formatBoardsList(
+    boards: Array<{ board_id?: number; name?: string; workspace_id?: number }>
+  ) {
     return boards.map((b) => ({
       board_id: b.board_id,
       name: b.name,
@@ -240,12 +251,12 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Get board columns',
         inputSchema: getBoardSchema.shape,
       },
-      async ({ board_id, instance }: any) => {
+      async ({ board_id, instance }: z.infer<typeof getBoardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const columns = await client.getColumns(board_id);
           return createSuccessResponse(columns);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching board columns');
         }
       }
@@ -263,12 +274,12 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Get board lanes',
         inputSchema: getBoardSchema.shape,
       },
-      async ({ board_id, instance }: any) => {
+      async ({ board_id, instance }: z.infer<typeof getBoardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const lanes = await client.getLanes(board_id);
           return createSuccessResponse(lanes);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching board lanes');
         }
       }
@@ -286,12 +297,12 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Get lane details',
         inputSchema: getLaneSchema.shape,
       },
-      async ({ lane_id, instance }: any) => {
+      async ({ lane_id, instance }: z.infer<typeof getLaneSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const lane = await client.getLane(lane_id);
           return createSuccessResponse(lane);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching lane details');
         }
       }
@@ -309,7 +320,7 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Create board',
         inputSchema: createBoardSchema.shape,
       },
-      async ({ name, workspace_id, description, instance }: any) => {
+      async ({ name, workspace_id, description, instance }: z.infer<typeof createBoardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const board = await client.createBoard({
@@ -318,7 +329,7 @@ export class BoardToolHandler implements BaseToolHandler {
             description,
           });
           return createSuccessResponse(board, 'Board created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating board');
         }
       }
@@ -336,7 +347,14 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Create lane',
         inputSchema: createLaneSchema.shape,
       },
-      async ({ workflow_id, name, description, color, position, instance }: any) => {
+      async ({
+        workflow_id,
+        name,
+        description,
+        color,
+        position,
+        instance,
+      }: z.infer<typeof createLaneSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const lane = await client.createLane({
@@ -347,7 +365,7 @@ export class BoardToolHandler implements BaseToolHandler {
             position,
           });
           return createSuccessResponse(lane, 'Lane created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating lane');
         }
       }
@@ -365,12 +383,12 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Update board',
         inputSchema: updateBoardSchema.shape,
       },
-      async ({ board_id, name, description, instance }: any) => {
+      async ({ board_id, name, description, instance }: z.infer<typeof updateBoardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const board = await client.updateBoard(board_id, { name, description });
           return createSuccessResponse(board, 'Board updated successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'updating board');
         }
       }
@@ -388,12 +406,12 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Delete board',
         inputSchema: deleteBoardSchema.shape,
       },
-      async ({ board_id, archive_first, instance }: any) => {
+      async ({ board_id, archive_first, instance }: z.infer<typeof deleteBoardSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           await client.deleteBoard(board_id, { archive_first });
           return createSuccessResponse({ board_id }, 'Board deleted successfully. ID:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'deleting board');
         }
       }
@@ -411,12 +429,12 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Get board structure',
         inputSchema: getCurrentBoardStructureSchema.shape,
       },
-      async ({ board_id, instance }: any) => {
+      async ({ board_id, instance }: z.infer<typeof getCurrentBoardStructureSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const structure = await client.getCurrentBoardStructure(board_id);
           return createSuccessResponse(structure, 'Board structure retrieved successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting current board structure');
         }
       }
@@ -434,7 +452,11 @@ export class BoardToolHandler implements BaseToolHandler {
         description: 'Delete multiple boards',
         inputSchema: bulkDeleteBoardsSchema.shape,
       },
-      async ({ resource_ids, analyze_dependencies = true, instance }: any) => {
+      async ({
+        resource_ids,
+        analyze_dependencies = true,
+        instance,
+      }: z.infer<typeof bulkDeleteBoardsSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const analyzer = new DependencyAnalyzer(client);
@@ -507,7 +529,7 @@ export class BoardToolHandler implements BaseToolHandler {
               'bulk deleting boards'
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'bulk deleting boards');
         }
       }
@@ -523,21 +545,21 @@ export class BoardToolHandler implements BaseToolHandler {
       {
         title: 'Bulk Update Boards',
         description: 'Update multiple boards',
-        inputSchema: bulkUpdateBoardsSchema as any,
+        inputSchema: bulkUpdateBoardsSchema.shape,
       },
-      async (params: any) => {
+      async (params: z.infer<typeof bulkUpdateBoardsSchema>) => {
         const { resource_ids, name, description, is_archived, instance } = params;
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
-          const updates: any = {};
+          const updates: Partial<{ name: string; description: string; is_archived: boolean }> = {};
           if (name !== undefined) updates.name = name;
           if (description !== undefined) updates.description = description;
           if (is_archived !== undefined) updates.is_archived = is_archived;
 
           const results = await client.bulkUpdateBoards(resource_ids, updates);
 
-          const successes = results.filter((r: any) => r.success);
-          const failures = results.filter((r: any) => !r.success);
+          const successes = results.filter((r) => r.success);
+          const failures = results.filter((r) => !r.success);
 
           if (failures.length === 0) {
             return createSuccessResponse(
@@ -548,8 +570,8 @@ export class BoardToolHandler implements BaseToolHandler {
             const confirmationBuilder = new ConfirmationBuilder();
             const message = confirmationBuilder.formatPartialSuccess(
               'board',
-              successes.map((s: any) => ({ id: s.id, name: s.board?.name || `Board ${s.id}` })),
-              failures.map((f: any) => ({
+              successes.map((s) => ({ id: s.id, name: s.board?.name || `Board ${s.id}` })),
+              failures.map((f) => ({
                 id: f.id,
                 name: `Board ${f.id}`,
                 error: f.error || 'Unknown error',
@@ -565,7 +587,7 @@ export class BoardToolHandler implements BaseToolHandler {
               'bulk updating boards'
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'bulk updating boards');
         }
       }

@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
 import {
@@ -63,12 +64,12 @@ export class WorkspaceToolHandler implements BaseToolHandler {
         description: 'List workspaces',
         inputSchema: listWorkspacesSchema.shape,
       },
-      async ({ instance }: any) => {
+      async ({ instance }: z.infer<typeof listWorkspacesSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspaces = await client.getWorkspaces();
           return createSuccessResponse(workspaces);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching workspaces');
         }
       }
@@ -86,12 +87,12 @@ export class WorkspaceToolHandler implements BaseToolHandler {
         description: 'Get workspace details',
         inputSchema: getWorkspaceSchema.shape,
       },
-      async ({ workspace_id, instance }: any) => {
+      async ({ workspace_id, instance }: z.infer<typeof getWorkspaceSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.getWorkspace(workspace_id);
           return createSuccessResponse(workspace);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching workspace');
         }
       }
@@ -109,12 +110,12 @@ export class WorkspaceToolHandler implements BaseToolHandler {
         description: 'Create workspace',
         inputSchema: createWorkspaceSchema.shape,
       },
-      async ({ name, description, instance }: any) => {
+      async ({ name, description, instance }: z.infer<typeof createWorkspaceSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.createWorkspace({ name, description });
           return createSuccessResponse(workspace, 'Workspace created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating workspace');
         }
       }
@@ -132,12 +133,17 @@ export class WorkspaceToolHandler implements BaseToolHandler {
         description: 'Update workspace',
         inputSchema: updateWorkspaceSchema.shape,
       },
-      async ({ workspace_id, name, description, instance }: any) => {
+      async ({
+        workspace_id,
+        name,
+        description,
+        instance,
+      }: z.infer<typeof updateWorkspaceSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.updateWorkspace(workspace_id, { name, description });
           return createSuccessResponse(workspace, 'Workspace updated successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'updating workspace');
         }
       }
@@ -155,12 +161,12 @@ export class WorkspaceToolHandler implements BaseToolHandler {
         description: 'Archive workspace',
         inputSchema: archiveWorkspaceSchema.shape,
       },
-      async ({ workspace_id, instance }: any) => {
+      async ({ workspace_id, instance }: z.infer<typeof archiveWorkspaceSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const workspace = await client.archiveWorkspace(workspace_id);
           return createSuccessResponse(workspace, 'Workspace archived successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'archiving workspace');
         }
       }
@@ -178,7 +184,11 @@ export class WorkspaceToolHandler implements BaseToolHandler {
         description: 'Archive multiple workspaces',
         inputSchema: bulkArchiveWorkspacesSchema.shape,
       },
-      async ({ resource_ids, analyze_dependencies = true, instance }: any) => {
+      async ({
+        resource_ids,
+        analyze_dependencies = true,
+        instance,
+      }: z.infer<typeof bulkArchiveWorkspacesSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const analyzer = new DependencyAnalyzer(client);
@@ -245,7 +255,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
               'bulk archiving workspaces'
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'bulk archiving workspaces');
         }
       }
@@ -261,13 +271,13 @@ export class WorkspaceToolHandler implements BaseToolHandler {
       {
         title: 'Bulk Update Workspaces',
         description: 'Update multiple workspaces',
-        inputSchema: bulkUpdateWorkspacesSchema as any,
+        inputSchema: bulkUpdateWorkspacesSchema.shape,
       },
-      async (params: any) => {
+      async (params: z.infer<typeof bulkUpdateWorkspacesSchema>) => {
         const { resource_ids, name, description, instance } = params;
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
-          const updates: any = {};
+          const updates: Partial<{ name: string; description: string }> = {};
           if (name !== undefined) updates.name = name;
           if (description !== undefined) updates.description = description;
 
@@ -302,7 +312,7 @@ export class WorkspaceToolHandler implements BaseToolHandler {
               'bulk updating workspaces'
             );
           }
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'bulk updating workspaces');
         }
       }

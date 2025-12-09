@@ -66,7 +66,7 @@ export class InstanceToolHandler implements BaseToolHandler {
           };
 
           return createSuccessResponse(response);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'listing instances');
         }
       }
@@ -125,7 +125,7 @@ export class InstanceToolHandler implements BaseToolHandler {
           };
 
           return createSuccessResponse(info);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'getting instance info');
         }
       }

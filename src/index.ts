@@ -31,7 +31,7 @@ async function main() {
         await businessMapServer.initialize();
         logger.info('Successfully connected to BusinessMap API');
         break;
-      } catch (error) {
+      } catch (error: unknown) {
         retryCount++;
         const message = error instanceof Error ? error.message : 'Unknown error';
 
@@ -64,7 +64,7 @@ async function main() {
       capabilities: ['tools', 'resources', 'prompts'],
       transport: 'stdio',
     });
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Failed to start server', {
       error: error instanceof Error ? error.message : 'Unknown error',
     });

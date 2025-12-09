@@ -16,10 +16,11 @@ interface CacheEntry<T> {
 
 /**
  * Cache manager for client-side caching with TTL and request deduplication
+ * @template T The type of data stored in the cache (default: unknown)
  */
-export class CacheManager {
-  private cache: LRUCache<string, CacheEntry<any>>;
-  private pendingRequests: Map<string, Promise<any>>;
+export class CacheManager<T = unknown> {
+  private cache: LRUCache<string, CacheEntry<T>>;
+  private pendingRequests: Map<string, Promise<T>>;
   private keysByPrefix: Map<string, Set<string>> = new Map();
   private invalidationGeneration: Map<string, number> = new Map();
   private hitCount: number = 0;
@@ -31,10 +32,10 @@ export class CacheManager {
     // 5 minutes default, 1000 entries max
     this.enabled = enabled;
     this.defaultTtl = defaultTtl;
-    this.cache = new LRUCache<string, CacheEntry<any>>({
+    this.cache = new LRUCache<string, CacheEntry<T>>({
       max: maxSize,
       // LRU will automatically evict least recently used entries when max is reached
-      disposeAfter: (value: CacheEntry<any>, key: string) => {
+      disposeAfter: (value: CacheEntry<T>, key: string) => {
         // Clean up prefix index when entries are evicted
         // Use setImmediate to avoid blocking event loop on eviction
         setImmediate(() => {
@@ -58,18 +59,23 @@ export class CacheManager {
 
   /**
    * Get cached value or execute fetcher function with lazy expiration
+   * @template TData The type of data being cached (must extend the cache's base type T)
    */
-  async get<T>(key: string, fetcher: () => Promise<T>, ttl: number = this.defaultTtl): Promise<T> {
+  async get<TData extends T = T>(
+    key: string,
+    fetcher: () => Promise<TData>,
+    ttl: number = this.defaultTtl
+  ): Promise<TData> {
     if (!this.enabled) {
       return fetcher();
     }
 
     // Check cache first (lazy expiration check)
-    const cached = this.cache.get(key);
+    const cached = this.cache.get(key) as CacheEntry<TData> | undefined;
     if (cached) {
       if (cached.expiresAt > Date.now()) {
         this.hitCount++;
-        return cached.data as T;
+        return cached.data;
       } else {
         // Expired entry found, remove it (lazy cleanup)
         this.cache.delete(key);
@@ -77,17 +83,17 @@ export class CacheManager {
     }
 
     // Check if request is already in flight (deduplication)
-    const pending = this.pendingRequests.get(key);
+    const pending = this.pendingRequests.get(key) as Promise<TData> | undefined;
     if (pending) {
       this.hitCount++; // Count deduplicated requests as cache hits
-      return pending as Promise<T>;
+      return pending;
     }
 
     // Execute fetcher and store promise
     this.missCount++;
     const startGeneration = this.invalidationGeneration.get(key) || 0;
     const promise = fetcher();
-    this.pendingRequests.set(key, promise);
+    this.pendingRequests.set(key, promise as Promise<T>);
 
     try {
       const data = await promise;
@@ -242,7 +248,7 @@ export interface BaseClientModule {
 export abstract class BaseClientModuleImpl implements BaseClientModule {
   protected http!: AxiosInstance;
   protected config!: BusinessMapConfig;
-  protected cache!: CacheManager;
+  protected cache!: CacheManager<unknown>;
 
   initialize(http: AxiosInstance, config: BusinessMapConfig): void {
     this.http = http;

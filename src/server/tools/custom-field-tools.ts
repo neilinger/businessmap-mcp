@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
 import {
@@ -58,12 +59,12 @@ export class CustomFieldToolHandler implements BaseToolHandler {
         description: 'List custom fields',
         inputSchema: listCustomFieldsSchema.shape,
       },
-      async ({ page, page_size, field_type, instance }: any) => {
+      async ({ page, page_size, field_type, instance }: z.infer<typeof listCustomFieldsSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const customFields = await client.listCustomFields({ page, page_size, field_type });
           return createSuccessResponse(customFields);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'listing custom fields');
         }
       }
@@ -81,12 +82,12 @@ export class CustomFieldToolHandler implements BaseToolHandler {
         description: 'List board custom fields',
         inputSchema: listBoardCustomFieldsSchema.shape,
       },
-      async ({ board_id, instance }: any) => {
+      async ({ board_id, instance }: z.infer<typeof listBoardCustomFieldsSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const customFields = await client.listBoardCustomFields(board_id);
           return createSuccessResponse(customFields);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'listing board custom fields');
         }
       }
@@ -104,12 +105,12 @@ export class CustomFieldToolHandler implements BaseToolHandler {
         description: 'Get custom field details',
         inputSchema: getCustomFieldSchema.shape,
       },
-      async ({ custom_field_id, instance }: any) => {
+      async ({ custom_field_id, instance }: z.infer<typeof getCustomFieldSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const customField = await client.getCustomField(custom_field_id);
           return createSuccessResponse(customField);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching custom field');
         }
       }
@@ -127,13 +128,13 @@ export class CustomFieldToolHandler implements BaseToolHandler {
         description: 'Create custom field',
         inputSchema: createCustomFieldSchema.shape,
       },
-      async (params: any) => {
+      async (params: z.infer<typeof createCustomFieldSchema>) => {
         try {
           const { instance, ...fieldParams } = params;
           const client = await getClientForInstance(clientOrFactory, instance);
           const customField = await client.createCustomField(fieldParams);
           return createSuccessResponse(customField, 'Custom field created successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'creating custom field');
         }
       }
@@ -151,12 +152,12 @@ export class CustomFieldToolHandler implements BaseToolHandler {
         description: 'Update custom field',
         inputSchema: updateCustomFieldSchema.shape,
       },
-      async ({ custom_field_id, instance, ...params }: any) => {
+      async ({ custom_field_id, instance, ...params }: z.infer<typeof updateCustomFieldSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const customField = await client.updateCustomField(custom_field_id, params);
           return createSuccessResponse(customField, 'Custom field updated successfully:');
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'updating custom field');
         }
       }
@@ -174,7 +175,7 @@ export class CustomFieldToolHandler implements BaseToolHandler {
         description: 'Delete custom field',
         inputSchema: deleteCustomFieldSchema.shape,
       },
-      async ({ custom_field_id, instance }: any) => {
+      async ({ custom_field_id, instance }: z.infer<typeof deleteCustomFieldSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           // Step 1: Pre-delete dependency analysis
@@ -187,7 +188,9 @@ export class CustomFieldToolHandler implements BaseToolHandler {
           for (const board of boards) {
             if (!board.board_id) continue;
             const boardFields = await client.listBoardCustomFields(board.board_id);
-            if (boardFields.some((f: any) => f.field_id === custom_field_id)) {
+            if (
+              boardFields.some((f) => (f as { field_id?: number }).field_id === custom_field_id)
+            ) {
               affectedBoards.push(board);
             }
           }
@@ -216,7 +219,7 @@ Deleting this custom field will permanently remove:
 - This action CANNOT be undone
 
 Affected Boards:
-${affectedBoards.map((b: any) => `  - ${b.name} (ID: ${b.board_id})`).join('\n')}
+${affectedBoards.map((b) => `  - ${b.name} (ID: ${b.board_id})`).join('\n')}
 
 To proceed with deletion, you must explicitly confirm this action.
 Type 'DELETE' to confirm or any other response to cancel.
@@ -244,8 +247,16 @@ Type 'DELETE' to confirm or any other response to cancel.
                     },
                     'Custom field deleted successfully:'
                   );
-                } catch (deleteError: any) {
-                  if (deleteError.response?.status === 403) {
+                } catch (deleteError: unknown) {
+                  if (
+                    deleteError &&
+                    typeof deleteError === 'object' &&
+                    'response' in deleteError &&
+                    deleteError.response &&
+                    typeof deleteError.response === 'object' &&
+                    'status' in deleteError.response &&
+                    deleteError.response.status === 403
+                  ) {
                     return createErrorResponse(
                       new Error(
                         'Insufficient permissions. Custom field definition management requires workspace admin role.'
@@ -258,8 +269,16 @@ Type 'DELETE' to confirm or any other response to cancel.
               },
             },
           };
-        } catch (error: any) {
-          if (error.response?.status === 403) {
+        } catch (error: unknown) {
+          if (
+            error &&
+            typeof error === 'object' &&
+            'response' in error &&
+            error.response &&
+            typeof error.response === 'object' &&
+            'status' in error.response &&
+            error.response.status === 403
+          ) {
             return createErrorResponse(
               new Error(
                 'Insufficient permissions. Custom field definition management requires workspace admin role.'

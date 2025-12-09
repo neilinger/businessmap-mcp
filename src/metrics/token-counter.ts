@@ -20,7 +20,7 @@ function getEncoding(): Tiktoken {
     try {
       // cl100k_base is used by GPT-4, GPT-3.5-turbo, and text-embedding-ada-002
       encodingInstance = getTiktokenEncoding('cl100k_base');
-    } catch (error) {
+    } catch (error: unknown) {
       throw new Error(
         `Failed to initialize tiktoken encoding: ${error instanceof Error ? error.message : String(error)}`
       );
@@ -55,7 +55,7 @@ export function countTokens(text: string): number {
     const encoding = getEncoding();
     const tokens = encoding.encode(text);
     return tokens.length;
-  } catch (error) {
+  } catch (error: unknown) {
     throw new Error(
       `Failed to count tokens: ${error instanceof Error ? error.message : String(error)}`
     );
@@ -92,7 +92,7 @@ export function countToolTokens(toolName: string, toolSchema: any): number {
     // Serialize schema to JSON (compact format, no whitespace)
     const schemaJson = JSON.stringify(toolSchema);
     return countTokens(schemaJson);
-  } catch (error) {
+  } catch (error: unknown) {
     throw new Error(
       `Failed to count tokens for tool ${toolName}: ${error instanceof Error ? error.message : String(error)}`
     );

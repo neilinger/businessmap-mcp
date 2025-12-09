@@ -127,7 +127,7 @@ function sanitizeMetadata(meta: Record<string, unknown>): Record<string, unknown
 
     // Parse back to object
     return JSON.parse(sanitized) as Record<string, unknown>;
-  } catch (error) {
+  } catch (error: unknown) {
     // If parsing fails, return a safe error object
     return {
       error: 'Failed to sanitize metadata',

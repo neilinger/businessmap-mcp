@@ -122,7 +122,7 @@ export class DependencyAnalyzer {
         hasDependencies,
         dependents,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       // If workspace doesn't exist, return minimal info
       return {
         id: workspaceId,
@@ -179,7 +179,7 @@ export class DependencyAnalyzer {
         hasDependencies,
         dependents,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         id: boardId,
         type: 'board',
@@ -258,7 +258,7 @@ export class DependencyAnalyzer {
         hasDependencies,
         dependents,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         id: cardId,
         type: 'card',

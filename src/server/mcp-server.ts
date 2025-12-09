@@ -101,7 +101,7 @@ export class BusinessMapMcpServer {
       // Setup tools with single client
       this.setupTools();
       this.setupResources();
-    } catch (error) {
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Failed to initialize BusinessMap MCP Server: ${message}`);
     }
@@ -129,7 +129,7 @@ export class BusinessMapMcpServer {
         estimatedTokens: metadata.estimatedTokens,
         useCase: metadata.useCase,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       // Fallback to full profile if there's any error
       logger.error('Error loading tool profile, falling back to full profile', {
         error: error instanceof Error ? error.message : String(error),

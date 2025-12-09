@@ -169,7 +169,7 @@ export class WorkspaceClient extends BaseClientModuleImpl {
         try {
           const workspace = await this.archiveWorkspace(id);
           return { id, success: true, workspace };
-        } catch (error) {
+        } catch (error: unknown) {
           return {
             id,
             success: false,
@@ -242,7 +242,7 @@ export class WorkspaceClient extends BaseClientModuleImpl {
         try {
           const workspace = await this.updateWorkspace(id, updates);
           return { id, success: true, workspace };
-        } catch (error) {
+        } catch (error: unknown) {
           return {
             id,
             success: false,

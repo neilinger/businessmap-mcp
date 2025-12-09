@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
 import { getApiInfoSchema, healthCheckSchema } from '@schemas/utility-schemas.js';
@@ -36,7 +37,7 @@ export class UtilityToolHandler implements BaseToolHandler {
         description: 'Check API connection',
         inputSchema: healthCheckSchema.shape,
       },
-      async ({ instance }: any) => {
+      async ({ instance }: z.infer<typeof healthCheckSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const isHealthy = await client.healthCheck();
@@ -48,7 +49,7 @@ export class UtilityToolHandler implements BaseToolHandler {
               },
             ],
           };
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'health check failed');
         }
       }
@@ -66,12 +67,12 @@ export class UtilityToolHandler implements BaseToolHandler {
         description: 'Get API info',
         inputSchema: getApiInfoSchema.shape,
       },
-      async ({ instance }: any) => {
+      async ({ instance }: z.infer<typeof getApiInfoSchema>) => {
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
           const apiInfo = await client.getApiInfo();
           return createSuccessResponse(apiInfo);
-        } catch (error) {
+        } catch (error: unknown) {
           return createErrorResponse(error, 'fetching API info');
         }
       }

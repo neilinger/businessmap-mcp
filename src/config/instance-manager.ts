@@ -184,7 +184,7 @@ export class InstanceConfigManager {
       }
 
       this.config = null;
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof InstanceConfigError) {
         throw error;
       }
@@ -220,7 +220,7 @@ export class InstanceConfigManager {
 
       this.config = parsed;
       this.legacyMode = false;
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof InstanceConfigError) {
         throw error;
       }
@@ -257,7 +257,7 @@ export class InstanceConfigManager {
 
       this.config = parsed;
       this.legacyMode = false;
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof InstanceConfigError) {
         throw error;
       }
@@ -325,7 +325,7 @@ export class InstanceConfigManager {
   private validateConfig(config: unknown): asserts config is MultiInstanceConfig {
     try {
       MultiInstanceConfigSchema.parse(config);
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof z.ZodError) {
         const formattedErrors = error.issues.map((issue) => ({
           path: issue.path.join('.'),
