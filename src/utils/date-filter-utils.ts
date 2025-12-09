@@ -8,6 +8,22 @@
  */
 
 /**
+ * Date filter type names - defined first for use in derived types
+ */
+const DATE_FILTER_TYPES = [
+  'archived',
+  'created',
+  'deadline',
+  'discarded',
+  'first_end',
+  'first_start',
+  'in_current_position_since',
+  'last_end',
+  'last_modified',
+  'last_start',
+] as const;
+
+/**
  * Date range with from/to fields
  */
 export interface DateRange {
@@ -34,25 +50,27 @@ export interface DateFilters {
 }
 
 /**
- * Flattened date filters for API compatibility
+ * Type-level utilities for generating flattened date filter keys
  */
-export type FlattenedDateFilters = Record<string, string | undefined>;
+type DateFilterType = (typeof DATE_FILTER_TYPES)[number];
+type DateFieldSuffix = 'from' | 'from_date' | 'to' | 'to_date';
+type FlatDateFilterKey = `${DateFilterType}_${DateFieldSuffix}`;
 
 /**
- * Date filter type names
+ * Strongly-typed flattened date filters for API compatibility.
+ * Uses TypeScript template literal types to generate all 40 valid keys.
+ * Each date filter type has four optional fields: _from, _from_date, _to, _to_date
+ *
+ * @example
+ * ```typescript
+ * // Valid keys: 'archived_from', 'archived_to', 'created_from_date', etc.
+ * const filters: FlattenedDateFilters = {
+ *   archived_from: '2024-01-01',
+ *   created_to_date: '2024-12-31'
+ * };
+ * ```
  */
-const DATE_FILTER_TYPES = [
-  'archived',
-  'created',
-  'deadline',
-  'discarded',
-  'first_end',
-  'first_start',
-  'in_current_position_since',
-  'last_end',
-  'last_modified',
-  'last_start',
-] as const;
+export type FlattenedDateFilters = Partial<Record<FlatDateFilterKey, string>>;
 
 /**
  * Flattens nested date filters into flat key-value pairs.
