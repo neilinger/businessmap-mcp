@@ -6,10 +6,7 @@ import { flattenDateFilters } from '@utils/date-filter-utils.js';
 import {
   createCardSchema,
   deleteCardSchema,
-  getCardHistorySchema,
-  getCardOutcomesSchema,
   getCardSchema,
-  getCardTypesSchema,
   listCardsSchema,
   updateCardSchema,
 } from '@schemas/index.js';
@@ -239,110 +236,6 @@ export function registerDeleteCard(
   );
 }
 
-export function registerGetCardCustomFields(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
-): void {
-  server.registerTool(
-    'get_card_custom_fields',
-    {
-      title: 'Get Card Custom Fields',
-      description: 'Get card custom fields',
-      inputSchema: getCardSchema.shape,
-    },
-    async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
-      try {
-        const client = await getClientForInstance(clientOrFactory, instance);
-        const customFields = await client.getCardCustomFields(card_id);
-        return createSuccessResponse({
-          customFields,
-          count: customFields.length,
-        });
-      } catch (error: unknown) {
-        return createErrorResponse(error, 'getting card custom fields');
-      }
-    }
-  );
-}
-
-export function registerGetCardTypes(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
-): void {
-  server.registerTool(
-    'get_card_types',
-    {
-      title: 'Get Card Types',
-      description: 'Get card types',
-      inputSchema: getCardTypesSchema.shape,
-    },
-    async ({ instance }: z.infer<typeof getCardTypesSchema>) => {
-      try {
-        const client = await getClientForInstance(clientOrFactory, instance);
-        const cardTypes = await client.getCardTypes();
-        return createSuccessResponse({
-          cardTypes,
-          count: cardTypes.length,
-        });
-      } catch (error: unknown) {
-        return createErrorResponse(error, 'getting card types');
-      }
-    }
-  );
-}
-
-export function registerGetCardHistory(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
-): void {
-  server.registerTool(
-    'get_card_history',
-    {
-      title: 'Get Card History',
-      description: 'Get card history',
-      inputSchema: getCardHistorySchema.shape,
-    },
-    async ({ card_id, outcome_id, instance }: z.infer<typeof getCardHistorySchema>) => {
-      try {
-        const client = await getClientForInstance(clientOrFactory, instance);
-        const history = await client.getCardHistory(card_id, outcome_id);
-        return createSuccessResponse({
-          history,
-          count: history.length,
-        });
-      } catch (error: unknown) {
-        return createErrorResponse(error, 'getting card history');
-      }
-    }
-  );
-}
-
-export function registerGetCardOutcomes(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
-): void {
-  server.registerTool(
-    'get_card_outcomes',
-    {
-      title: 'Get Card Outcomes',
-      description: 'Get card outcomes',
-      inputSchema: getCardOutcomesSchema.shape,
-    },
-    async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
-      try {
-        const client = await getClientForInstance(clientOrFactory, instance);
-        const outcomes = await client.getCardOutcomes(card_id);
-        return createSuccessResponse({
-          outcomes,
-          count: outcomes.length,
-        });
-      } catch (error: unknown) {
-        return createErrorResponse(error, 'getting card outcomes');
-      }
-    }
-  );
-}
-
 /** Conditionally register all card CRUD tools */
 export function registerCardCrudTools(
   server: McpServer,
@@ -356,18 +249,6 @@ export function registerCardCrudTools(
   }
   if (shouldRegisterTool('get_card', enabledTools)) {
     registerGetCard(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_custom_fields', enabledTools)) {
-    registerGetCardCustomFields(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_types', enabledTools)) {
-    registerGetCardTypes(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_history', enabledTools)) {
-    registerGetCardHistory(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_outcomes', enabledTools)) {
-    registerGetCardOutcomes(server, clientOrFactory);
   }
 
   // Write tools (only in non-read-only mode)
