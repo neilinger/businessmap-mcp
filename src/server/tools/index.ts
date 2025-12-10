@@ -6,7 +6,7 @@ export {
   isMultiInstanceMode,
 } from './base-tool.js';
 export { BoardToolHandler } from './board-tools.js';
-export { CardToolHandler } from './card-tools.js';
+export { CardToolHandler } from './card-tools/index.js';
 export { CustomFieldToolHandler } from './custom-field-tools.js';
 export { InstanceToolHandler } from './instance-tools.js';
 export { UserToolHandler } from './user-tools.js';
