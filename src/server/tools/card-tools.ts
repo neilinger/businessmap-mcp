@@ -30,6 +30,7 @@ import {
   updateCardSchema,
 } from '@schemas/index.js';
 import { bulkDeleteCardsSchema, bulkUpdateCardsSchema } from '@schemas/bulk-schemas.js';
+import { BulkUpdateCardFields } from '@defs/card.js';
 import { DependencyAnalyzer } from '@services/dependency-analyzer.js';
 import { ConfirmationBuilder } from '@services/confirmation-builder.js';
 import {
@@ -969,14 +970,7 @@ export class CardToolHandler implements BaseToolHandler {
         } = params;
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
-          const updates: Partial<{
-            title: string;
-            description: string;
-            column_id: number;
-            lane_id: number;
-            priority: string;
-            owner_user_id: number;
-          }> = {};
+          const updates: Partial<BulkUpdateCardFields> = {};
           if (title !== undefined) updates.title = title;
           if (description !== undefined) updates.description = description;
           if (column_id !== undefined) updates.column_id = column_id;
