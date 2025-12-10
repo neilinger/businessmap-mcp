@@ -1354,9 +1354,7 @@ describe('CardToolHandler', () => {
         text: 'Test comment',
       });
 
-      const attachments = [
-        { file_name: 'test.txt', link: 'https://example.com/test.txt' },
-      ];
+      const attachments = [{ file_name: 'test.txt', link: 'https://example.com/test.txt' }];
 
       await handler({
         card_id: 100,
@@ -1476,9 +1474,7 @@ describe('CardToolHandler', () => {
         text: 'Original text',
       });
 
-      const attachments = [
-        { file_name: 'image.png', link: 'https://example.com/image.png' },
-      ];
+      const attachments = [{ file_name: 'image.png', link: 'https://example.com/image.png' }];
 
       await handler({
         card_id: 100,
@@ -1502,9 +1498,7 @@ describe('CardToolHandler', () => {
         text: 'Updated text',
       });
 
-      const attachments = [
-        { file_name: 'doc.pdf', link: 'https://example.com/doc.pdf' },
-      ];
+      const attachments = [{ file_name: 'doc.pdf', link: 'https://example.com/doc.pdf' }];
 
       await handler({
         card_id: 100,
@@ -1585,6 +1579,87 @@ describe('CardToolHandler', () => {
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Error deleting card comment');
       expect(result.content[0].text).toContain('already been deleted');
+    });
+  });
+
+  describe('bulk_delete_cards tool', () => {
+    it('should handle partial success with mixed results', async () => {
+      mockClient.bulkDeleteCards = jest.fn().mockResolvedValue([
+        { id: 1, success: true },
+        { id: 2, success: false, error: 'Card is locked' },
+      ]);
+      mockClient.getCard = jest.fn().mockResolvedValue({ title: 'Card 1' });
+
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('bulk_delete_cards');
+
+      const result = await handler({
+        resource_ids: [1, 2],
+        analyze_dependencies: false,
+      });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0].text).toContain('1');
+      expect(result.content[0].text).toContain('failed');
+    });
+
+    it('should handle all failures gracefully', async () => {
+      mockClient.bulkDeleteCards = jest.fn().mockResolvedValue([
+        { id: 1, success: false, error: 'Permission denied' },
+        { id: 2, success: false, error: 'Card not found' },
+      ]);
+
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('bulk_delete_cards');
+
+      const result = await handler({
+        resource_ids: [1, 2],
+        analyze_dependencies: false,
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error bulk deleting cards');
+      expect(result.content[0].text).toContain('2 deletions failed');
+    });
+  });
+
+  describe('bulk_update_cards tool', () => {
+    it('should handle partial success with mixed results', async () => {
+      mockClient.bulkUpdateCards = jest.fn().mockResolvedValue([
+        { id: 1, success: true, card: { title: 'Updated Card 1' } },
+        { id: 2, success: false, error: 'Validation failed' },
+      ]);
+
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('bulk_update_cards');
+
+      const result = await handler({
+        resource_ids: [1, 2],
+        title: 'New Title',
+      });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0].text).toContain('1');
+      expect(result.content[0].text).toContain('failed');
+    });
+
+    it('should handle all failures gracefully', async () => {
+      mockClient.bulkUpdateCards = jest.fn().mockResolvedValue([
+        { id: 1, success: false, error: 'Permission denied' },
+        { id: 2, success: false, error: 'Invalid column' },
+      ]);
+
+      cardHandler.registerTools(mockServer, mockClient, false);
+      const handler = registeredTools.get('bulk_update_cards');
+
+      const result = await handler({
+        resource_ids: [1, 2],
+        title: 'New Title',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error bulk updating cards');
+      expect(result.content[0].text).toContain('2 updates failed');
     });
   });
 });

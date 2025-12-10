@@ -2,44 +2,13 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
-import { cardSizeSchema, getCardSchema, moveCardSchema } from '@schemas/index.js';
+import { cardSizeSchema, moveCardSchema } from '@schemas/index.js';
 import {
   createErrorResponse,
   createSuccessResponse,
   getClientForInstance,
   shouldRegisterTool,
 } from '../base-tool.js';
-
-export function registerGetCardSize(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
-): void {
-  server.registerTool(
-    'get_card_size',
-    {
-      title: 'Get Card Size',
-      description: 'Get card size',
-      inputSchema: getCardSchema.shape,
-    },
-    async ({ card_id, instance }: z.infer<typeof getCardSchema>) => {
-      try {
-        const client = await getClientForInstance(clientOrFactory, instance);
-        const card = await client.getCard(card_id);
-        const size = card.size || 0;
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Card "${card.title}" (ID: ${card_id}) has size: ${size} points`,
-            },
-          ],
-        };
-      } catch (error: unknown) {
-        return createErrorResponse(error, 'fetching card size');
-      }
-    }
-  );
-}
 
 export function registerMoveCard(
   server: McpServer,
@@ -101,12 +70,7 @@ export function registerCardMoveTools(
   readOnlyMode: boolean,
   enabledTools?: string[]
 ): void {
-  // Read-only tools
-  if (shouldRegisterTool('get_card_size', enabledTools)) {
-    registerGetCardSize(server, clientOrFactory);
-  }
-
-  // Write tools (only in non-read-only mode)
+  // All move tools are write operations (only in non-read-only mode)
   if (!readOnlyMode) {
     if (shouldRegisterTool('move_card', enabledTools)) {
       registerMoveCard(server, clientOrFactory);
