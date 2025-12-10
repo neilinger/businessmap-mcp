@@ -537,3 +537,12 @@ export interface ChildCardItem {
 export interface ChildCardsResponse {
   data: ChildCardItem[];
 }
+
+/**
+ * Fields available for bulk card update operations.
+ * Derived from UpdateCardParams using Pick utility type.
+ */
+export type BulkUpdateCardFields = Pick<
+  UpdateCardParams,
+  'title' | 'description' | 'column_id' | 'lane_id' | 'priority' | 'owner_user_id'
+>;

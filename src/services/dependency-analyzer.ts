@@ -3,26 +3,135 @@ import { Board } from '../types/board.js';
 import { ChildCardItem } from '../types/card.js';
 
 /**
- * Dependency analysis results for a single resource
+ * Base properties shared by all resource dependency types
  */
-export interface ResourceDependency {
+interface BaseResourceDependency {
   id: number;
-  type: 'workspace' | 'board' | 'card';
   name: string;
   hasDependencies: boolean;
   dependents: Dependent[];
 }
 
 /**
- * Details about dependent resources
+ * Workspace dependency - may contain board dependents
  */
-export interface Dependent {
-  type: 'board' | 'card' | 'comment' | 'subtask' | 'child_card';
+interface WorkspaceDependency extends BaseResourceDependency {
+  type: 'workspace';
+}
+
+/**
+ * Board dependency - may contain card dependents
+ */
+interface BoardDependency extends BaseResourceDependency {
+  type: 'board';
+}
+
+/**
+ * Card dependency - may contain child_card, comment, subtask dependents
+ */
+interface CardDependency extends BaseResourceDependency {
+  type: 'card';
+}
+
+/**
+ * Discriminated union for resource dependencies.
+ * Enables exhaustive type narrowing via switch statements:
+ *
+ * @example
+ * ```typescript
+ * function formatResource(dep: ResourceDependency) {
+ *   switch (dep.type) {
+ *     case 'workspace':
+ *       return `Workspace: ${dep.name}`; // TypeScript knows this is WorkspaceDependency
+ *     case 'board':
+ *       return `Board: ${dep.name}`;     // TypeScript knows this is BoardDependency
+ *     case 'card':
+ *       return `Card: ${dep.name}`;      // TypeScript knows this is CardDependency
+ *   }
+ * }
+ * ```
+ */
+export type ResourceDependency = WorkspaceDependency | BoardDependency | CardDependency;
+
+/**
+ * Base properties shared by all dependent types
+ */
+interface BaseDependentFields {
   id?: number;
   name?: string;
   count: number;
-  items?: Array<{ id: number; name: string; additionalInfo?: string }>;
 }
+
+/**
+ * Item details for dependents that list individual items
+ */
+interface DependentItem {
+  id: number;
+  name: string;
+  additionalInfo?: string;
+}
+
+/**
+ * Board dependent - includes item list with board details
+ */
+interface BoardDependent extends BaseDependentFields {
+  type: 'board';
+  items?: DependentItem[];
+}
+
+/**
+ * Card dependent - count only, no item details
+ */
+interface CardDependent extends BaseDependentFields {
+  type: 'card';
+}
+
+/**
+ * Comment dependent - count only
+ */
+interface CommentDependent extends BaseDependentFields {
+  type: 'comment';
+}
+
+/**
+ * Subtask dependent - count only
+ */
+interface SubtaskDependent extends BaseDependentFields {
+  type: 'subtask';
+}
+
+/**
+ * Child card dependent - includes item list with card details
+ */
+interface ChildCardDependent extends BaseDependentFields {
+  type: 'child_card';
+  items?: DependentItem[];
+}
+
+/**
+ * Discriminated union for dependent resources.
+ * Enables type narrowing based on the `type` discriminant.
+ *
+ * @example
+ * ```typescript
+ * function formatDependent(dep: Dependent) {
+ *   switch (dep.type) {
+ *     case 'board':
+ *       return dep.items?.map(i => i.name); // TypeScript knows items exists
+ *     case 'child_card':
+ *       return dep.items?.map(i => i.additionalInfo);
+ *     default:
+ *       return `${dep.count} ${dep.type}(s)`;
+ *   }
+ * }
+ * ```
+ */
+export type Dependent =
+  | BoardDependent
+  | CardDependent
+  | CommentDependent
+  | SubtaskDependent
+  | ChildCardDependent;
 
 /**
  * Aggregated dependency analysis for bulk operations

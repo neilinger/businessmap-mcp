@@ -1,4 +1,5 @@
 import pLimit from 'p-limit';
+import { FlattenedDateFilters } from '@utils/date-filter-utils.js';
 import {
   ApiResponse,
   Card,
@@ -61,49 +62,10 @@ import { logger } from '@utils/logger.js';
  * ```
  */
 
-export interface CardFilters {
-  // Date and time filters
-  archived_from?: string;
-  archived_from_date?: string;
-  archived_to?: string;
-  archived_to_date?: string;
-  created_from?: string;
-  created_from_date?: string;
-  created_to?: string;
-  created_to_date?: string;
-  deadline_from?: string;
-  deadline_from_date?: string;
-  deadline_to?: string;
-  deadline_to_date?: string;
-  discarded_from?: string;
-  discarded_from_date?: string;
-  discarded_to?: string;
-  discarded_to_date?: string;
-  first_end_from?: string;
-  first_end_from_date?: string;
-  first_end_to?: string;
-  first_end_to_date?: string;
-  first_start_from?: string;
-  first_start_from_date?: string;
-  first_start_to?: string;
-  first_start_to_date?: string;
-  in_current_position_since_from?: string;
-  in_current_position_since_from_date?: string;
-  in_current_position_since_to?: string;
-  in_current_position_since_to_date?: string;
-  last_end_from?: string;
-  last_end_from_date?: string;
-  last_end_to?: string;
-  last_end_to_date?: string;
-  last_modified_from?: string;
-  last_modified_from_date?: string;
-  last_modified_to?: string;
-  last_modified_to_date?: string;
-  last_start_from?: string;
-  last_start_from_date?: string;
-  last_start_to?: string;
-  last_start_to_date?: string;
-
+/**
+ * Non-date card filter fields
+ */
+interface CardFilterFields {
   // ID filters (arrays)
   board_ids?: number[];
   card_ids?: number[];
@@ -136,6 +98,16 @@ export interface CardFilters {
   assignee_user_id?: number;
   tag_ids?: number[];
 }
+
+/**
+ * Card filters combining date filters (40 fields via FlattenedDateFilters)
+ * with non-date filter fields via intersection type.
+ *
+ * Uses TypeScript utility types to reduce code duplication:
+ * - FlattenedDateFilters provides all 40 date filter fields via template literal types
+ * - CardFilterFields provides the remaining filter options
+ */
+export type CardFilters = FlattenedDateFilters & CardFilterFields;
 
 /**
  * Card Management Client

@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
+import { flattenDateFilters } from '@utils/date-filter-utils.js';
 import {
   addCardParentSchema,
   cardSizeSchema,
@@ -29,6 +30,7 @@ import {
   updateCardSchema,
 } from '@schemas/index.js';
 import { bulkDeleteCardsSchema, bulkUpdateCardsSchema } from '@schemas/bulk-schemas.js';
+import { BulkUpdateCardFields } from '@defs/card.js';
 import { DependencyAnalyzer } from '@services/dependency-analyzer.js';
 import { ConfirmationBuilder } from '@services/confirmation-builder.js';
 import {
@@ -154,69 +156,10 @@ export class CardToolHandler implements BaseToolHandler {
           const { instance, board_id, date_filters, ...otherFilters } = params;
           const client = await getClientForInstance(clientOrFactory, instance);
 
-          // Flatten date_filters if present
+          // Flatten nested date_filters to flat API format
           const flattenedFilters = {
             ...otherFilters,
-            ...(date_filters?.archived && {
-              archived_from: date_filters.archived.from,
-              archived_from_date: date_filters.archived.from_date,
-              archived_to: date_filters.archived.to,
-              archived_to_date: date_filters.archived.to_date,
-            }),
-            ...(date_filters?.created && {
-              created_from: date_filters.created.from,
-              created_from_date: date_filters.created.from_date,
-              created_to: date_filters.created.to,
-              created_to_date: date_filters.created.to_date,
-            }),
-            ...(date_filters?.deadline && {
-              deadline_from: date_filters.deadline.from,
-              deadline_from_date: date_filters.deadline.from_date,
-              deadline_to: date_filters.deadline.to,
-              deadline_to_date: date_filters.deadline.to_date,
-            }),
-            ...(date_filters?.discarded && {
-              discarded_from: date_filters.discarded.from,
-              discarded_from_date: date_filters.discarded.from_date,
-              discarded_to: date_filters.discarded.to,
-              discarded_to_date: date_filters.discarded.to_date,
-            }),
-            ...(date_filters?.first_end && {
-              first_end_from: date_filters.first_end.from,
-              first_end_from_date: date_filters.first_end.from_date,
-              first_end_to: date_filters.first_end.to,
-              first_end_to_date: date_filters.first_end.to_date,
-            }),
-            ...(date_filters?.first_start && {
-              first_start_from: date_filters.first_start.from,
-              first_start_from_date: date_filters.first_start.from_date,
-              first_start_to: date_filters.first_start.to,
-              first_start_to_date: date_filters.first_start.to_date,
-            }),
-            ...(date_filters?.in_current_position_since && {
-              in_current_position_since_from: date_filters.in_current_position_since.from,
-              in_current_position_since_from_date: date_filters.in_current_position_since.from_date,
-              in_current_position_since_to: date_filters.in_current_position_since.to,
-              in_current_position_since_to_date: date_filters.in_current_position_since.to_date,
-            }),
-            ...(date_filters?.last_end && {
-              last_end_from: date_filters.last_end.from,
-              last_end_from_date: date_filters.last_end.from_date,
-              last_end_to: date_filters.last_end.to,
-              last_end_to_date: date_filters.last_end.to_date,
-            }),
-            ...(date_filters?.last_modified && {
-              last_modified_from: date_filters.last_modified.from,
-              last_modified_from_date: date_filters.last_modified.from_date,
-              last_modified_to: date_filters.last_modified.to,
-              last_modified_to_date: date_filters.last_modified.to_date,
-            }),
-            ...(date_filters?.last_start && {
-              last_start_from: date_filters.last_start.from,
-              last_start_from_date: date_filters.last_start.from_date,
-              last_start_to: date_filters.last_start.to,
-              last_start_to_date: date_filters.last_start.to_date,
-            }),
+            ...flattenDateFilters(date_filters),
           };
 
           const cards = await client.getCards(board_id, flattenedFilters);
@@ -1027,14 +970,7 @@ export class CardToolHandler implements BaseToolHandler {
         } = params;
         try {
           const client = await getClientForInstance(clientOrFactory, instance);
-          const updates: Partial<{
-            title: string;
-            description: string;
-            column_id: number;
-            lane_id: number;
-            priority: string;
-            owner_user_id: number;
-          }> = {};
+          const updates: Partial<BulkUpdateCardFields> = {};
           if (title !== undefined) updates.title = title;
           if (description !== undefined) updates.description = description;
           if (column_id !== undefined) updates.column_id = column_id;
