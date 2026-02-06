@@ -7,6 +7,7 @@ import {
   getCardSchema,
   getCardSubtaskSchema,
   getCardSubtasksSchema,
+  updateCardSubtaskSchema,
 } from '@schemas/index.js';
 import {
   createErrorResponse,
@@ -88,6 +89,30 @@ export function registerCreateCardSubtask(
   );
 }
 
+export function registerUpdateCardSubtask(
+  server: McpServer,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
+): void {
+  server.registerTool(
+    'update_card_subtask',
+    {
+      title: 'Update Card Subtask',
+      description: 'Update subtask (mark as finished, change description, etc.)',
+      inputSchema: updateCardSubtaskSchema.shape,
+    },
+    async (params: z.infer<typeof updateCardSubtaskSchema>) => {
+      try {
+        const { instance, card_id, subtask_id, ...subtaskData } = params;
+        const client = await getClientForInstance(clientOrFactory, instance);
+        const subtask = await client.updateCardSubtask(card_id, subtask_id, subtaskData);
+        return createSuccessResponse(subtask, 'Subtask updated successfully:');
+      } catch (error: unknown) {
+        return createErrorResponse(error, 'updating card subtask');
+      }
+    }
+  );
+}
+
 /** Conditionally register all card subtask tools */
 export function registerCardSubtaskTools(
   server: McpServer,
@@ -107,6 +132,9 @@ export function registerCardSubtaskTools(
   if (!readOnlyMode) {
     if (shouldRegisterTool('create_card_subtask', enabledTools)) {
       registerCreateCardSubtask(server, clientOrFactory);
+    }
+    if (shouldRegisterTool('update_card_subtask', enabledTools)) {
+      registerUpdateCardSubtask(server, clientOrFactory);
     }
   }
 }
