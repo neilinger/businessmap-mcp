@@ -1,3 +1,10 @@
+# [3.2.0](https://github.com/neilinger/businessmap-mcp/compare/v3.1.6...v3.2.0) (2026-02-06)
+
+
+### Features
+
+* **tools:** add update_card_subtask MCP tool ([#87](https://github.com/neilinger/businessmap-mcp/issues/87)) ([#89](https://github.com/neilinger/businessmap-mcp/issues/89)) ([c6b6621](https://github.com/neilinger/businessmap-mcp/commit/c6b66217cc9956fead70b081020d12819d1f56e5))
+
 ## [3.1.5](https://github.com/neilinger/businessmap-mcp/compare/v3.1.4...v3.1.5) (2025-12-07)
 
 
