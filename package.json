@@ -1,6 +1,6 @@
 {
   "name": "@neilinger/businessmap-mcp",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Model Context Protocol server for BusinessMap (Kanbanize) integration",
   "type": "module",
   "main": "dist/index.js",

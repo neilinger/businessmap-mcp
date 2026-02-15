@@ -1,3 +1,10 @@
+## [3.2.1](https://github.com/neilinger/businessmap-mcp/compare/v3.2.0...v3.2.1) (2026-02-15)
+
+
+### Bug Fixes
+
+* **tools:** add update_card_subtask to FULL_PROFILE ([8422a40](https://github.com/neilinger/businessmap-mcp/commit/8422a406a14205128b76a08d6a975fc00432aa11)), closes [#87](https://github.com/neilinger/businessmap-mcp/issues/87)
+
 # [3.2.0](https://github.com/neilinger/businessmap-mcp/compare/v3.1.6...v3.2.0) (2026-02-06)
 
 
