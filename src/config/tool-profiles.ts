@@ -152,6 +152,7 @@ export const FULL_PROFILE: ToolName[] = [
   'get_card_subtasks',
   'get_card_subtask',
   'create_card_subtask',
+  'update_card_subtask',
 
   // Card details (extended)
   'get_card_types',
