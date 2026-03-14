@@ -360,6 +360,14 @@ export class BusinessMapClient {
     return this.cardClient.deleteCard(cardId, options);
   }
 
+  async blockCard(cardId: number, comment: string) {
+    return this.cardClient.blockCard(cardId, comment);
+  }
+
+  async unblockCard(cardId: number) {
+    return this.cardClient.unblockCard(cardId);
+  }
+
   async getCardComments(cardId: number) {
     return this.cardClient.getCardComments(cardId);
   }

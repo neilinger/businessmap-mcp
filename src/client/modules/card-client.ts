@@ -297,6 +297,25 @@ export class CardClient extends BaseClientModuleImpl {
   }
 
   /**
+   * Block a card with a reason
+   * @param cardId - The ID of the card to block
+   * @param comment - The reason for blocking
+   */
+  async blockCard(cardId: number, comment: string): Promise<void> {
+    this.checkReadOnlyMode('block card');
+    await this.http.put(`/cards/${cardId}/blockReason`, { comment });
+  }
+
+  /**
+   * Unblock a card (remove its block reason)
+   * @param cardId - The ID of the card to unblock
+   */
+  async unblockCard(cardId: number): Promise<void> {
+    this.checkReadOnlyMode('unblock card');
+    await this.http.delete(`/cards/${cardId}/blockReason`);
+  }
+
+  /**
    * Delete a card
    * @param cardId - The ID of the card to delete
    * @param options - Optional configuration

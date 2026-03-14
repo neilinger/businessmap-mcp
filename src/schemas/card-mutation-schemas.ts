@@ -363,9 +363,32 @@ export const cardSizeSchema = z.object({
   instance: SharedParams.shape.instance,
 });
 
+/**
+ * Schema for blocking a card
+ */
+export const blockCardSchema = z.object({
+  card_id: entityIdSchema.describe('The ID of the card to block'),
+  comment: z
+    .string()
+    .min(1)
+    .max(SECURITY_LIMITS.MAX_COMMENT_LENGTH)
+    .describe('The reason for blocking the card'),
+  instance: SharedParams.shape.instance,
+});
+
+/**
+ * Schema for unblocking a card
+ */
+export const unblockCardSchema = z.object({
+  card_id: entityIdSchema.describe('The ID of the card to unblock'),
+  instance: SharedParams.shape.instance,
+});
+
 // Type exports
 export type CreateCardInput = z.infer<typeof createCardSchema>;
 export type UpdateCardInput = z.infer<typeof updateCardSchema>;
 export type MoveCardInput = z.infer<typeof moveCardSchema>;
 export type DeleteCardInput = z.infer<typeof deleteCardSchema>;
 export type CardSizeInput = z.infer<typeof cardSizeSchema>;
+export type BlockCardInput = z.infer<typeof blockCardSchema>;
+export type UnblockCardInput = z.infer<typeof unblockCardSchema>;
