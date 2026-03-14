@@ -192,6 +192,10 @@ export const FULL_PROFILE: ToolName[] = [
   // Workflow operations
   'get_workflow_cycle_time_columns',
   'get_workflow_effective_cycle_time_columns',
+
+  // Card blocker operations
+  'block_card',
+  'unblock_card',
 ];
 
 /**
