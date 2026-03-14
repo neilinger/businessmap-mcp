@@ -1,3 +1,10 @@
+# [3.3.0](https://github.com/neilinger/businessmap-mcp/compare/v3.2.1...v3.3.0) (2026-03-14)
+
+
+### Features
+
+* add block_card and unblock_card MCP tools (v3.3.0) ([fcdd15a](https://github.com/neilinger/businessmap-mcp/commit/fcdd15a1042d8318f7f85451a269e47de39416e1))
+
 ## [3.2.1](https://github.com/neilinger/businessmap-mcp/compare/v3.2.0...v3.2.1) (2026-02-15)
 
 
