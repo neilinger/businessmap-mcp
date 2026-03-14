@@ -1,3 +1,10 @@
+## [3.3.1](https://github.com/neilinger/businessmap-mcp/compare/v3.3.0...v3.3.1) (2026-03-14)
+
+
+### Bug Fixes
+
+* **profiles:** add block_card and unblock_card to FULL_PROFILE ([e184d8d](https://github.com/neilinger/businessmap-mcp/commit/e184d8d73fcd9e952da52ed742192884d7533142))
+
 # [3.3.0](https://github.com/neilinger/businessmap-mcp/compare/v3.2.1...v3.3.0) (2026-03-14)
 
 
