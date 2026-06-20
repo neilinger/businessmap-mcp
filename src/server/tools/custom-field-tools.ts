@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -7,8 +6,8 @@ import {
   createErrorResponse,
   createSuccessResponse,
   getClientForInstance,
-  shouldRegisterTool,
 } from './base-tool.js';
+import { ToolRegistrar } from '../tool-registrar.js';
 import {
   createCustomFieldSchema,
   deleteCustomFieldSchema,
@@ -20,39 +19,22 @@ import {
 
 export class CustomFieldToolHandler implements BaseToolHandler {
   registerTools(
-    server: McpServer,
-    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean,
-    enabledTools?: string[]
+    registrar: ToolRegistrar,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    if (shouldRegisterTool('list_custom_fields', enabledTools)) {
-      this.registerListCustomFields(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('list_board_custom_fields', enabledTools)) {
-      this.registerListBoardCustomFields(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('get_custom_field', enabledTools)) {
-      this.registerGetCustomField(server, clientOrFactory);
-    }
-
-    if (!readOnlyMode) {
-      if (shouldRegisterTool('create_custom_field', enabledTools)) {
-        this.registerCreateCustomField(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('update_custom_field', enabledTools)) {
-        this.registerUpdateCustomField(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('delete_custom_field', enabledTools)) {
-        this.registerDeleteCustomField(server, clientOrFactory);
-      }
-    }
+    this.registerListCustomFields(registrar, clientOrFactory);
+    this.registerListBoardCustomFields(registrar, clientOrFactory);
+    this.registerGetCustomField(registrar, clientOrFactory);
+    this.registerCreateCustomField(registrar, clientOrFactory);
+    this.registerUpdateCustomField(registrar, clientOrFactory);
+    this.registerDeleteCustomField(registrar, clientOrFactory);
   }
 
   private registerListCustomFields(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'list_custom_fields',
       {
         title: 'List Custom Fields',
@@ -72,10 +54,10 @@ export class CustomFieldToolHandler implements BaseToolHandler {
   }
 
   private registerListBoardCustomFields(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'list_board_custom_fields',
       {
         title: 'List Board Custom Fields',
@@ -95,10 +77,10 @@ export class CustomFieldToolHandler implements BaseToolHandler {
   }
 
   private registerGetCustomField(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_custom_field',
       {
         title: 'Get Custom Field',
@@ -118,10 +100,10 @@ export class CustomFieldToolHandler implements BaseToolHandler {
   }
 
   private registerCreateCustomField(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'create_custom_field',
       {
         title: 'Create Custom Field',
@@ -142,10 +124,10 @@ export class CustomFieldToolHandler implements BaseToolHandler {
   }
 
   private registerUpdateCustomField(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'update_custom_field',
       {
         title: 'Update Custom Field',
@@ -165,10 +147,10 @@ export class CustomFieldToolHandler implements BaseToolHandler {
   }
 
   private registerDeleteCustomField(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'delete_custom_field',
       {
         title: 'Delete Custom Field',

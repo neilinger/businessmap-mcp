@@ -1,5 +1,5 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { logger } from '@utils/logger.js';
+import { ToolRegistrar } from '../tool-registrar.js';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
 import { config } from '@config/environment.js';
@@ -10,15 +10,12 @@ import { config } from '@config/environment.js';
 export interface BaseToolHandler {
   /**
    * Register all tools provided by this handler
-   * @param server The MCP server instance
+   * @param registrar The ToolRegistrar that enforces profile and read-only gates
    * @param clientOrFactory The BusinessMap client or client factory instance
-   * @param readOnlyMode Whether the server is in read-only mode
    */
   registerTools(
-    server: McpServer,
-    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean,
-    enabledTools?: string[]
+    registrar: ToolRegistrar,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void;
 }
 
@@ -113,33 +110,4 @@ export function isMultiInstanceMode(
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): boolean {
   return clientOrFactory instanceof BusinessMapClientFactory;
-}
-
-/**
- * Check if a tool should be registered based on the enabled tools list
- *
- * @param toolName - The name of the tool to check
- * @param enabledTools - Optional array of enabled tool names (empty/undefined means all tools enabled)
- * @returns True if the tool should be registered
- *
- * @example
- * ```typescript
- * // With profile filtering
- * if (shouldRegisterTool('list_boards', ['list_boards', 'get_board'])) {
- *   // Register the tool
- * }
- *
- * // Without filtering (backward compatibility)
- * if (shouldRegisterTool('list_boards', undefined)) {
- *   // Always returns true - register all tools
- * }
- * ```
- */
-export function shouldRegisterTool(toolName: string, enabledTools?: string[]): boolean {
-  // If no enabled tools list provided, register all tools (backward compatibility)
-  if (!enabledTools || enabledTools.length === 0) {
-    return true;
-  }
-
-  return enabledTools.includes(toolName);
 }

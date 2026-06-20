@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -6,18 +5,14 @@ import { bulkDeleteCardsSchema, bulkUpdateCardsSchema } from '@schemas/bulk-sche
 import { BulkUpdateCardFields } from '@defs/card.js';
 import { DependencyAnalyzer } from '@services/dependency-analyzer.js';
 import { ConfirmationBuilder } from '@services/confirmation-builder.js';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getClientForInstance,
-  shouldRegisterTool,
-} from '../base-tool.js';
+import { createErrorResponse, createSuccessResponse, getClientForInstance } from '../base-tool.js';
+import { ToolRegistrar } from '../../tool-registrar.js';
 
 export function registerBulkDeleteCards(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'bulk_delete_cards',
     {
       title: 'Bulk Delete Cards',
@@ -105,10 +100,10 @@ export function registerBulkDeleteCards(
 }
 
 export function registerBulkUpdateCards(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'bulk_update_cards',
     {
       title: 'Bulk Update Cards',
@@ -174,20 +169,11 @@ export function registerBulkUpdateCards(
   );
 }
 
-/** Conditionally register all card bulk operation tools */
+/** Register all card bulk operation tools */
 export function registerCardBulkTools(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  readOnlyMode: boolean,
-  enabledTools?: string[]
+  registrar: ToolRegistrar,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  // All bulk tools are write operations
-  if (!readOnlyMode) {
-    if (shouldRegisterTool('bulk_delete_cards', enabledTools)) {
-      registerBulkDeleteCards(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('bulk_update_cards', enabledTools)) {
-      registerBulkUpdateCards(server, clientOrFactory);
-    }
-  }
+  registerBulkDeleteCards(registrar, clientOrFactory);
+  registerBulkUpdateCards(registrar, clientOrFactory);
 }

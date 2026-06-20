@@ -1,7 +1,7 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
 import { BaseToolHandler } from '../base-tool.js';
+import { ToolRegistrar } from '../../tool-registrar.js';
 import { registerCardCrudTools } from './card-crud-tools.js';
 import { registerCardMoveTools } from './card-move-tools.js';
 import { registerCardMetadataTools } from './card-metadata-tools.js';
@@ -25,18 +25,16 @@ import { registerCardBlockerTools } from './card-blocker-tools.js';
  */
 export class CardToolHandler implements BaseToolHandler {
   registerTools(
-    server: McpServer,
-    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean,
-    enabledTools?: string[]
+    registrar: ToolRegistrar,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    registerCardCrudTools(server, clientOrFactory, readOnlyMode, enabledTools);
-    registerCardMoveTools(server, clientOrFactory, readOnlyMode, enabledTools);
-    registerCardMetadataTools(server, clientOrFactory, enabledTools);
-    registerCardCommentTools(server, clientOrFactory, readOnlyMode, enabledTools);
-    registerCardSubtaskTools(server, clientOrFactory, readOnlyMode, enabledTools);
-    registerCardRelationshipTools(server, clientOrFactory, readOnlyMode, enabledTools);
-    registerCardBulkTools(server, clientOrFactory, readOnlyMode, enabledTools);
-    registerCardBlockerTools(server, clientOrFactory, readOnlyMode, enabledTools);
+    registerCardCrudTools(registrar, clientOrFactory);
+    registerCardMoveTools(registrar, clientOrFactory);
+    registerCardMetadataTools(registrar, clientOrFactory);
+    registerCardCommentTools(registrar, clientOrFactory);
+    registerCardSubtaskTools(registrar, clientOrFactory);
+    registerCardRelationshipTools(registrar, clientOrFactory);
+    registerCardBulkTools(registrar, clientOrFactory);
+    registerCardBlockerTools(registrar, clientOrFactory);
   }
 }

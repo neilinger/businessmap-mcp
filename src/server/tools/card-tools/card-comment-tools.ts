@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -9,18 +8,14 @@ import {
   getCardSchema,
   updateCardCommentSchema,
 } from '@schemas/index.js';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getClientForInstance,
-  shouldRegisterTool,
-} from '../base-tool.js';
+import { createErrorResponse, createSuccessResponse, getClientForInstance } from '../base-tool.js';
+import { ToolRegistrar } from '../../tool-registrar.js';
 
 export function registerGetCardComments(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_comments',
     {
       title: 'Get Card Comments',
@@ -43,10 +38,10 @@ export function registerGetCardComments(
 }
 
 export function registerGetCardComment(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_comment',
     {
       title: 'Get Card Comment',
@@ -66,10 +61,10 @@ export function registerGetCardComment(
 }
 
 export function registerCreateCardComment(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'create_card_comment',
     {
       title: 'Create Card Comment',
@@ -98,10 +93,10 @@ export function registerCreateCardComment(
 }
 
 export function registerUpdateCardComment(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'update_card_comment',
     {
       title: 'Update Card Comment',
@@ -134,10 +129,10 @@ export function registerUpdateCardComment(
 }
 
 export function registerDeleteCardComment(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'delete_card_comment',
     {
       title: 'Delete Card Comment',
@@ -156,31 +151,14 @@ export function registerDeleteCardComment(
   );
 }
 
-/** Conditionally register all card comment tools */
+/** Register all card comment tools */
 export function registerCardCommentTools(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  readOnlyMode: boolean,
-  enabledTools?: string[]
+  registrar: ToolRegistrar,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  // Read-only tools
-  if (shouldRegisterTool('get_card_comments', enabledTools)) {
-    registerGetCardComments(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_comment', enabledTools)) {
-    registerGetCardComment(server, clientOrFactory);
-  }
-
-  // Write tools (only in non-read-only mode)
-  if (!readOnlyMode) {
-    if (shouldRegisterTool('create_card_comment', enabledTools)) {
-      registerCreateCardComment(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('update_card_comment', enabledTools)) {
-      registerUpdateCardComment(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('delete_card_comment', enabledTools)) {
-      registerDeleteCardComment(server, clientOrFactory);
-    }
-  }
+  registerGetCardComments(registrar, clientOrFactory);
+  registerGetCardComment(registrar, clientOrFactory);
+  registerCreateCardComment(registrar, clientOrFactory);
+  registerUpdateCardComment(registrar, clientOrFactory);
+  registerDeleteCardComment(registrar, clientOrFactory);
 }

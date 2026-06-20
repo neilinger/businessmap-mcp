@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -17,47 +16,28 @@ import {
   createErrorResponse,
   createSuccessResponse,
   getClientForInstance,
-  shouldRegisterTool,
 } from './base-tool.js';
+import { ToolRegistrar } from '../tool-registrar.js';
 
 export class WorkspaceToolHandler implements BaseToolHandler {
   registerTools(
-    server: McpServer,
-    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean,
-    enabledTools?: string[]
+    registrar: ToolRegistrar,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    if (shouldRegisterTool('list_workspaces', enabledTools)) {
-      this.registerListWorkspaces(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('get_workspace', enabledTools)) {
-      this.registerGetWorkspace(server, clientOrFactory);
-    }
-
-    if (!readOnlyMode) {
-      if (shouldRegisterTool('create_workspace', enabledTools)) {
-        this.registerCreateWorkspace(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('update_workspace', enabledTools)) {
-        this.registerUpdateWorkspace(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('archive_workspace', enabledTools)) {
-        this.registerArchiveWorkspace(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('bulk_archive_workspaces', enabledTools)) {
-        this.registerBulkArchiveWorkspaces(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('bulk_update_workspaces', enabledTools)) {
-        this.registerBulkUpdateWorkspaces(server, clientOrFactory);
-      }
-    }
+    this.registerListWorkspaces(registrar, clientOrFactory);
+    this.registerGetWorkspace(registrar, clientOrFactory);
+    this.registerCreateWorkspace(registrar, clientOrFactory);
+    this.registerUpdateWorkspace(registrar, clientOrFactory);
+    this.registerArchiveWorkspace(registrar, clientOrFactory);
+    this.registerBulkArchiveWorkspaces(registrar, clientOrFactory);
+    this.registerBulkUpdateWorkspaces(registrar, clientOrFactory);
   }
 
   private registerListWorkspaces(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'list_workspaces',
       {
         title: 'List Workspaces',
@@ -77,10 +57,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
   }
 
   private registerGetWorkspace(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_workspace',
       {
         title: 'Get Workspace',
@@ -100,10 +80,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
   }
 
   private registerCreateWorkspace(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'create_workspace',
       {
         title: 'Create Workspace',
@@ -123,10 +103,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
   }
 
   private registerUpdateWorkspace(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'update_workspace',
       {
         title: 'Update Workspace',
@@ -151,10 +131,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
   }
 
   private registerArchiveWorkspace(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'archive_workspace',
       {
         title: 'Archive Workspace',
@@ -174,10 +154,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
   }
 
   private registerBulkArchiveWorkspaces(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'bulk_archive_workspaces',
       {
         title: 'Bulk Archive Workspaces',
@@ -263,10 +243,10 @@ export class WorkspaceToolHandler implements BaseToolHandler {
   }
 
   private registerBulkUpdateWorkspaces(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'bulk_update_workspaces',
       {
         title: 'Bulk Update Workspaces',

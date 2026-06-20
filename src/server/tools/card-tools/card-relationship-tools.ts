@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -12,18 +11,14 @@ import {
   getCardSchema,
   removeCardParentSchema,
 } from '@schemas/index.js';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getClientForInstance,
-  shouldRegisterTool,
-} from '../base-tool.js';
+import { createErrorResponse, createSuccessResponse, getClientForInstance } from '../base-tool.js';
+import { ToolRegistrar } from '../../tool-registrar.js';
 
 export function registerGetCardLinkedCards(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_linked_cards',
     {
       title: 'Get Card Linked Cards',
@@ -46,10 +41,10 @@ export function registerGetCardLinkedCards(
 }
 
 export function registerGetCardParents(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_parents',
     {
       title: 'Get Card Parents',
@@ -72,10 +67,10 @@ export function registerGetCardParents(
 }
 
 export function registerGetCardParent(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_parent',
     {
       title: 'Get Card Parent',
@@ -95,10 +90,10 @@ export function registerGetCardParent(
 }
 
 export function registerAddCardParent(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'add_card_parent',
     {
       title: 'Add Card Parent',
@@ -118,10 +113,10 @@ export function registerAddCardParent(
 }
 
 export function registerRemoveCardParent(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'remove_card_parent',
     {
       title: 'Remove Card Parent',
@@ -144,10 +139,10 @@ export function registerRemoveCardParent(
 }
 
 export function registerGetCardParentGraph(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_parent_graph',
     {
       title: 'Get Card Parent Graph',
@@ -170,10 +165,10 @@ export function registerGetCardParentGraph(
 }
 
 export function registerGetCardChildren(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_children',
     {
       title: 'Get Card Children',
@@ -195,37 +190,16 @@ export function registerGetCardChildren(
   );
 }
 
-/** Conditionally register all card relationship tools */
+/** Register all card relationship tools */
 export function registerCardRelationshipTools(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  readOnlyMode: boolean,
-  enabledTools?: string[]
+  registrar: ToolRegistrar,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  // Read-only tools
-  if (shouldRegisterTool('get_card_linked_cards', enabledTools)) {
-    registerGetCardLinkedCards(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_parents', enabledTools)) {
-    registerGetCardParents(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_parent', enabledTools)) {
-    registerGetCardParent(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_parent_graph', enabledTools)) {
-    registerGetCardParentGraph(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_children', enabledTools)) {
-    registerGetCardChildren(server, clientOrFactory);
-  }
-
-  // Write tools (only in non-read-only mode)
-  if (!readOnlyMode) {
-    if (shouldRegisterTool('add_card_parent', enabledTools)) {
-      registerAddCardParent(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('remove_card_parent', enabledTools)) {
-      registerRemoveCardParent(server, clientOrFactory);
-    }
-  }
+  registerGetCardLinkedCards(registrar, clientOrFactory);
+  registerGetCardParents(registrar, clientOrFactory);
+  registerGetCardParent(registrar, clientOrFactory);
+  registerGetCardParentGraph(registrar, clientOrFactory);
+  registerGetCardChildren(registrar, clientOrFactory);
+  registerAddCardParent(registrar, clientOrFactory);
+  registerRemoveCardParent(registrar, clientOrFactory);
 }
