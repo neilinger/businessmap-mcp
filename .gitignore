@@ -137,3 +137,7 @@ docs/architecture/
 # ACE local cache (SQLite database)
 .ace-cache/
 .worktree/
+
+# AMI baseline hygiene: generated local residue
+graphify-out/
+*.bak.*
