@@ -1,3 +1,10 @@
+## [3.3.2](https://github.com/neilinger/businessmap-mcp/compare/v3.3.1...v3.3.2) (2026-09-07)
+
+
+### Bug Fixes
+
+* **client:** request /customFields, not /custom_fields ([#94](https://github.com/neilinger/businessmap-mcp/issues/94)) ([#95](https://github.com/neilinger/businessmap-mcp/issues/95)) ([cf98f98](https://github.com/neilinger/businessmap-mcp/commit/cf98f989ad13a091e20274ef957eac9e9e97d80c))
+
 ## [3.3.1](https://github.com/neilinger/businessmap-mcp/compare/v3.3.0...v3.3.1) (2026-03-14)
 
 
