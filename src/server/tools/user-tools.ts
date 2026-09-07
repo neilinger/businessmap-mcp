@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -8,32 +7,24 @@ import {
   createErrorResponse,
   createSuccessResponse,
   getClientForInstance,
-  shouldRegisterTool,
 } from './base-tool.js';
+import { ToolRegistrar } from '../tool-registrar.js';
 
 export class UserToolHandler implements BaseToolHandler {
   registerTools(
-    server: McpServer,
-    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean,
-    enabledTools?: string[]
+    registrar: ToolRegistrar,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    if (shouldRegisterTool('list_users', enabledTools)) {
-      this.registerListUsers(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('get_user', enabledTools)) {
-      this.registerGetUser(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('get_current_user', enabledTools)) {
-      this.registerGetCurrentUser(server, clientOrFactory);
-    }
+    this.registerListUsers(registrar, clientOrFactory);
+    this.registerGetUser(registrar, clientOrFactory);
+    this.registerGetCurrentUser(registrar, clientOrFactory);
   }
 
   private registerListUsers(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'list_users',
       {
         title: 'List Users',
@@ -53,10 +44,10 @@ export class UserToolHandler implements BaseToolHandler {
   }
 
   private registerGetUser(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_user',
       {
         title: 'Get User',
@@ -76,10 +67,10 @@ export class UserToolHandler implements BaseToolHandler {
   }
 
   private registerGetCurrentUser(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_current_user',
       {
         title: 'Get Current User',

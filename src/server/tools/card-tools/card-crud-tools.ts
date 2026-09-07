@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -10,18 +9,14 @@ import {
   listCardsSchema,
   updateCardSchema,
 } from '@schemas/index.js';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getClientForInstance,
-  shouldRegisterTool,
-} from '../base-tool.js';
+import { createErrorResponse, createSuccessResponse, getClientForInstance } from '../base-tool.js';
+import { ToolRegistrar } from '../../tool-registrar.js';
 
 export function registerListCards(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'list_cards',
     {
       title: 'List Cards',
@@ -49,10 +44,10 @@ export function registerListCards(
 }
 
 export function registerGetCard(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card',
     {
       title: 'Get Card',
@@ -72,10 +67,10 @@ export function registerGetCard(
 }
 
 export function registerCreateCard(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'create_card',
     {
       title: 'Create Card',
@@ -190,10 +185,10 @@ export function registerCreateCard(
 }
 
 export function registerUpdateCard(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'update_card',
     {
       title: 'Update Card',
@@ -214,10 +209,10 @@ export function registerUpdateCard(
 }
 
 export function registerDeleteCard(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'delete_card',
     {
       title: 'Delete Card',
@@ -236,31 +231,14 @@ export function registerDeleteCard(
   );
 }
 
-/** Conditionally register all card CRUD tools */
+/** Register all card CRUD tools */
 export function registerCardCrudTools(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  readOnlyMode: boolean,
-  enabledTools?: string[]
+  registrar: ToolRegistrar,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  // Read-only tools
-  if (shouldRegisterTool('list_cards', enabledTools)) {
-    registerListCards(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card', enabledTools)) {
-    registerGetCard(server, clientOrFactory);
-  }
-
-  // Write tools (only in non-read-only mode)
-  if (!readOnlyMode) {
-    if (shouldRegisterTool('create_card', enabledTools)) {
-      registerCreateCard(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('update_card', enabledTools)) {
-      registerUpdateCard(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('delete_card', enabledTools)) {
-      registerDeleteCard(server, clientOrFactory);
-    }
-  }
+  registerListCards(registrar, clientOrFactory);
+  registerGetCard(registrar, clientOrFactory);
+  registerCreateCard(registrar, clientOrFactory);
+  registerUpdateCard(registrar, clientOrFactory);
+  registerDeleteCard(registrar, clientOrFactory);
 }

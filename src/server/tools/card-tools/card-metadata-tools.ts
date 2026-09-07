@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -8,18 +7,14 @@ import {
   getCardSchema,
   getCardTypesSchema,
 } from '@schemas/index.js';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getClientForInstance,
-  shouldRegisterTool,
-} from '../base-tool.js';
+import { createErrorResponse, createSuccessResponse, getClientForInstance } from '../base-tool.js';
+import { ToolRegistrar } from '../../tool-registrar.js';
 
 export function registerGetCardSize(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_size',
     {
       title: 'Get Card Size',
@@ -47,10 +42,10 @@ export function registerGetCardSize(
 }
 
 export function registerGetCardCustomFields(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_custom_fields',
     {
       title: 'Get Card Custom Fields',
@@ -73,10 +68,10 @@ export function registerGetCardCustomFields(
 }
 
 export function registerGetCardTypes(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_types',
     {
       title: 'Get Card Types',
@@ -99,10 +94,10 @@ export function registerGetCardTypes(
 }
 
 export function registerGetCardHistory(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_history',
     {
       title: 'Get Card History',
@@ -125,10 +120,10 @@ export function registerGetCardHistory(
 }
 
 export function registerGetCardOutcomes(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_outcomes',
     {
       title: 'Get Card Outcomes',
@@ -150,26 +145,14 @@ export function registerGetCardOutcomes(
   );
 }
 
-/** Conditionally register all card metadata query tools */
+/** Register all card metadata query tools */
 export function registerCardMetadataTools(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  enabledTools?: string[]
+  registrar: ToolRegistrar,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  // All metadata tools are read-only
-  if (shouldRegisterTool('get_card_size', enabledTools)) {
-    registerGetCardSize(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_custom_fields', enabledTools)) {
-    registerGetCardCustomFields(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_types', enabledTools)) {
-    registerGetCardTypes(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_history', enabledTools)) {
-    registerGetCardHistory(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_outcomes', enabledTools)) {
-    registerGetCardOutcomes(server, clientOrFactory);
-  }
+  registerGetCardSize(registrar, clientOrFactory);
+  registerGetCardCustomFields(registrar, clientOrFactory);
+  registerGetCardTypes(registrar, clientOrFactory);
+  registerGetCardHistory(registrar, clientOrFactory);
+  registerGetCardOutcomes(registrar, clientOrFactory);
 }

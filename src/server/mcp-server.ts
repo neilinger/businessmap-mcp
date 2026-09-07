@@ -19,6 +19,7 @@ import {
   WorkflowToolHandler,
   WorkspaceToolHandler,
 } from './tools/index.js';
+import { ToolRegistrar } from './tool-registrar.js';
 
 /**
  * BusinessMap MCP Server
@@ -135,7 +136,7 @@ export class BusinessMapMcpServer {
         error: error instanceof Error ? error.message : String(error),
       });
       profile = 'full';
-      enabledTools = []; // Empty array means all tools enabled (backward compatibility)
+      enabledTools = getToolsForProfile('full');
     }
 
     // Initialize tool handlers
@@ -151,10 +152,11 @@ export class BusinessMapMcpServer {
     ];
 
     // Register tools from handlers with profile filtering
+    const registrar = new ToolRegistrar(this.mcpServer, enabledTools, readOnlyMode);
     let registeredCount = 0;
     toolHandlers.forEach((handler) => {
       const initialCount = this.getRegisteredToolCount();
-      handler.registerTools(this.mcpServer, this.clientOrFactory, readOnlyMode, enabledTools);
+      handler.registerTools(registrar, this.clientOrFactory);
       const newCount = this.getRegisteredToolCount();
       registeredCount += newCount - initialCount;
     });

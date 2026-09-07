@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { logger } from '@utils/logger.js';
 import { BusinessMapClient } from '@client/businessmap-client.js';
@@ -22,62 +21,33 @@ import {
   createErrorResponse,
   createSuccessResponse,
   getClientForInstance,
-  shouldRegisterTool,
 } from './base-tool.js';
+import { ToolRegistrar } from '../tool-registrar.js';
 
 export class BoardToolHandler implements BaseToolHandler {
   registerTools(
-    server: McpServer,
-    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean,
-    enabledTools?: string[]
+    registrar: ToolRegistrar,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    if (shouldRegisterTool('list_boards', enabledTools)) {
-      this.registerListBoards(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('search_board', enabledTools)) {
-      this.registerSearchBoard(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('get_columns', enabledTools)) {
-      this.registerGetColumns(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('get_lanes', enabledTools)) {
-      this.registerGetLanes(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('get_lane', enabledTools)) {
-      this.registerGetLane(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('get_current_board_structure', enabledTools)) {
-      this.registerGetCurrentBoardStructure(server, clientOrFactory);
-    }
-
-    if (!readOnlyMode) {
-      if (shouldRegisterTool('create_board', enabledTools)) {
-        this.registerCreateBoard(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('create_lane', enabledTools)) {
-        this.registerCreateLane(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('update_board', enabledTools)) {
-        this.registerUpdateBoard(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('delete_board', enabledTools)) {
-        this.registerDeleteBoard(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('bulk_delete_boards', enabledTools)) {
-        this.registerBulkDeleteBoards(server, clientOrFactory);
-      }
-      if (shouldRegisterTool('bulk_update_boards', enabledTools)) {
-        this.registerBulkUpdateBoards(server, clientOrFactory);
-      }
-    }
+    this.registerListBoards(registrar, clientOrFactory);
+    this.registerSearchBoard(registrar, clientOrFactory);
+    this.registerGetColumns(registrar, clientOrFactory);
+    this.registerGetLanes(registrar, clientOrFactory);
+    this.registerGetLane(registrar, clientOrFactory);
+    this.registerGetCurrentBoardStructure(registrar, clientOrFactory);
+    this.registerCreateBoard(registrar, clientOrFactory);
+    this.registerCreateLane(registrar, clientOrFactory);
+    this.registerUpdateBoard(registrar, clientOrFactory);
+    this.registerDeleteBoard(registrar, clientOrFactory);
+    this.registerBulkDeleteBoards(registrar, clientOrFactory);
+    this.registerBulkUpdateBoards(registrar, clientOrFactory);
   }
 
   private registerListBoards(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'list_boards',
       {
         title: 'List Boards',
@@ -98,10 +68,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerSearchBoard(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'search_board',
       {
         title: 'Search Board',
@@ -241,10 +211,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerGetColumns(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_columns',
       {
         title: 'Get Board Columns',
@@ -264,10 +234,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerGetLanes(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_lanes',
       {
         title: 'Get Board Lanes',
@@ -287,10 +257,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerGetLane(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_lane',
       {
         title: 'Get Lane Details',
@@ -310,10 +280,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerCreateBoard(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'create_board',
       {
         title: 'Create Board',
@@ -337,10 +307,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerCreateLane(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'create_lane',
       {
         title: 'Create Lane',
@@ -373,10 +343,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerUpdateBoard(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'update_board',
       {
         title: 'Update Board',
@@ -396,10 +366,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerDeleteBoard(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'delete_board',
       {
         title: 'Delete Board',
@@ -419,10 +389,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerGetCurrentBoardStructure(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_current_board_structure',
       {
         title: 'Get Current Board Structure',
@@ -442,10 +412,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerBulkDeleteBoards(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'bulk_delete_boards',
       {
         title: 'Bulk Delete Boards',
@@ -537,10 +507,10 @@ export class BoardToolHandler implements BaseToolHandler {
   }
 
   private registerBulkUpdateBoards(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'bulk_update_boards',
       {
         title: 'Bulk Update Boards',

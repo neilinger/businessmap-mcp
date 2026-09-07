@@ -199,6 +199,63 @@ export const FULL_PROFILE: ToolName[] = [
 ];
 
 /**
+ * Set of all tools that mutate state (creates, updates, deletes, moves, blocks, etc.)
+ *
+ * Used by ToolRegistrar to enforce read-only mode: any tool in this set is
+ * suppressed when the server is started with readOnly=true.
+ *
+ * Naming conventions covered: create_*, update_*, delete_*, move_*, add_*,
+ * remove_*, bulk_*, archive_*, block_*, unblock_*, import_*, set_*
+ */
+export const WRITE_TOOLS: Set<ToolName> = new Set([
+  // Card mutations
+  'create_card',
+  'update_card',
+  'move_card',
+  'delete_card',
+  'set_card_size',
+  'block_card',
+  'unblock_card',
+
+  // Card comment mutations
+  'create_card_comment',
+  'update_card_comment',
+  'delete_card_comment',
+
+  // Card subtask mutations
+  'create_card_subtask',
+  'update_card_subtask',
+
+  // Card parent mutations
+  'add_card_parent',
+  'remove_card_parent',
+
+  // Board mutations
+  'create_board',
+  'update_board',
+  'delete_board',
+  'create_lane',
+
+  // Workspace mutations
+  'create_workspace',
+  'update_workspace',
+  'archive_workspace',
+
+  // Custom field mutations
+  'create_custom_field',
+  'update_custom_field',
+  'delete_custom_field',
+
+  // Bulk operations
+  'bulk_delete_boards',
+  'bulk_update_boards',
+  'bulk_delete_cards',
+  'bulk_update_cards',
+  'bulk_archive_workspaces',
+  'bulk_update_workspaces',
+]);
+
+/**
  * Tool profile configuration map
  */
 export const TOOL_PROFILES: Record<ToolProfile, ToolName[]> = {

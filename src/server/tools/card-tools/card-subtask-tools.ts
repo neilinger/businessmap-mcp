@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -9,18 +8,14 @@ import {
   getCardSubtasksSchema,
   updateCardSubtaskSchema,
 } from '@schemas/index.js';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getClientForInstance,
-  shouldRegisterTool,
-} from '../base-tool.js';
+import { createErrorResponse, createSuccessResponse, getClientForInstance } from '../base-tool.js';
+import { ToolRegistrar } from '../../tool-registrar.js';
 
 export function registerGetCardSubtasks(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_subtasks',
     {
       title: 'Get Card Subtasks',
@@ -43,10 +38,10 @@ export function registerGetCardSubtasks(
 }
 
 export function registerGetCardSubtask(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'get_card_subtask',
     {
       title: 'Get Card Subtask',
@@ -66,10 +61,10 @@ export function registerGetCardSubtask(
 }
 
 export function registerCreateCardSubtask(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'create_card_subtask',
     {
       title: 'Create Card Subtask',
@@ -90,10 +85,10 @@ export function registerCreateCardSubtask(
 }
 
 export function registerUpdateCardSubtask(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'update_card_subtask',
     {
       title: 'Update Card Subtask',
@@ -113,28 +108,13 @@ export function registerUpdateCardSubtask(
   );
 }
 
-/** Conditionally register all card subtask tools */
+/** Register all card subtask tools */
 export function registerCardSubtaskTools(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  readOnlyMode: boolean,
-  enabledTools?: string[]
+  registrar: ToolRegistrar,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  // Read-only tools
-  if (shouldRegisterTool('get_card_subtasks', enabledTools)) {
-    registerGetCardSubtasks(server, clientOrFactory);
-  }
-  if (shouldRegisterTool('get_card_subtask', enabledTools)) {
-    registerGetCardSubtask(server, clientOrFactory);
-  }
-
-  // Write tools (only in non-read-only mode)
-  if (!readOnlyMode) {
-    if (shouldRegisterTool('create_card_subtask', enabledTools)) {
-      registerCreateCardSubtask(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('update_card_subtask', enabledTools)) {
-      registerUpdateCardSubtask(server, clientOrFactory);
-    }
-  }
+  registerGetCardSubtasks(registrar, clientOrFactory);
+  registerGetCardSubtask(registrar, clientOrFactory);
+  registerCreateCardSubtask(registrar, clientOrFactory);
+  registerUpdateCardSubtask(registrar, clientOrFactory);
 }

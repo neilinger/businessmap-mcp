@@ -1,24 +1,15 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
 import { blockCardSchema, unblockCardSchema } from '@schemas/index.js';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getClientForInstance,
-  shouldRegisterTool,
-} from '../base-tool.js';
+import { createErrorResponse, createSuccessResponse, getClientForInstance } from '../base-tool.js';
+import { ToolRegistrar } from '../../tool-registrar.js';
 
 export function registerBlockCard(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  readOnlyMode: boolean,
-  enabledTools?: string[]
+  registrar: ToolRegistrar,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  if (readOnlyMode || !shouldRegisterTool('block_card', enabledTools)) return;
-
-  server.registerTool(
+  registrar.registerTool(
     'block_card',
     {
       title: 'Block Card',
@@ -46,14 +37,10 @@ export function registerBlockCard(
 }
 
 export function registerUnblockCard(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  readOnlyMode: boolean,
-  enabledTools?: string[]
+  registrar: ToolRegistrar,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  if (readOnlyMode || !shouldRegisterTool('unblock_card', enabledTools)) return;
-
-  server.registerTool(
+  registrar.registerTool(
     'unblock_card',
     {
       title: 'Unblock Card',
@@ -79,11 +66,9 @@ export function registerUnblockCard(
 }
 
 export function registerCardBlockerTools(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  readOnlyMode: boolean,
-  enabledTools?: string[]
+  registrar: ToolRegistrar,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  registerBlockCard(server, clientOrFactory, readOnlyMode, enabledTools);
-  registerUnblockCard(server, clientOrFactory, readOnlyMode, enabledTools);
+  registerBlockCard(registrar, clientOrFactory);
+  registerUnblockCard(registrar, clientOrFactory);
 }

@@ -1,20 +1,15 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
 import { cardSizeSchema, moveCardSchema } from '@schemas/index.js';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  getClientForInstance,
-  shouldRegisterTool,
-} from '../base-tool.js';
+import { createErrorResponse, createSuccessResponse, getClientForInstance } from '../base-tool.js';
+import { ToolRegistrar } from '../../tool-registrar.js';
 
 export function registerMoveCard(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'move_card',
     {
       title: 'Move Card',
@@ -34,10 +29,10 @@ export function registerMoveCard(
 }
 
 export function registerSetCardSize(
-  server: McpServer,
+  registrar: ToolRegistrar,
   clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  server.registerTool(
+  registrar.registerTool(
     'set_card_size',
     {
       title: 'Set Card Size',
@@ -63,20 +58,11 @@ export function registerSetCardSize(
   );
 }
 
-/** Conditionally register all card move/position tools */
+/** Register all card move/position tools */
 export function registerCardMoveTools(
-  server: McpServer,
-  clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-  readOnlyMode: boolean,
-  enabledTools?: string[]
+  registrar: ToolRegistrar,
+  clientOrFactory: BusinessMapClient | BusinessMapClientFactory
 ): void {
-  // All move tools are write operations (only in non-read-only mode)
-  if (!readOnlyMode) {
-    if (shouldRegisterTool('move_card', enabledTools)) {
-      registerMoveCard(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('set_card_size', enabledTools)) {
-      registerSetCardSize(server, clientOrFactory);
-    }
-  }
+  registerMoveCard(registrar, clientOrFactory);
+  registerSetCardSize(registrar, clientOrFactory);
 }

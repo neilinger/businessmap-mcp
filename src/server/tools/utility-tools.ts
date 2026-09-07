@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { BusinessMapClient } from '@client/businessmap-client.js';
 import { BusinessMapClientFactory } from '@client/client-factory.js';
@@ -8,29 +7,23 @@ import {
   createErrorResponse,
   createSuccessResponse,
   getClientForInstance,
-  shouldRegisterTool,
 } from './base-tool.js';
+import { ToolRegistrar } from '../tool-registrar.js';
 
 export class UtilityToolHandler implements BaseToolHandler {
   registerTools(
-    server: McpServer,
-    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean,
-    enabledTools?: string[]
+    registrar: ToolRegistrar,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    if (shouldRegisterTool('health_check', enabledTools)) {
-      this.registerHealthCheck(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('get_api_info', enabledTools)) {
-      this.registerGetApiInfo(server, clientOrFactory);
-    }
+    this.registerHealthCheck(registrar, clientOrFactory);
+    this.registerGetApiInfo(registrar, clientOrFactory);
   }
 
   private registerHealthCheck(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'health_check',
       {
         title: 'Health Check',
@@ -57,10 +50,10 @@ export class UtilityToolHandler implements BaseToolHandler {
   }
 
   private registerGetApiInfo(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_api_info',
       {
         title: 'Get API Info',

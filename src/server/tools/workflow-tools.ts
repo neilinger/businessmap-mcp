@@ -1,4 +1,3 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import { logger } from '@utils/logger.js';
 import { BusinessMapClient } from '@client/businessmap-client.js';
@@ -9,29 +8,23 @@ import {
   createErrorResponse,
   createSuccessResponse,
   getClientForInstance,
-  shouldRegisterTool,
 } from './base-tool.js';
+import { ToolRegistrar } from '../tool-registrar.js';
 
 export class WorkflowToolHandler implements BaseToolHandler {
   registerTools(
-    server: McpServer,
-    clientOrFactory: BusinessMapClient | BusinessMapClientFactory,
-    readOnlyMode: boolean,
-    enabledTools?: string[]
+    registrar: ToolRegistrar,
+    clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    if (shouldRegisterTool('get_workflow_cycle_time_columns', enabledTools)) {
-      this.registerGetWorkflowCycleTimeColumns(server, clientOrFactory);
-    }
-    if (shouldRegisterTool('get_workflow_effective_cycle_time_columns', enabledTools)) {
-      this.registerGetWorkflowEffectiveCycleTimeColumns(server, clientOrFactory);
-    }
+    this.registerGetWorkflowCycleTimeColumns(registrar, clientOrFactory);
+    this.registerGetWorkflowEffectiveCycleTimeColumns(registrar, clientOrFactory);
   }
 
   private registerGetWorkflowCycleTimeColumns(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_workflow_cycle_time_columns',
       {
         title: 'Get Workflow Cycle Time Columns',
@@ -55,10 +48,10 @@ export class WorkflowToolHandler implements BaseToolHandler {
   }
 
   private registerGetWorkflowEffectiveCycleTimeColumns(
-    server: McpServer,
+    registrar: ToolRegistrar,
     clientOrFactory: BusinessMapClient | BusinessMapClientFactory
   ): void {
-    server.registerTool(
+    registrar.registerTool(
       'get_workflow_effective_cycle_time_columns',
       {
         title: 'Get Workflow Effective Cycle Time Columns',
