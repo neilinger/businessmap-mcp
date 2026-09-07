@@ -44,7 +44,7 @@ export class CustomFieldClient extends BaseClientModuleImpl {
     page_size?: number;
     field_type?: string;
   }): Promise<ApiResponse<CustomField[]>> {
-    const response = await this.http.get<ApiResponse<CustomField[]>>('/custom_fields', {
+    const response = await this.http.get<ApiResponse<CustomField[]>>('/customFields', {
       params,
     });
     return response.data;
@@ -59,7 +59,7 @@ export class CustomFieldClient extends BaseClientModuleImpl {
       `customFields:board:${boardId}`,
       async () => {
         const response = await this.http.get<ApiResponse<CustomField[]>>(
-          `/boards/${boardId}/custom_fields`
+          `/boards/${boardId}/customFields`
         );
         return response.data.data;
       },
@@ -76,7 +76,7 @@ export class CustomFieldClient extends BaseClientModuleImpl {
       `customField:${customFieldId}`,
       async () => {
         const response = await this.http.get<ApiResponse<CustomField>>(
-          `/custom_fields/${customFieldId}`
+          `/customFields/${customFieldId}`
         );
         return response.data.data;
       },
@@ -103,7 +103,7 @@ export class CustomFieldClient extends BaseClientModuleImpl {
     this.checkReadOnlyMode('create custom field');
 
     const response = await this.http.post<ApiResponse<CustomField>>(
-      `/boards/${params.board_id}/custom_fields`,
+      `/boards/${params.board_id}/customFields`,
       params
     );
 
@@ -133,7 +133,7 @@ export class CustomFieldClient extends BaseClientModuleImpl {
     this.checkReadOnlyMode('update custom field');
 
     const response = await this.http.patch<ApiResponse<CustomField>>(
-      `/custom_fields/${customFieldId}`,
+      `/customFields/${customFieldId}`,
       params
     );
 
@@ -150,7 +150,7 @@ export class CustomFieldClient extends BaseClientModuleImpl {
   async deleteCustomField(customFieldId: number): Promise<void> {
     this.checkReadOnlyMode('delete custom field');
 
-    await this.http.delete(`/custom_fields/${customFieldId}`);
+    await this.http.delete(`/customFields/${customFieldId}`);
 
     // Invalidate cache for this custom field and all board custom field lists
     this.cache.invalidate(`customField:${customFieldId}`);
